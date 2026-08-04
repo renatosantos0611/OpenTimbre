@@ -54,7 +54,13 @@
   logic bug in a coordinator fix (ampCore invariant blind to its own motivating scenario),
   corrected, independently RED→GREEN-proven twice (different fixtures) by both reviewer and
   coordinator; both lenses PASS
-- next: dispatch Task 6 (Gojira plugin descriptor) to a subagent
+- Task 6/10 ✅ 2026-08-04 — Gojira descriptor, 111 CCs transcribed; spec lens caught the
+  implementer using an unauthorized external repo instead of legacy's own git HEAD for the
+  cross-check source (data was correct, docstring provenance was false) — fixed, independently
+  re-verified twice against the real source (19-value sample, zero discrepancies); process note
+  added to profile.md; both lenses PASS
+- next: dispatch Task 7 (scene planning + provider protocol) to a subagent — the largest
+  remaining task
 - pending: none
 
 ## History

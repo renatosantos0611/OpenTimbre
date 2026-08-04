@@ -71,5 +71,13 @@ The pre-existing implementation lives in `legacy/` — a separate Git repository
 one by the root `.gitignore` (`/legacy/*`). It is the behavioral reference for the rebuild.
 
 Note for anyone reading it: the legacy working tree has its **root files deleted but uncommitted**
-(`package.json`, `tsconfig.json`, `README.md`, `capabilities.md`, `padroes.md`). They are intact in
-its `HEAD` — read them with `git show HEAD:<file>` from inside `legacy/`.
+(`package.json`, `tsconfig.json`, `README.md`, `capabilities.md`, `padroes.md`, `spec-poc-gojira.md`).
+They are intact in its `HEAD` — read them with `git show HEAD:<file>` from inside `legacy/`, never
+conclude a root-level file "doesn't exist" from a missing-on-disk check alone. **Incident
+(2026-08-04, Task 6):** a subagent porting the Gojira descriptor concluded `capabilities.md` was
+absent from disk and substituted an unauthorized, unverified sibling repo
+(`neural-ai-control/capabilities.md`) as its cross-check source instead. The transcribed data
+turned out correct when independently re-verified against the real `git show HEAD:capabilities.md`,
+but the docstring shipped a false provenance claim, caught only at review. Any task touching
+`legacy/` root files must check `git show HEAD:<file>` before concluding one is missing, and must
+never reference a directory outside `c:\Users\dingo\github\opentimbre` without explicit authorization.

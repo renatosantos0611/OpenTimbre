@@ -4,10 +4,11 @@
  * walk this array rather than importing a specific plugin's descriptor, per
  * `opentimbre-plugin-spec`.
  *
- * Empty for now: this task defines the `PluginSpec` shape (`types.ts`) but
- * ports no plugin's actual data yet. A later task fills this in — one
- * descriptor and one line here per plugin — without touching anything else.
+ * Gojira is the first entry ported from legacy. Soldano and Tim Henson are
+ * later tasks — one descriptor and one line here each, without touching
+ * anything else.
  */
+import { gojiraSpec } from './gojira.ts'
 import type { PluginSpec } from './types.ts'
 
-export const CATALOG: PluginSpec[] = []
+export const CATALOG: PluginSpec[] = [gojiraSpec]
