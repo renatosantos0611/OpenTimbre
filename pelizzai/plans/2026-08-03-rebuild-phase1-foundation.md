@@ -72,6 +72,13 @@ Each phase gets its own plan, written after the previous phase validates:
   layer in this plan — real-hardware behavior is unverified → accepted by the user in discovery
   (2026-08-03) and re-stated here; hardware verification is explicitly Phase 4, not silently
   assumed done by Task 9's green tests.
+- Task 7's `anthropic.ts`/`openai.ts` SDK adapters have no dedicated test file (unlike
+  `tool-use.ts`, `resolve.ts`, `rig-schema.ts`, all in the same task) → flagged by the quality-lens
+  review (2026-08-04). Verified this matches legacy's own testing boundary exactly — legacy has no
+  `providers/anthropic.test.ts`/`openai.test.ts` either, only `tool-use.test.ts` at the protocol
+  level. Accepted as parity, not a regression, since the ratified scope is "same features, better
+  built," not new coverage legacy itself never had. Revisit if `findToolUse`/`parseArgs`/`classify`
+  prove fragile in practice.
 - Task 4's key-store `configure()` resets its captured-environment snapshot on every call, not
   only on an actual file change → safe today (no host calls it twice), but if Phase 3's Electron
   main ever calls `configure()` more than once after an app key was already applied to

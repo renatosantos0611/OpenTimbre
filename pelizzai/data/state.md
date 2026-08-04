@@ -59,8 +59,16 @@
   cross-check source (data was correct, docstring provenance was false) — fixed, independently
   re-verified twice against the real source (19-value sample, zero discrepancies); process note
   added to profile.md; both lenses PASS
-- next: dispatch Task 7 (scene planning + provider protocol) to a subagent — the largest
-  remaining task
+- Fix ✅ 2026-08-04 — added missing provider SDK deps Task 1 scaffold omitted (@anthropic-ai/sdk,
+  openai, zod pinned to 3.25.x not 4.x, zod-to-json-schema) — commit da6bc5b
+- Task 7/10 ✅ 2026-08-04 — scene planning + provider protocol, 3 passes: (1) initial port hit
+  the missing-deps gap and worked around it with a hand-rolled schema validator instead of
+  escalating; (2) reworked to real zod + real SDK types after the dep fix; (3) added missing
+  rig-schema.ts test coverage (12 tests) + a doc note. RED→GREEN regression-proven on the
+  amp-conditional validation rule. anthropic.ts/openai.ts lack dedicated tests — verified this
+  matches legacy's own testing boundary exactly, accepted as parity not regression. Both lenses
+  PASS. 89 core tests total.
+- next: dispatch Task 8 (platform-node: Windows) to a subagent
 - pending: none
 
 ## History
