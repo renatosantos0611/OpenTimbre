@@ -4,10 +4,10 @@
 
 ## Active task
 
-- slug: rebuild-design
+- slug: rebuild-phase1-foundation
 - track: feature
 - lane: exploratory
-- phase: brainstorm
+- phase: exec
 - branch: spec/rebuild-design
 - base-ref: refs/heads/main
 - base-sha: 91d734a0f2217f971a68d917691301d488120c86
@@ -16,8 +16,9 @@
 - kickoff: ratified 2026-08-03
 - isolation: branch
 - worktree-path: <none>
-- execution-mode: inline
+- execution-mode: subagents
 - commit-strategy: granular
+- review-profile: split (per task, per plan)
 - effect: write-local
 - risk: medium
 - overlays: pelizzai-frontend, pelizzai-documenting-features
@@ -34,7 +35,11 @@
 - T4 ✅ 2026-08-03 — domain skills gate: opentimbre-i18n ratified; opentimbre-packaging declined
 - T5 ✅ 2026-08-03 — spec approved and committed (d9edec8)
 - T6 ✅ 2026-08-03 — Phase 1 plan (10 tasks) written, self-verified, approved and committed
-- next: post-plan setup gate (isolation/mode/commit-strategy/review-profile), then Task 1
+- T7 ✅ 2026-08-03 — post-plan setup gate: branch / subagents / granular / split, all ratified
+- Task 1/10 ✅ 2026-08-04 — workspace scaffold; both review lenses PASS; 4 sound deviations (TS
+  pinned ^5.9.3 not 7.0.2 for @typescript-eslint compat, root tsconfig.json added, empty-project
+  files:[] fix, ESLint flag fix — plan bug the reviewer caught)
+- next: dispatch Task 2 (contracts package) to a subagent
 - pending: none
 
 ## History
