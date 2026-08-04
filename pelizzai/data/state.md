@@ -1,38 +1,42 @@
 # Task state — PelizzAI
 
 > Cursor of the active task. Lives in `pelizzai/data/state.md`.
-> Doctrine — who writes each field, the Delivery lifecycle (`delivered` → `done`), reconciliation,
-> and history hygiene — lives in `pelizzai-execution-plans` → SKILL.md §State and resumption.
-> No active task = `slug: <none>`. `phase: blocked` = stuck, awaiting a human decision.
 
 ## Active task
 
-- slug: bootstrap-harness
-- track: infra
-- lane: bounded
-- phase: delivered
-- branch: chore/bootstrap-harness
+- slug: rebuild-design
+- track: feature
+- lane: exploratory
+- phase: brainstorm
+- branch: spec/rebuild-design
 - base-ref: refs/heads/main
-- base-sha: 82d608575423558d0a5b55a62ff4a91ec45133e5
-- validated-head: 50472f7ead74176f79c2b9989fc3e5a75f420e39
-- confirm: local delivery accepted by the user
+- base-sha: 91d734a0f2217f971a68d917691301d488120c86
+- validated-head: <none>
+- confirm: <none>
 - kickoff: ratified 2026-08-03
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
 - commit-strategy: granular
 - effect: write-local
-- risk: low
-- overlays: none
+- risk: medium
+- overlays: pelizzai-frontend, pelizzai-documenting-features
 - audience: technical
-- spec: not-applicable
-- plan: not-applicable
+- spec: pending
+- plan: pending
 - project: c:/Users/dingo/github/opentimbre
 
 ## Progress
 
-- next: route the rebuild itself — kickoff gate, exploratory lane
-- pending: see the carried-forward gaps in data/history/2026-08-03-bootstrap-harness.md
+- T1 ✅ 2026-08-03 — discovery interview: 9 gaps closed (i18n, macOS-unverified, electron-builder,
+  parity-not-features, fresh-start, auto-update/GitHub, no code signing)
+- T2 ✅ 2026-08-03 — design presented and approved (npm workspaces, core-boundary via package
+  walls, shared IPC contract, i18n message catalog, node:test/Vitest split)
+- T3 ✅ 2026-08-03 — design stress: 2 more gaps closed (CLI Node ≥22.12, shared locale setting)
+- T4 ✅ 2026-08-03 — domain skills gate: opentimbre-i18n created and ratified; opentimbre-packaging
+  drafted then declined (committed c948af2, after fixing a branch/gate process slip)
+- next: write and persist the spec, then hand off to pelizzai-writing-plans
+- pending: none
 
 ## History
 
