@@ -50,7 +50,11 @@
 - Task 4/10 ✅ 2026-08-04 — core key-store/secrets; both lenses PASS, zero plaintext-leak paths
   (independently verified), RED→GREEN proof; one dormant risk flagged forward to Phase 3 in
   the plan's Exposed material gaps (configure() reset-on-every-call)
-- next: dispatch Task 5 (plugin spec type + scales + amp strategies) to a subagent
+- Task 5/10 ✅ 2026-08-04 — plugin spec type, scales, amp strategies; spec lens found a real
+  logic bug in a coordinator fix (ampCore invariant blind to its own motivating scenario),
+  corrected, independently RED→GREEN-proven twice (different fixtures) by both reviewer and
+  coordinator; both lenses PASS
+- next: dispatch Task 6 (Gojira plugin descriptor) to a subagent
 - pending: none
 
 ## History
