@@ -39,7 +39,9 @@
 - Task 1/10 ✅ 2026-08-04 — workspace scaffold; both review lenses PASS; 4 sound deviations (TS
   pinned ^5.9.3 not 7.0.2 for @typescript-eslint compat, root tsconfig.json added, empty-project
   files:[] fix, ESLint flag fix — plan bug the reviewer caught)
-- next: dispatch Task 2 (contracts package) to a subagent
+- Task 2/10 ✅ 2026-08-04 — contracts package (IPC + i18n types); 19 channels + 3 events, exact
+  parity with legacy's actual (uncommitted) IPC surface; both lenses PASS
+- next: dispatch Task 3 (core ports + i18n resolver) to a subagent
 - pending: none
 
 ## History
