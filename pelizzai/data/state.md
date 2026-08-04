@@ -22,20 +22,19 @@
 - risk: medium
 - overlays: pelizzai-frontend, pelizzai-documenting-features
 - audience: technical
-- spec: pending
-- plan: pending
+- spec: pelizzai/specs/2026-08-03-rebuild-design.md approved 2026-08-03
+- plan: pelizzai/plans/2026-08-03-rebuild-phase1-foundation.md approved 2026-08-03
 - project: c:/Users/dingo/github/opentimbre
 
 ## Progress
 
-- T1 ✅ 2026-08-03 — discovery interview: 9 gaps closed (i18n, macOS-unverified, electron-builder,
-  parity-not-features, fresh-start, auto-update/GitHub, no code signing)
-- T2 ✅ 2026-08-03 — design presented and approved (npm workspaces, core-boundary via package
-  walls, shared IPC contract, i18n message catalog, node:test/Vitest split)
-- T3 ✅ 2026-08-03 — design stress: 2 more gaps closed (CLI Node ≥22.12, shared locale setting)
-- T4 ✅ 2026-08-03 — domain skills gate: opentimbre-i18n created and ratified; opentimbre-packaging
-  drafted then declined (committed c948af2, after fixing a branch/gate process slip)
-- next: write and persist the spec, then hand off to pelizzai-writing-plans
+- T1 ✅ 2026-08-03 — discovery interview: 9 gaps closed
+- T2 ✅ 2026-08-03 — design presented and approved
+- T3 ✅ 2026-08-03 — design stress: 2 more gaps closed
+- T4 ✅ 2026-08-03 — domain skills gate: opentimbre-i18n ratified; opentimbre-packaging declined
+- T5 ✅ 2026-08-03 — spec approved and committed (d9edec8)
+- T6 ✅ 2026-08-03 — Phase 1 plan (10 tasks) written, self-verified, approved and committed
+- next: post-plan setup gate (isolation/mode/commit-strategy/review-profile), then Task 1
 - pending: none
 
 ## History
