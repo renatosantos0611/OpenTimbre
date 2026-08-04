@@ -4,7 +4,11 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@opentimbre/contracts": "*"
+    "@opentimbre/contracts": "*",
+    "@anthropic-ai/sdk": "^0.115.0",
+    "openai": "^7.4.0",
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.25.2"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
