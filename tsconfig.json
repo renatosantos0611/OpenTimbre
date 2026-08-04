@@ -1,9 +1,0 @@
-{
-  "files": [],
-  "references": [
-    { "path": "contracts" },
-    { "path": "packages/core" },
-    { "path": "packages/platform-node" },
-    { "path": "packages/cli" }
-  ]
-}
