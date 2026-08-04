@@ -1,0 +1,12 @@
+{
+  "plugin.state.ok": "mapeamento atualizado",
+  "plugin.state.outdated": "mapeamento desatualizado",
+  "plugin.state.missing": "mapeamento ausente",
+  "chat.status.querying": "pensando…",
+  "chat.status.validating": "verificando a resposta…",
+  "chat.status.correcting": "corrigindo um erro…",
+  "keys.source.app": "salva no aplicativo",
+  "keys.source.environment": "vinda do ambiente",
+  "keys.source.none": "não definida",
+  "error.generic": "Algo deu errado."
+}

@@ -41,7 +41,13 @@
   files:[] fix, ESLint flag fix — plan bug the reviewer caught)
 - Task 2/10 ✅ 2026-08-04 — contracts package (IPC + i18n types); 19 channels + 3 events, exact
   parity with legacy's actual (uncommitted) IPC surface; both lenses PASS
-- next: dispatch Task 3 (core ports + i18n resolver) to a subagent
+- Fix ✅ 2026-08-04 — scaffold fix (0183829): dropped composite/TS-project-refs for plain
+  workspace resolution, added @types/node, excluded legacy/ from ESLint; npm run check now
+  genuinely green (Task 1/2 had only passed vacuously on empty source trees)
+- Task 3/10 ✅ 2026-08-04 — core ports + i18n resolver; both lenses PASS after fixing 2 Important
+  findings (silent raw-key fallback → throws; phantom @opentimbre/contracts dependency →
+  declared); RED→GREEN regression proof for the throw fix
+- next: dispatch Task 4 (core key-store/secrets) to a subagent
 - pending: none
 
 ## History

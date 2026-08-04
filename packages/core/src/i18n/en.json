@@ -1,0 +1,13 @@
+{
+  "plugin.state.ok": "mapping up to date",
+  "plugin.state.outdated": "mapping outdated",
+  "plugin.state.missing": "mapping missing",
+  "plugin.notMapped": "the {amp} amp isn't mapped yet — applying to {fallback}",
+  "chat.status.querying": "thinking…",
+  "chat.status.validating": "checking the response…",
+  "chat.status.correcting": "fixing a mistake…",
+  "keys.source.app": "saved in the app",
+  "keys.source.environment": "from the environment",
+  "keys.source.none": "not set",
+  "error.generic": "Something went wrong."
+}
