@@ -47,7 +47,10 @@
 - Task 3/10 ✅ 2026-08-04 — core ports + i18n resolver; both lenses PASS after fixing 2 Important
   findings (silent raw-key fallback → throws; phantom @opentimbre/contracts dependency →
   declared); RED→GREEN regression proof for the throw fix
-- next: dispatch Task 4 (core key-store/secrets) to a subagent
+- Task 4/10 ✅ 2026-08-04 — core key-store/secrets; both lenses PASS, zero plaintext-leak paths
+  (independently verified), RED→GREEN proof; one dormant risk flagged forward to Phase 3 in
+  the plan's Exposed material gaps (configure() reset-on-every-call)
+- next: dispatch Task 5 (plugin spec type + scales + amp strategies) to a subagent
 - pending: none
 
 ## History

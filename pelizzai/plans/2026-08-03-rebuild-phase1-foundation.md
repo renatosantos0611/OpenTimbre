@@ -72,6 +72,14 @@ Each phase gets its own plan, written after the previous phase validates:
   layer in this plan — real-hardware behavior is unverified → accepted by the user in discovery
   (2026-08-03) and re-stated here; hardware verification is explicitly Phase 4, not silently
   assumed done by Task 9's green tests.
+- Task 4's key-store `configure()` resets its captured-environment snapshot on every call, not
+  only on an actual file change → safe today (no host calls it twice), but if Phase 3's Electron
+  main ever calls `configure()` more than once after an app key was already applied to
+  `process.env` (idempotent re-init, settings reload, hot-reload), the next capture would snapshot
+  the already-overwritten value as "original," and a later `remove()` would restore the wrong
+  value. Flagged by Task 4's quality-lens review (2026-08-04) → resolution deferred to whichever
+  task first wires a real host caller (Phase 3): either enforce "call `configure({file})` exactly
+  once" as a hard contract, or change the reset to fire only on an actual file-value change.
 ```
 
 ## Technical decisions in this plan
