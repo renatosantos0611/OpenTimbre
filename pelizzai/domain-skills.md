@@ -92,11 +92,25 @@
 - **Stack / area:** all
 - **Files / areas covered:** every file
 - **Grounded in:** legacy `padroes.md` (Ousterhout, applied)
-- **Open item:** the language of comments and user-facing text is `<pending ratification>` — the
-  legacy is Portuguese; the rebuild has not decided. Update the skill when ratified.
+- **Resolved 2026-08-03:** the language question is answered by `opentimbre-i18n` (bilingual UI,
+  English-only code/comments) — no longer pending.
+
+## opentimbre-i18n
+
+- **What it does:** governs how English/Portuguese strings flow through a framework-agnostic
+  message catalog in `core`, shared by the CLI, main process, and Angular renderer, with one
+  locale setting persisted across all three surfaces.
+- **When to use:** writing any user-facing text; adding a string; touching locale detection or
+  the locale setting; working in `en.json`/`pt.json`.
+- **Stack / area:** i18n, all layers
+- **Files / areas covered:** `packages/core/i18n/`, every user-facing string in every surface,
+  the `prompts/*.en.md`/`*.pt.md` split
+- **Grounded in:** internal convention (design decision: full i18n, ratified 2026-08-03), Angular
+  22 standalone/signal patterns already grounded in `opentimbre-angular-ui`
 
 ## Deferred (proposed, not created)
 
 - **`opentimbre-packaging`** — installers and native-module packaging for Windows and macOS.
-  Deferred at bootstrap because it presumes a packaging tool (electron-builder vs Electron Forge)
-  that has not been chosen. Propose again at the design→plan edge.
+  Deferred a second time on 2026-08-03: drafted and grounded in electron-builder docs once the
+  tool was chosen, but declined at the confirmation gate (only `opentimbre-i18n` was approved).
+  Propose again when packaging work actually starts.
