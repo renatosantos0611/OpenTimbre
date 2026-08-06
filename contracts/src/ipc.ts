@@ -42,7 +42,6 @@ export type Guitar = {
   tuning: string
   strings: number
 }
-
 export type GuitarUsage = {
   pickupPosition: string
   volume: number
