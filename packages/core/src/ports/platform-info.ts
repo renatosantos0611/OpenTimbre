@@ -4,11 +4,12 @@
  * `platform-node` implements one `PlatformInfo` per OS (per
  * `opentimbre-cross-platform`); the core only ever sees these two methods.
  *
- * `appInfo` is `unknown` here on purpose — the real shape (the plugin's app
- * name, its settings-file naming convention) arrives with the plugin-spec
- * task. Committing to a shape now would be inventing it ahead of that task.
+ * `appInfo` was `unknown` here on purpose while `AppInfo` didn't exist yet —
+ * now that the plugin-spec task defined it, the parameter is typed for real.
  */
+import type { AppInfo } from '../plugins/types.ts'
+
 export type PlatformInfo = {
   isRunning(processName: string): Promise<boolean>
-  settingsDir(appInfo: unknown): string
+  settingsDir(appInfo: AppInfo): string
 }

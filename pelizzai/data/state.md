@@ -68,7 +68,15 @@
   amp-conditional validation rule. anthropic.ts/openai.ts lack dedicated tests — verified this
   matches legacy's own testing boundary exactly, accepted as parity not regression. Both lenses
   PASS. 89 core tests total.
-- next: dispatch Task 8 (platform-node: Windows) to a subagent
+- Fix ✅ 2026-08-04 — added platform-node's missing @julusian/midi + @opentimbre/core deps
+  proactively, plus allowScripts entry — commit e5970a1
+- Task 8/10 ✅ 2026-08-04 — Windows platform (MIDI transport, process detection, settings path).
+  Spec lens caught a real HIGH-severity bug: a static `@julusian/midi/lazy` import loaded the
+  real native binding merely by importing the module (proven empirically), contradicting the
+  hard "never load in tests" constraint. Fixed with createRequire-deferred loading, RED→GREEN
+  regression-proven independently by the quality lens (fresh node processes, reverted-then-
+  restored). AppInfo port typing upgraded from unknown to real. Both lenses PASS. 100 tests total.
+- next: dispatch Task 9 (platform-node: macOS, explicitly unverified) to a subagent
 - pending: none
 
 ## History
