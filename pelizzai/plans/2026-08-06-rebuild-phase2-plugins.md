@@ -392,7 +392,7 @@ under the commit strategy ratified at setup. Review profile: split.
 - [x] **Step 9: Split final review of the full Phase 2 diff; fix/re-review; rerun `npm.cmd run check`
   after any code, mapping, or prompt change; repeat the affected real probe after any selector/XML
   change.**
-- [ ] **Step 10: Seal the exact validated HEAD and hand off to `pelizzai-finish-task`.**
+- [x] **Step 10: Seal the exact validated HEAD and hand off to `pelizzai-finish-task`.**
 
 **Completion criterion:** automated checks are green; `capabilities.md` records export evidence,
 the user-waived selector boundary, and its limits; the validated content is the reviewed content.
