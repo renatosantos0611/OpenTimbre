@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Mapa MIDI completo do Neural DSP Archetype: Gojira (v1.0.0).
+
+  118 parametros, CC 1..118, canal 1 (channel="0", 0-indexed) — o mesmo canal que
+  a app usa (status byte 0xB0). CC 0 e CC 119..127 ficam livres de proposito:
+  0/32 sao Bank Select e 120..127 sao Channel Mode em alguns hosts.
+
+  Os nomes em parameter="" sao os IDs internos do plugin, extraidos do binario
+  (Archetype Gojira.vst3) — nao sao os rotulos da GUI. Equivalencia:
+    clean  = CLN  (Fender Twin Reverb)
+    rhythm = RUST (EVH 5150 III Blue)
+    lead   = HOT  (EVH 5150 III Red)
+    pedal2 = OD (SD-1) · pedal3 = DRT (ProCo Rat) · pedal4 = PHSR (Phase 90)
+    pedal5 = CHR (chorus) · whammy = WOW · octaver = OCT
+
+  CC 20..28 sao identicos ao mapeamento anterior, ja validado na Fase 0 — nada
+  do que ja funciona muda de numero.
+
+  Instalacao: copie este arquivo para
+    %APPDATA%\Neural DSP\Archetype Gojira\MIDI Mappings\
+  e carregue em Settings -> MIDI Mappings -> Load.
+-->
+
+<midi>
+  <routings plugin_type="neural_dsp_gojira" plugin_name="Archetype Gojira"
+            plugin_version="1.0.0">
+
+    <!-- ============================ GLOBAL / MASTER ======================= -->
+    <routing parameter="inputGain" type="cc_value" channel="0" enabled="1" cc="1"/>
+    <routing parameter="outputGain" type="cc_value" channel="0" enabled="1" cc="2"/>
+    <routing parameter="gateThreshold" type="cc_value" channel="0" enabled="1" cc="3"/>
+
+    <!-- ===================== BYPASS DE SECAO (barra superior) ============= -->
+    <routing parameter="pitchActive" type="cc_value" channel="0" enabled="1" cc="4"/>
+    <routing parameter="pedalsActive" type="cc_value" channel="0" enabled="1" cc="5"/>
+    <routing parameter="ampsActive" type="cc_value" channel="0" enabled="1" cc="6"/>
+    <routing parameter="eqActive" type="cc_value" channel="0" enabled="1" cc="7"/>
+    <routing parameter="cabActive" type="cc_value" channel="0" enabled="1" cc="8"/>
+    <routing parameter="fxActive" type="cc_value" channel="0" enabled="1" cc="9"/>
+
+    <!-- =========================== SELETOR DE AMP ========================= -->
+    <!-- 0-31 CLN · 32-95 RUST · 96-127 HOT -->
+    <routing parameter="ampType" type="cc_value" channel="0" enabled="1" cc="20"/>
+
+    <!-- ===================== AMP CLN (clean / Twin Reverb) ================ -->
+    <!-- nao tem Gain: o Volume e o estagio de ganho; nao tem Presence/Resonance -->
+    <routing parameter="cleanAmpVolume" type="cc_value" channel="0" enabled="1" cc="10"/>
+    <routing parameter="cleanAmpBass" type="cc_value" channel="0" enabled="1" cc="11"/>
+    <routing parameter="cleanAmpMid" type="cc_value" channel="0" enabled="1" cc="12"/>
+    <routing parameter="cleanAmpTreble" type="cc_value" channel="0" enabled="1" cc="13"/>
+    <routing parameter="cleanAmpBright" type="cc_value" channel="0" enabled="1" cc="14"/>
+    <routing parameter="cleanAmpOutput" type="cc_value" channel="0" enabled="1" cc="15"/>
+
+    <!-- ================== AMP RUST (rhythm / 5150 III Blue) =============== -->
+    <!-- ja validado na Fase 0 — nao renumerar -->
+    <routing parameter="rhythmAmpGain" type="cc_value" channel="0" enabled="1" cc="21"/>
+    <routing parameter="rhythmAmpBass" type="cc_value" channel="0" enabled="1" cc="22"/>
+    <routing parameter="rhythmAmpMid" type="cc_value" channel="0" enabled="1" cc="23"/>
+    <routing parameter="rhythmAmpTreble" type="cc_value" channel="0" enabled="1" cc="24"/>
+    <routing parameter="rhythmAmpVolume" type="cc_value" channel="0" enabled="1" cc="25"/>
+    <routing parameter="rhythmAmpOutput" type="cc_value" channel="0" enabled="1" cc="26"/>
+    <routing parameter="rhythmAmpPresence" type="cc_value" channel="0" enabled="1" cc="27"/>
+    <routing parameter="rhythmAmpResonance" type="cc_value" channel="0" enabled="1" cc="28"/>
+
+    <!-- =================== AMP HOT (lead / 5150 III Red) ================== -->
+    <routing parameter="leadAmpGain" type="cc_value" channel="0" enabled="1" cc="65"/>
+    <routing parameter="leadAmpBass" type="cc_value" channel="0" enabled="1" cc="66"/>
+    <routing parameter="leadAmpMid" type="cc_value" channel="0" enabled="1" cc="67"/>
+    <routing parameter="leadAmpTreble" type="cc_value" channel="0" enabled="1" cc="68"/>
+    <routing parameter="leadAmpVolume" type="cc_value" channel="0" enabled="1" cc="69"/>
+    <routing parameter="leadAmpOutput" type="cc_value" channel="0" enabled="1" cc="70"/>
+    <routing parameter="leadAmpPresence" type="cc_value" channel="0" enabled="1" cc="71"/>
+    <routing parameter="leadAmpResonance" type="cc_value" channel="0" enabled="1" cc="72"/>
+
+    <!-- ======================== PEDAL WOW (whammy) ======================== -->
+    <!-- whammyType: Whammy / Harmony / Detune -->
+    <routing parameter="whammyActive" type="cc_value" channel="0" enabled="1" cc="16"/>
+    <routing parameter="whammyType" type="cc_value" channel="0" enabled="1" cc="17"/>
+    <routing parameter="whammyPosition" type="cc_value" channel="0" enabled="1" cc="18"/>
+    <routing parameter="whammyMix" type="cc_value" channel="0" enabled="1" cc="19"/>
+
+    <!-- ======================== PEDAL OCT (octaver) ======================= -->
+    <routing parameter="octaverActive" type="cc_value" channel="0" enabled="1" cc="35"/>
+    <routing parameter="octaverOct1Level" type="cc_value" channel="0" enabled="1" cc="29"/>
+    <routing parameter="octaverOct2Level" type="cc_value" channel="0" enabled="1" cc="36"/>
+    <routing parameter="octaverDirectLevel" type="cc_value" channel="0" enabled="1" cc="37"/>
+
+    <!-- ==================== PEDAL OD (overdrive / SD-1) =================== -->
+    <routing parameter="pedal2Active" type="cc_value" channel="0" enabled="1" cc="40"/>
+    <routing parameter="pedal2Overdrive" type="cc_value" channel="0" enabled="1" cc="41"/>
+    <routing parameter="pedal2Tone" type="cc_value" channel="0" enabled="1" cc="42"/>
+    <routing parameter="pedal2Level" type="cc_value" channel="0" enabled="1" cc="43"/>
+
+    <!-- =================== PEDAL DRT (distortion / Rat) =================== -->
+    <routing parameter="pedal3Active" type="cc_value" channel="0" enabled="1" cc="44"/>
+    <routing parameter="pedal3Distortion" type="cc_value" channel="0" enabled="1" cc="45"/>
+    <routing parameter="pedal3Filter" type="cc_value" channel="0" enabled="1" cc="46"/>
+    <routing parameter="pedal3Volume" type="cc_value" channel="0" enabled="1" cc="47"/>
+
+    <!-- ==================== PEDAL PHSR (phaser / Phase 90) ================ -->
+    <routing parameter="pedal4Active" type="cc_value" channel="0" enabled="1" cc="30"/>
+    <routing parameter="pedal4LfoRate" type="cc_value" channel="0" enabled="1" cc="31"/>
+
+    <!-- ========================= PEDAL CHR (chorus) ======================= -->
+    <routing parameter="pedal5Active" type="cc_value" channel="0" enabled="1" cc="32"/>
+    <routing parameter="pedal5Depth" type="cc_value" channel="0" enabled="1" cc="33"/>
+    <routing parameter="pedal5Mix" type="cc_value" channel="0" enabled="1" cc="34"/>
+    <routing parameter="pedal5Rate" type="cc_value" channel="0" enabled="1" cc="38"/>
+    <routing parameter="pedal5Feedback" type="cc_value" channel="0" enabled="1" cc="39"/>
+
+    <!-- ============================== DELAY =============================== -->
+    <routing parameter="delayActive" type="cc_value" channel="0" enabled="1" cc="50"/>
+    <routing parameter="delayDryWet" type="cc_value" channel="0" enabled="1" cc="51"/>
+    <routing parameter="delayTempo" type="cc_value" channel="0" enabled="1" cc="52"/>
+    <routing parameter="delayFeedback" type="cc_value" channel="0" enabled="1" cc="53"/>
+    <routing parameter="delayTone" type="cc_value" channel="0" enabled="1" cc="48"/>
+    <routing parameter="delaySyncActive" type="cc_value" channel="0" enabled="1" cc="49"/>
+    <routing parameter="delaySyncNote" type="cc_value" channel="0" enabled="1" cc="54"/>
+    <routing parameter="delayPingPong" type="cc_value" channel="0" enabled="1" cc="55"/>
+    <routing parameter="delayModActive" type="cc_value" channel="0" enabled="1" cc="56"/>
+    <routing parameter="delayTapeSaturation" type="cc_value" channel="0" enabled="1" cc="57"/>
+    <routing parameter="delayTapTempo" type="cc_value" channel="0" enabled="1" cc="58"/>
+
+    <!-- ============================== REVERB ============================== -->
+    <routing parameter="reverbActive" type="cc_value" channel="0" enabled="1" cc="60"/>
+    <routing parameter="reverbDryWet" type="cc_value" channel="0" enabled="1" cc="61"/>
+    <routing parameter="reverbTime" type="cc_value" channel="0" enabled="1" cc="62"/>
+    <routing parameter="reverbLowCut" type="cc_value" channel="0" enabled="1" cc="59"/>
+    <routing parameter="reverbHighCut" type="cc_value" channel="0" enabled="1" cc="63"/>
+    <routing parameter="reverbMode" type="cc_value" channel="0" enabled="1" cc="64"/>
+
+    <!-- ============================ CABINET =============================== -->
+    <!-- cabAmpLinked=1 faz o cab seguir o amp selecionado; desligue para
+         escolher o cab a mao via cabType -->
+    <routing parameter="cabType" type="cc_value" channel="0" enabled="1" cc="73"/>
+    <routing parameter="cabAmpLinked" type="cc_value" channel="0" enabled="1" cc="74"/>
+
+    <routing parameter="cab1Active" type="cc_value" channel="0" enabled="1" cc="75"/>
+    <routing parameter="cab1MicIR" type="cc_value" channel="0" enabled="1" cc="76"/>
+    <routing parameter="cab1Position" type="cc_value" channel="0" enabled="1" cc="77"/>
+    <routing parameter="cab1Distance" type="cc_value" channel="0" enabled="1" cc="78"/>
+    <routing parameter="cab1Level" type="cc_value" channel="0" enabled="1" cc="79"/>
+    <routing parameter="cab1Pan" type="cc_value" channel="0" enabled="1" cc="80"/>
+    <routing parameter="cab1Phase" type="cc_value" channel="0" enabled="1" cc="81"/>
+
+    <routing parameter="cab2Active" type="cc_value" channel="0" enabled="1" cc="82"/>
+    <routing parameter="cab2MicIR" type="cc_value" channel="0" enabled="1" cc="83"/>
+    <routing parameter="cab2Position" type="cc_value" channel="0" enabled="1" cc="84"/>
+    <routing parameter="cab2Distance" type="cc_value" channel="0" enabled="1" cc="85"/>
+    <routing parameter="cab2Level" type="cc_value" channel="0" enabled="1" cc="86"/>
+    <routing parameter="cab2Pan" type="cc_value" channel="0" enabled="1" cc="87"/>
+    <routing parameter="cab2Phase" type="cc_value" channel="0" enabled="1" cc="88"/>
+
+    <!-- ===================== EQ GRAFICO — CLN (clean) ===================== -->
+    <!-- 9 bandas, valor MIDI 64 = 0 dB (centro) -->
+    <routing parameter="cleanEqActive" type="cc_value" channel="0" enabled="1" cc="89"/>
+    <routing parameter="cleanEqBand1" type="cc_value" channel="0" enabled="1" cc="90"/>
+    <routing parameter="cleanEqBand2" type="cc_value" channel="0" enabled="1" cc="91"/>
+    <routing parameter="cleanEqBand3" type="cc_value" channel="0" enabled="1" cc="92"/>
+    <routing parameter="cleanEqBand4" type="cc_value" channel="0" enabled="1" cc="93"/>
+    <routing parameter="cleanEqBand5" type="cc_value" channel="0" enabled="1" cc="94"/>
+    <routing parameter="cleanEqBand6" type="cc_value" channel="0" enabled="1" cc="95"/>
+    <routing parameter="cleanEqBand7" type="cc_value" channel="0" enabled="1" cc="96"/>
+    <routing parameter="cleanEqBand8" type="cc_value" channel="0" enabled="1" cc="97"/>
+    <routing parameter="cleanEqBand9" type="cc_value" channel="0" enabled="1" cc="98"/>
+
+    <!-- ==================== EQ GRAFICO — RUST (rhythm) ==================== -->
+    <routing parameter="rhythmEqActive" type="cc_value" channel="0" enabled="1" cc="99"/>
+    <routing parameter="rhythmEqBand1" type="cc_value" channel="0" enabled="1" cc="100"/>
+    <routing parameter="rhythmEqBand2" type="cc_value" channel="0" enabled="1" cc="101"/>
+    <routing parameter="rhythmEqBand3" type="cc_value" channel="0" enabled="1" cc="102"/>
+    <routing parameter="rhythmEqBand4" type="cc_value" channel="0" enabled="1" cc="103"/>
+    <routing parameter="rhythmEqBand5" type="cc_value" channel="0" enabled="1" cc="104"/>
+    <routing parameter="rhythmEqBand6" type="cc_value" channel="0" enabled="1" cc="105"/>
+    <routing parameter="rhythmEqBand7" type="cc_value" channel="0" enabled="1" cc="106"/>
+    <routing parameter="rhythmEqBand8" type="cc_value" channel="0" enabled="1" cc="107"/>
+    <routing parameter="rhythmEqBand9" type="cc_value" channel="0" enabled="1" cc="108"/>
+
+    <!-- ===================== EQ GRAFICO — HOT (lead) ====================== -->
+    <routing parameter="leadEqActive" type="cc_value" channel="0" enabled="1" cc="109"/>
+    <routing parameter="leadEqBand1" type="cc_value" channel="0" enabled="1" cc="110"/>
+    <routing parameter="leadEqBand2" type="cc_value" channel="0" enabled="1" cc="111"/>
+    <routing parameter="leadEqBand3" type="cc_value" channel="0" enabled="1" cc="112"/>
+    <routing parameter="leadEqBand4" type="cc_value" channel="0" enabled="1" cc="113"/>
+    <routing parameter="leadEqBand5" type="cc_value" channel="0" enabled="1" cc="114"/>
+    <routing parameter="leadEqBand6" type="cc_value" channel="0" enabled="1" cc="115"/>
+    <routing parameter="leadEqBand7" type="cc_value" channel="0" enabled="1" cc="116"/>
+    <routing parameter="leadEqBand8" type="cc_value" channel="0" enabled="1" cc="117"/>
+    <routing parameter="leadEqBand9" type="cc_value" channel="0" enabled="1" cc="118"/>
+
+  </routings>
+</midi>
