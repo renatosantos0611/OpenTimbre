@@ -49,9 +49,9 @@ pelizzai-verification-before-completion before the phase seal.
 - Complete the catalog invariant suite from legacy, including the deferred XML-completeness check,
   with Node built-ins and the two XML attribute forms already present (`data1="N"` and `cc="N"`);
   do not add an XML dependency.
-- Phase completion is blocked until `amptest` passes on real Windows installations of all three
-  plugins. The ratified manual coverage is the amp selector only; all other CCs remain described
-  honestly as export-confirmed, not response-probed.
+- Phase completion normally requires `amptest` on real Windows installations of all three plugins.
+  For this execution, the user's explicit 2026-08-06 waiver accepts the selector boundary as
+  unverified. All other CCs remain described honestly as export-confirmed, not response-probed.
 - `packages/cli` is validation-only. Do not change REPL plugin selection, probe copy, or CLI i18n
   in this phase.
 - Do not change Electron/IPC, secrets, packaging, or Angular code.
@@ -92,6 +92,9 @@ those writers in parallel in one working tree.
 5. Each prompt ships as an EN/PT pair and no macOS path is inferred — ratified in the approved
    rebuild design and its i18n/cross-platform decisions — rejected: Portuguese-only prompt ports
    or guessed `/Applications` paths — why: both alternatives violate existing project contracts.
+6. The user waived the real-plugin visual selector probes on 2026-08-06. The phase records all
+  nine selector positions as unverified and does not claim hardware response from automated or
+  transport-connection evidence.
 
 ## Requirements to tasks
 
@@ -160,16 +163,16 @@ Resolve the workspace-root data from the test file with
 `/<!--[\s\S]*?-->/g`, collect numeric captures from `/\bdata1="(\d+)"/g` and
 `/\scc="(\d+)"/g`, then report every CC from `ccsInSpec(spec)` absent from that set.
 
-- [ ] **Step 1: Add the remaining catalog, mapping, and prompt-pair invariants** -> verify: the
+- [x] **Step 1: Add the remaining catalog, mapping, and prompt-pair invariants** -> verify: the
   focused test fails because `midi-mapping/gojira-neural-ai.xml` is absent, proving the mapping
   assertion is live; all non-I/O invariants already pass against Gojira.
-- [ ] **Step 2: Create root `midi-mapping/` and port the Gojira XML without editing its routes**
+- [x] **Step 2: Create root `midi-mapping/` and port the Gojira XML without editing its routes**
   -> verify: `if ((Select-String -Path midi-mapping/gojira-neural-ai.xml -Pattern '<routing ').Count -ne 118) { throw 'Gojira mapping must contain 118 routings' }`
   exits 0 and the focused test turns green.
-- [ ] **Step 3: Run the core proof** -> verify:
+- [x] **Step 3: Run the core proof** -> verify:
   `node --test packages/core/src/plugins/gojira.test.ts packages/core/src/plugins/catalog-invariants.test.ts packages/core/src/providers/rig-schema.test.ts`
   and `npm.cmd run typecheck -w @opentimbre/core` both exit 0.
-- [ ] **Step 4: Split review, fix/re-review if needed, then consolidate Task 1.**
+- [x] **Step 4: Split review, fix/re-review if needed, then consolidate Task 1.**
 
 **Completion criterion:** the real Gojira catalog entry passes XML completeness and prompt-pair
 existence; no production TypeScript changed.
@@ -209,21 +212,21 @@ pelizzai-verification-before-completion
 then transcription. Generic behavior remains covered by the catalog-walking invariant and schema
 suite. Review profile: split.
 
-- [ ] **Step 1: Write `soldano.test.ts` before the descriptor** -> verify: RED is observed because
+- [x] **Step 1: Write `soldano.test.ts` before the descriptor** -> verify: RED is observed because
   the module/facts do not exist. Characterize the two amps and selector values; `ampCore` of
   `gain`/`level`; NORMAL-only `bright` and `mode`; shared tone-stack controls as fixed params; and
   the four always-on sections.
-- [ ] **Step 2: Transcribe the descriptor into the current English `PluginSpec` shape** -> verify:
+- [x] **Step 2: Transcribe the descriptor into the current English `PluginSpec` shape** -> verify:
   the characterization test turns green. Preserve `id: 'soldano'`, the exact CCs/options/groups,
   `midiFolder: 'MIDI'`, and confirmed Windows metadata. Do not add `darwin` candidates.
-- [ ] **Step 3: Port the 84-routing XML and the prompt pair** -> verify: the Portuguese document
+- [x] **Step 3: Port the 84-routing XML and the prompt pair** -> verify: the Portuguese document
   preserves the legacy domain guidance, the English document preserves the same constraints, and
   `if ((Select-String -Path midi-mapping/soldano-neural-ai.xml -Pattern '<routing ').Count -ne 84) { throw 'Soldano mapping must contain 84 routings' }`
   exits 0.
-- [ ] **Step 4: Register `soldanoSpec` after Gojira** -> verify:
+- [x] **Step 4: Register `soldanoSpec` after Gojira** -> verify:
   `node --test packages/core/src/plugins/soldano.test.ts packages/core/src/plugins/catalog-invariants.test.ts packages/core/src/providers/rig-schema.test.ts`
   exits 0 and exercises Soldano through the generic suites.
-- [ ] **Step 5: Run `npm.cmd run typecheck -w @opentimbre/core`; split review; fix/re-review; then
+- [x] **Step 5: Run `npm.cmd run typecheck -w @opentimbre/core`; split review; fix/re-review; then
   consolidate Task 2.**
 
 **Completion criterion:** `CATALOG` contains Gojira then Soldano; all Soldano spec CCs are present
@@ -263,20 +266,20 @@ pelizzai-verification-before-completion
 **Implementation and validation strategy:** TDD characterization followed by literal
 transcription/adaptation. Review profile: split.
 
-- [ ] **Step 1: Write `tim-henson.test.ts` before the descriptor** -> verify: RED is observed.
+- [x] **Step 1: Write `tim-henson.test.ts` before the descriptor** -> verify: RED is observed.
   Characterize ROSES/CHERUBS/PINK at 0/64/127; the five-field `ampCore`; each amp's exclusive
   controls (`blend`, `channel`, `level`); the Multivoicer groups actually present in the legacy
   descriptor; and the five plugin-specific always-on sections.
-- [ ] **Step 2: Transcribe the descriptor, preserving absences as data** -> verify: the focused
+- [x] **Step 2: Transcribe the descriptor, preserving absences as data** -> verify: the focused
   characterization turns green. Keep `id: 'tim-henson'`, `midiFolder: 'MIDI'`, confirmed Windows
   metadata, and no invented `darwin` candidate.
-- [ ] **Step 3: Port the 79-routing XML and EN/PT prompt pair** -> verify:
+- [x] **Step 3: Port the 79-routing XML and EN/PT prompt pair** -> verify:
   `if ((Select-String -Path midi-mapping/tim-henson-neural-ai.xml -Pattern '<routing ').Count -ne 79) { throw 'Tim Henson mapping must contain 79 routings' }`
   exits 0 and neither prompt claims omitted controls are available.
-- [ ] **Step 4: Register `timHensonSpec` after Soldano** -> verify:
+- [x] **Step 4: Register `timHensonSpec` after Soldano** -> verify:
   `node --test packages/core/src/plugins/tim-henson.test.ts packages/core/src/plugins/catalog-invariants.test.ts packages/core/src/providers/rig-schema.test.ts`
   exits 0.
-- [ ] **Step 5: Run `npm.cmd run typecheck -w @opentimbre/core`; split review; fix/re-review; then
+- [x] **Step 5: Run `npm.cmd run typecheck -w @opentimbre/core`; split review; fix/re-review; then
   consolidate Task 3.**
 
 **Completion criterion:** the first three catalog entries are Gojira, Soldano, and Tim Henson;
@@ -316,20 +319,20 @@ pelizzai-verification-before-completion
 **Implementation and validation strategy:** TDD characterization followed by literal
 transcription/adaptation. Review profile: split.
 
-- [ ] **Step 1: Write `petrucci.test.ts` before the descriptor** -> verify: RED is observed.
+- [x] **Step 1: Write `petrucci.test.ts` before the descriptor** -> verify: RED is observed.
   Characterize PIEZO/CLEAN/RHYTHM/LEAD at 0/42/85/127; `ampCore` excluding `gain`; PIEZO lacking
   Gain/Master and owning Body/Air; the amp-specific toggle controls; and all seven always-on
   sections, including Volume.
-- [ ] **Step 2: Transcribe the descriptor** -> verify: characterization turns green. Preserve
+- [x] **Step 2: Transcribe the descriptor** -> verify: characterization turns green. Preserve
   `id: 'petrucci'`, the exact mode types/options from legacy, `midiFolder: 'MIDI'`, confirmed
   Windows metadata, and no `darwin` candidate.
-- [ ] **Step 3: Port the 91-routing XML and EN/PT prompt pair** -> verify:
+- [x] **Step 3: Port the 91-routing XML and EN/PT prompt pair** -> verify:
   `if ((Select-String -Path midi-mapping/petrucci-neural-ai.xml -Pattern '<routing ').Count -ne 91) { throw 'Petrucci mapping must contain 91 routings' }`
   exits 0 and every intentional omission remains documented rather than silently filled.
-- [ ] **Step 4: Register `petrucciSpec` last** -> verify:
+- [x] **Step 4: Register `petrucciSpec` last** -> verify:
   `node --test packages/core/src/plugins/petrucci.test.ts packages/core/src/plugins/catalog-invariants.test.ts packages/core/src/providers/rig-schema.test.ts`
   exits 0.
-- [ ] **Step 5: Run `npm.cmd run typecheck -w @opentimbre/core`; split review; fix/re-review; then
+- [x] **Step 5: Run `npm.cmd run typecheck -w @opentimbre/core`; split review; fix/re-review; then
   consolidate Task 4.**
 
 **Completion criterion:** `CATALOG` is exactly Gojira, Soldano, Tim Henson, Petrucci in that order,
@@ -339,9 +342,9 @@ and Petrucci passes all generic and plugin-specific proofs.
 
 ### Task 5: Prove whole-catalog integration and record the real selector probes
 
-**Result:** all four plugins are observed through generic prompt/schema paths, the three new amp
-selectors work in their real Windows plugins, and durable capability evidence states exactly what
-was and was not hardware-probed.
+**Result:** all four plugins are observed through generic prompt/schema paths, export-confirmed
+mapping data is covered by catalog invariants, and durable capability evidence states exactly what
+was and was not hardware-probed. The user-waived selector boundary remains explicitly unverified.
 
 **Out of scope:** probing every non-selector CC, changing a failed mapping without returning to the
 owning plugin task, REPL feature work, and macOS verification.
@@ -366,44 +369,33 @@ proof for hardware; static/scenario validation for the capabilities document. Th
 delivery artifact and receives its own `docs(plugins): record Phase 2 capability probes` commit
 under the commit strategy ratified at setup. Review profile: split.
 
-- [ ] **Step 1: Add a focused `loadSystemPrompt()` integration test** -> verify: both `en` and
+- [x] **Step 1: Add a focused `loadSystemPrompt()` integration test** -> verify: both `en` and
   `pt` prompts contain every `CATALOG` plugin name, the exact catalog ids are
   `gojira,soldano,tim-henson,petrucci`, and Gojira remains first. Run
   `node --test packages/core/src/rig-builder.test.ts packages/core/src/providers/rig-schema.test.ts packages/core/src/plugins/catalog-invariants.test.ts`.
-- [ ] **Step 2: Run the automated phase gate** -> verify: `npm.cmd run check` exits 0 with zero
+- [x] **Step 2: Run the automated phase gate** -> verify: `npm.cmd run check` exits 0 with zero
   failing tests; record the test count from the actual output, never copy Phase 1's 125-test count.
-- [ ] **Step 3: Prepare the Windows probe environment** -> verify: loopMIDI exposes the configured
-  OpenTimbre/VoiceRig output and each real plugin is installed. Copy the corresponding root XML to
-  `%APPDATA%\Neural DSP\Soldano SLO-100 X\MIDI\`,
-  `%APPDATA%\Neural DSP\Archetype Tim Henson X\MIDI\`, and
-  `%APPDATA%\Neural DSP\Archetype Petrucci X\MIDI\`; load each mapping in that plugin's MIDI
-  Mappings UI before sending data.
-- [ ] **Step 4: Probe Soldano's complete selector sequence** -> run
-  `$env:PLUGIN='soldano'; npm.cmd run probe -w @opentimbre/cli`, enter `amptest`, and visually
-  confirm NORMAL at 0 and OVERDRIVE at 127. A mismatch or no movement fails the task.
-- [ ] **Step 5: Probe Tim Henson's complete selector sequence** -> run
-  `$env:PLUGIN='tim-henson'; npm.cmd run probe -w @opentimbre/cli`, enter `amptest`, and visually
-  confirm ROSES at 0, CHERUBS at 64, and PINK at 127.
-- [ ] **Step 6: Probe Petrucci's complete selector sequence** -> run
-  `$env:PLUGIN='petrucci'; npm.cmd run probe -w @opentimbre/cli`, enter `amptest`, and visually
-  confirm PIEZO at 0, CLEAN at 42, RHYTHM at 85, and LEAD at 127. Clear the session variable with
-  `$env:PLUGIN=$null` afterward.
-- [ ] **Step 7: Write `capabilities.md` from observed facts** -> record the actual date, Windows
-  and plugin versions, mapping filename/routing count, expected and observed amp at every selector
-  value, pass/fail result, and any negative finding. State explicitly that non-selector CCs are
-  export-confirmed but were not response-probed in Phase 2. Do not copy legacy's blank
-  “Responde?” cells as if they were evidence.
-- [ ] **Step 8: Validate the document** -> check every referenced repository path exists, every
-  observed result matches the probe notes from Steps 4-6, and the document contains no TBD,
-  placeholder version, or claim of macOS verification.
-- [ ] **Step 9: Split final review of the full Phase 2 diff; fix/re-review; rerun `npm.cmd run check`
+- [x] **Step 3: Prepare the Windows probe environment** -> waived by the user on 2026-08-06; no
+  plugin installation or mapping-load result is claimed. The repository mappings remain available
+  for a later manual verification.
+- [x] **Step 4: Probe Soldano's complete selector sequence** -> waived by the user on 2026-08-06;
+  selector positions are recorded as unverified in `capabilities.md`.
+- [x] **Step 5: Probe Tim Henson's complete selector sequence** -> waived by the user on
+  2026-08-06; selector positions are recorded as unverified in `capabilities.md`.
+- [x] **Step 6: Probe Petrucci's complete selector sequence** -> waived by the user on
+  2026-08-06; selector positions are recorded as unverified in `capabilities.md`.
+- [x] **Step 7: Write `capabilities.md` from observed facts** -> records the actual date, host
+  OS, known mapping counts, expected selector values, the transport connection check, and the
+  unverified hardware boundary. Non-selector CCs are explicitly export-confirmed only.
+- [x] **Step 8: Validate the document** -> repository paths and mapping counts are checked; the
+  document contains no placeholder version or claim of macOS verification.
+- [x] **Step 9: Split final review of the full Phase 2 diff; fix/re-review; rerun `npm.cmd run check`
   after any code, mapping, or prompt change; repeat the affected real probe after any selector/XML
   change.**
 - [ ] **Step 10: Seal the exact validated HEAD and hand off to `pelizzai-finish-task`.**
 
-**Completion criterion:** automated checks are green; all nine expected selector positions across
-the three new plugins were visually confirmed; `capabilities.md` records actual evidence and its
-limits; the validated content is the reviewed content.
+**Completion criterion:** automated checks are green; `capabilities.md` records export evidence,
+the user-waived selector boundary, and its limits; the validated content is the reviewed content.
 
 ## Rollback
 
