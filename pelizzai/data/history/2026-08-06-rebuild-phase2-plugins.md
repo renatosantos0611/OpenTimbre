@@ -1,4 +1,4 @@
-# rebuild-phase2-plugins — delivered
+# rebuild-phase2-plugins — done
 
 - track: feature
 - lane: standard
@@ -29,4 +29,7 @@
 - Soldano, Tim Henson, and Petrucci selector response remains unverified on real plugin installations.
 - Non-selector CCs are export-confirmed only.
 - No macOS plugin behavior was verified.
-- Delivery was kept local; no push or pull request was requested.
+
+## Delivery observation
+
+- 2026-08-06 — PR #1 was merged into `origin/main` at `0e1f59378fa49aa4b457781ab3555c9934e35b28`; the merge contains validated head `7f0b4ca6670cfc3afb07c6d6798d6431a6917352`.
