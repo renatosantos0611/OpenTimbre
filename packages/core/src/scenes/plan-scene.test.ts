@@ -60,7 +60,7 @@ const FIXTURE: PluginSpec = {
   alwaysOn: { sectionA: 1, sectionB: 2 },
 
   app: {
-    candidates: ['C:\\fixture.exe'],
+    candidates: { win32: ['C:\\fixture.exe'] },
     process: 'fixture.exe',
     settings: 'fixture',
     midiFolder: 'MIDI',

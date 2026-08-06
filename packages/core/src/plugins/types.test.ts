@@ -60,7 +60,7 @@ const FAKE: PluginSpec = {
   alwaysOn: { sectionA: 110 },
 
   app: {
-    candidates: ['C:\\fake.exe'],
+    candidates: { win32: ['C:\\fake.exe'] },
     process: 'fake.exe',
     settings: 'fake',
     midiFolder: 'MIDI',

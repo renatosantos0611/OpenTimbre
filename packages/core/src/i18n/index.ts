@@ -47,6 +47,16 @@ export function t(key: LocaleKey, params?: Record<string, string>): string {
   return interpolate(template, params)
 }
 
+/**
+ * Test-only escape hatch: gives `index.test.ts` a way to prove the
+ * missing-key fallback for real, by temporarily deleting a key from the
+ * live catalog, rather than relying on a permanent gap in the shipped
+ * `pt.json` — every real key must exist in both catalogs (per
+ * `opentimbre-i18n`'s review checklist), so the fallback test can no longer
+ * borrow a genuine content gap to exercise itself. Not for production use.
+ */
+export const _testCatalogs = catalogs
+
 function interpolate(template: string, params?: Record<string, string>): string {
   if (!params) return template
   return template.replace(/\{(\w+)\}/g, (match, name: string) =>

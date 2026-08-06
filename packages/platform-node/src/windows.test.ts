@@ -36,7 +36,7 @@ function fakeOutput(portNames: string[]): MidiOutputLike & { sent: number[][] } 
 }
 
 const FIXTURE_APP_INFO: AppInfo = {
-  candidates: ['C:\\Program Files\\Fixture\\Fixture.exe'],
+  candidates: { win32: ['C:\\Program Files\\Fixture\\Fixture.exe'] },
   process: 'Fixture.exe',
   settings: 'Fixture',
   midiFolder: 'MIDI Mappings',

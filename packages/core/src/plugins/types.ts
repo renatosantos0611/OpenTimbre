@@ -72,11 +72,23 @@ export function toggleToMidi(on: boolean): number {
 
 /** What the launcher needs to open the app and manage its MIDI mapping. */
 export type AppInfo = {
-  /** Likely executable paths, in the order they should be tried. */
-  readonly candidates: readonly string[]
-  /** Process name on Windows, to tell whether it's already open. */
+  /**
+   * Likely executable paths, in the order they should be tried — genuinely
+   * different data per OS (a Windows path is simply wrong on macOS, not
+   * just unused there), so this is keyed by platform rather than a single
+   * flat list. Per `opentimbre-cross-platform`, this file never reads
+   * `process.platform` itself to pick one — a platform module (or, later, a
+   * launcher) does that; the data for both lives here regardless of which
+   * OS actually loads this descriptor. An empty/absent entry for a platform
+   * means no path has been confirmed there yet — never invent one.
+   */
+  readonly candidates: Readonly<{ win32?: readonly string[]; darwin?: readonly string[] }>
+  /** Process name, to tell whether it's already open — Windows uses this
+   * verbatim; macOS's process-detection convention may differ. */
   readonly process: string
-  /** Subfolder under %APPDATA% where the plugin keeps settings and mappings. */
+  /** Subfolder under the platform's settings root (%APPDATA% on Windows,
+   * ~/Library/Application Support on macOS) where the plugin keeps settings
+   * and mappings — see `PlatformInfo.settingsDir()`. */
   readonly settings: string
   /**
    * Subfolder of `settings` where the plugin keeps its MIDI Mapping files.

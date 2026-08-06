@@ -47,7 +47,7 @@ function fakeOutput(
 }
 
 const FIXTURE_APP_INFO: AppInfo = {
-  candidates: ['/Applications/Fixture.app'],
+  candidates: { darwin: ['/Applications/Fixture.app'] },
   process: 'Fixture',
   settings: 'Fixture',
   midiFolder: 'MIDI',

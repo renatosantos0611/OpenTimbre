@@ -417,7 +417,11 @@ export const gojiraSpec: PluginSpec = {
   alwaysOn: ALWAYS_ON,
 
   app: {
-    candidates: [path.join(PROGRAM_FILES, 'Neural DSP', 'Archetype Gojira', 'Archetype Gojira.exe')],
+    candidates: {
+      win32: [path.join(PROGRAM_FILES, 'Neural DSP', 'Archetype Gojira', 'Archetype Gojira.exe')],
+      // No macOS path confirmed yet -- deliberately absent, not invented.
+      // See opentimbre-cross-platform and AppInfo.candidates' own doc.
+    },
     process: 'Archetype Gojira.exe',
     settings: path.join('Neural DSP', 'Archetype Gojira'),
     midiFolder: 'MIDI Mappings',

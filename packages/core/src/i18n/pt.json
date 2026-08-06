@@ -8,5 +8,6 @@
   "keys.source.app": "salva no aplicativo",
   "keys.source.environment": "vinda do ambiente",
   "keys.source.none": "não definida",
-  "error.generic": "Algo deu errado."
+  "error.generic": "Algo deu errado.",
+  "plugin.notMapped": "o amp {amp} ainda não está mapeado — aplicando em {fallback}"
 }
