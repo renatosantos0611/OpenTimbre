@@ -5,10 +5,14 @@
   "type": "module",
   "dependencies": {
     "@opentimbre/core": "*",
-    "@opentimbre/platform-node": "*"
+    "@opentimbre/platform-node": "*",
+    "@anthropic-ai/sdk": "^0.115.0",
+    "openai": "^7.4.0"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"src/**/*.test.ts\""
+    "test": "node --test \"src/**/*.test.ts\"",
+    "dev": "node --env-file-if-exists=.env src/repl.ts",
+    "probe": "node --env-file-if-exists=.env src/probe.ts"
   }
 }

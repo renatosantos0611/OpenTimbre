@@ -81,7 +81,16 @@
   lesson from the start. Explicitly UNVERIFIED on real hardware, as ratified. One gap found
   (isExitCode's pgrep-exit-1 translation had no direct test) — fixed, double-mutation
   RED→GREEN-proven independently. No hardcoded plugin data. Both lenses PASS. 113 tests total.
-- next: dispatch Task 10 (CLI: REPL + probe) to a subagent — the last Phase 1 task
+- Task 10/10 ✅ 2026-08-04 — CLI REPL + probe entry points, the final Phase 1 task. Spec lens
+  caught a real MEDIUM bug: ESM static-import hoisting meant the Node-version gate could be
+  bypassed on old Node (node:sqlite import would throw first). Fixed by splitting repl.ts into a
+  zero-risky-import thin entry + dynamically-imported repl-main.ts; empirically proven correct
+  with 3 throwaway scripts plus a real end-to-end boot on this machine. Added missing
+  platform-select tests, documented the chalk omission explicitly. Plaintext-key-leak check
+  clean (independently verified twice). Both lenses PASS.
+- PHASE 1 COMPLETE — 124 tests passing across the monorepo, 0 failures, all 4 packages typecheck
+  clean. All 10 tasks done. Next: final delivery validation (overlays, freeze, final review,
+  verification, seal) before handing to pelizzai-finish-task.
 - pending: none
 
 ## History

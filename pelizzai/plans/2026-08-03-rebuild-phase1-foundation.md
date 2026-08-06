@@ -83,6 +83,13 @@ Each phase gets its own plan, written after the previous phase validates:
   on Windows" even though Task 9's macos.ts now reads the same field for `pgrep -x`. A stale
   one-line comment, correctly left untouched by Task 9 per the surgical-changes rule (out of that
   task's file scope) → pick up whenever `types.ts` is next touched.
+- Task 10's `repl.ts`/`probe.ts` command-surface copy (help text, confirmations) stays in English
+  literals rather than routed through `t()` — the task's own instructions conflicted (use `t()`
+  for everything vs. stay within `packages/cli/`, since full i18n coverage needs ~30 new keys in
+  `packages/core/src/i18n/` and `contracts/src/i18n.ts`, outside that boundary). The genuinely
+  reusable strings (chat status, key source, plugin-not-mapped, generic error) already go through
+  `t()`; only CLI-specific copy is affected. Revisit when Phase 3's Angular UI needs the same
+  catalog anyway — add CLI keys in the same pass.
 - Task 4's key-store `configure()` resets its captured-environment snapshot on every call, not
   only on an actual file change → safe today (no host calls it twice), but if Phase 3's Electron
   main ever calls `configure()` more than once after an app key was already applied to
