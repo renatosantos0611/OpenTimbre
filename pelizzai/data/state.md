@@ -39,7 +39,8 @@
 - setup ✅ 2026-08-06 — branch / subagents / granular / split ratified
 - Task 1 ✅ 215bd51 — invariants extended (spec-to-XML, prompt-pair, MIDI range, amp checks) + all 4 XMLs at root midi-mapping/
 - Task 2 ✅ 77b680c — Soldano SLO-100 X descriptor, tests, bilingual prompts, catalog registration
-- next: Task 3 — add Archetype Tim Henson X as complete catalog slice
+- Task 3 ✅ 2024d7d — Tim Henson X descriptor, tests, bilingual prompts, catalog registration; extracted select-schema tests to top-level
+- next: Task 4 — add Archetype Petrucci X as complete catalog slice
 - pending: none
 
 ## History
