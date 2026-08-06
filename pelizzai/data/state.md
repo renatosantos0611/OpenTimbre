@@ -7,32 +7,43 @@
 
 ## Active task
 
-- slug: rebuild-phase1-foundation
+- slug: rebuild-phase2-plugins
 - track: feature
-- lane: exploratory
-- phase: delivered
-- branch: spec/rebuild-design
-- base-ref: refs/heads/main
-- base-sha: 91d734a0f2217f971a68d917691301d488120c86
-- validated-head: 945c95f0c7c2b287476b5d44f8dd4e6f0b8ad434
-- confirm: local delivery accepted by the user
-- kickoff: ratified 2026-08-03
+- lane: standard
+- phase: exec
+- branch: feat/rebuild-phase2-plugins
+- base-ref: refs/heads/spec/rebuild-design
+- base-sha: be5fb7626093acc0ecb3b03dea1859342f4ad315
+- validated-head: <none>
+- confirm: <pending>
+- kickoff: ratified 2026-08-06
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: subagents
 - commit-strategy: granular
+- review-profile: split
+- effect: write-local
+- risk: medium
+- overlays: pelizzai-documenting-features
+- audience: technical
+- spec: pelizzai/specs/2026-08-03-rebuild-design.md
+- plan: pelizzai/plans/2026-08-06-rebuild-phase2-plugins.md
 - project: c:/Users/dingo/github/opentimbre
 
 ## Progress
 
-- next: reconcile this delivery to `done` on the next opening/resumption; then plan Phase 2
-  (remaining plugins) or Phase 3 (Electron/Angular desktop) per user direction
-- pending: real-terminal smoke test of masked key input (see data/history/ for full detail)
+- scope: packages/core + midi-mapping + root capabilities.md + PelizzAI artifacts; CLI validation only, no planned edits
+- decision: Petrucci is included fully alongside Soldano and Tim Henson
+- decision: all three new plugins require a real Windows amp-selector probe; non-selector CCs remain export-confirmed only
+- decision: probe evidence is recorded in root capabilities.md
+- setup ✅ 2026-08-06 — branch / subagents / granular / split ratified
+- next: Task 1 — restore mapping data and complete the catalog safety net
+- pending: none
 
 ## History
 
 - 2026-08-03 — state initialized (pelizzai-router / pelizzai-starting-branch / pelizzai-audit)
 - 2026-08-03 bootstrap-harness — delivered — harness + 8 domain skills, local → data/history/2026-08-03-bootstrap-harness.md
-- 2026-08-05 rebuild-phase1-foundation — delivered — 10 tasks, 125 tests, full review + OWASP, local → data/history/2026-08-05-rebuild-phase1-foundation.md
+- 2026-08-06 rebuild-phase1-foundation — done — local delivery accepted; 125 tests passed → data/history/2026-08-05-rebuild-phase1-foundation.md
 
-_Last updated: 2026-08-05_
+_Last updated: 2026-08-06_

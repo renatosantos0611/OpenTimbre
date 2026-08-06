@@ -1,6 +1,6 @@
 # OpenTimbre rebuild — design
 
-**Status:** approved on 2026-08-03
+**Status:** approved on 2026-08-03; plugin-scope amendment approved on 2026-08-06
 
 ## Goal
 
@@ -13,8 +13,9 @@ runs the app locally, on Windows or macOS, to shape a tone by describing it in c
 
 - All three legacy surfaces exist and work: the floating always-on-top chat window, the terminal
   REPL, and the MIDI probe tool.
-- All three legacy plugins are supported: Archetype Gojira, Soldano SLO-100 X, Archetype Tim
-  Henson X — same catalog-as-data mechanism, same amp-fallback and scene-application behavior.
+- All four legacy plugins are supported: Archetype Gojira, Soldano SLO-100 X, Archetype Tim
+  Henson X, and Archetype Petrucci X — same catalog-as-data mechanism, same amp-fallback and
+  scene-application behavior.
 - A distributable installer exists for Windows (NSIS) and for macOS (DMG); the macOS build is
   produced but its platform-specific behavior is explicitly unverified until tested on real
   hardware (see Ratified decisions).
@@ -163,7 +164,7 @@ a plugin break another plugin."
 
 ## Out of scope
 
-New AI providers or plugins beyond legacy's three. Data migration from legacy. Code signing /
+New AI providers or plugins beyond legacy's four. Data migration from legacy. Code signing /
 notarization. macOS hardware verification (tracked as an open task, not silently assumed done).
 Settings-schema versioning. Any UI redesign beyond what Angular + i18n naturally require — this is
 a port with better engineering, not a visual reinvention (ratified: "same features, better built").
@@ -182,11 +183,11 @@ ground (`opentimbre-i18n`, `opentimbre-core-boundary`).
 
 ## Ratified decisions and limitations
 
-Discovery (9 gaps) + design stress (2 gaps) = 11 decisions, all closed by the user directly, none
-inferred:
+Discovery (9 gaps) + design stress (2 gaps) + plugin-scope amendment (1 gap) = 12 decisions, all
+closed by the user directly, none inferred:
 
 1. Surface scope — all three (window/REPL/probe) — from the original brief
-2. Plugin catalog scope — all three plugins — from the original brief
+2. Plugin catalog scope — Gojira, Soldano, and Tim Henson — from the original brief
 3. App language — full i18n (English + Portuguese), not translation-later
 4. macOS verifiability — built to spec, explicitly unverified, accepted
 5. Packaging tool — electron-builder
@@ -196,6 +197,8 @@ inferred:
 9. Code signing — none for v1, SmartScreen/Gatekeeper friction accepted
 10. CLI Node version — hard ≥22.12 requirement, fail early
 11. Locale behavior — one shared setting, OS-detected default, user-overridable
+12. Plugin catalog amendment — Archetype Petrucci X is included in full parity — ratified on
+  2026-08-06 while planning Phase 2
 
 Limitations carried forward, not gaps:
 
