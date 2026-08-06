@@ -111,6 +111,9 @@ non-destructive. Roll back without changing existing `buildRig` behavior.
 
 ## Task 3 — Cross-platform PluginHost
 
+**Status:** complete 2026-08-06 — injected host lifecycle, Windows/macOS factories, real catalog
+boundary checks, and 29 platform-node tests pass.
+
 **Result:** Windows can inspect, launch, and install mapping files for any catalog plugin through one
 intent-shaped interface; macOS returns explicit unsupported/not-confirmed failures where descriptors
 have no verified candidates.

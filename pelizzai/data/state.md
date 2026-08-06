@@ -44,8 +44,9 @@
 - decision: AI selects the plugin through one catalog tool per PluginSpec in a persistent core chat session
 - Task 1 ✅ 2026-08-06 — shared browser-safe i18n, catalog parity, locale IPC contract, and DesktopApi; full workspace tests/typechecks pass
 - Task 2 ✅ 2026-08-06 — catalog-driven RigChat, provider-native history resume, model listing, and adapter fixtures; core tests/typecheck pass
-- next: execute Task 3 with TDD, split review, focused proof, and a granular commit
-- pending: Tasks 3-10
+- Task 3 ✅ 2026-08-06 — injected cross-platform PluginHost, launch/mapping lifecycle, Windows/macOS factories, and real catalog boundary checks; 29 tests pass
+- next: execute Task 4 with TDD, split review, focused proof, and a granular commit
+- pending: Tasks 4-10
 
 ## History
 
