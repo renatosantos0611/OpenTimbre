@@ -10,12 +10,13 @@
 - slug: rebuild-phase2-plugins
 - track: feature
 - lane: standard
-- phase: exec
+- phase: delivered
 - branch: feat/rebuild-phase2-plugins
 - base-ref: refs/heads/spec/rebuild-design
 - base-sha: be5fb7626093acc0ecb3b03dea1859342f4ad315
-- validated-head: <none>
-- confirm: <pending>
+- validated-head: 7f0b4ca6670cfc3afb07c6d6798d6431a6917352
+- delivery-head: 7f0b4ca6670cfc3afb07c6d6798d6431a6917352
+- confirm: local delivery accepted by the user
 - kickoff: ratified 2026-08-06
 - isolation: branch
 - worktree-path: <none>
@@ -45,13 +46,14 @@
 - Task 5 automated ✅ 2026-08-06 — `loadSystemPrompt()` integration coverage; `npm.cmd run check` passed with 202 tests, 0 failures; probe connected to the Windows MIDI transport
 - Task 5 documentation ✅ 2026-08-06 — root capabilities.md records export-confirmed mappings, expected selector values, and the explicit hardware-verification waiver
 - Task 5 review ✅ 2026-08-06 — split review completed; findings fixed and final gate rerun with 202 tests passing
-- next: validation seal and delivery handoff
-- pending: validated-head remains unset until the reviewed content is committed; selector response remains an explicit post-phase limitation
+- next: observe local delivery confirmation on resumption
+- pending: selector response remains an explicit post-phase limitation; no push or PR requested
 
 ## History
 
 - 2026-08-03 — state initialized (pelizzai-router / pelizzai-starting-branch / pelizzai-audit)
 - 2026-08-03 bootstrap-harness — delivered — harness + 8 domain skills, local → data/history/2026-08-03-bootstrap-harness.md
 - 2026-08-06 rebuild-phase1-foundation — done — local delivery accepted; 125 tests passed → data/history/2026-08-05-rebuild-phase1-foundation.md
+- 2026-08-06 rebuild-phase2-plugins — delivered — four-plugin catalog parity and documented probe waiver → data/history/2026-08-06-rebuild-phase2-plugins.md
 
 _Last updated: 2026-08-06_
