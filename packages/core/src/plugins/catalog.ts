@@ -5,11 +5,12 @@
  * `opentimbre-plugin-spec`.
  *
  * Gojira is the first entry ported from legacy. Soldano SLO-100 X joins in
- * Task 2; Tim Henson and Petrucci are Tasks 3 and 4 — one descriptor and one
- * line each, without touching anything else.
+ * Task 2; Tim Henson X in Task 3; Petrucci X in Task 4 — one descriptor and
+ * one line each, without touching anything else.
  */
 import { gojiraSpec } from './gojira.ts'
 import { soldanoSpec } from './soldano.ts'
+import { timHensonSpec } from './tim-henson.ts'
 import type { PluginSpec } from './types.ts'
 
-export const CATALOG: PluginSpec[] = [gojiraSpec, soldanoSpec]
+export const CATALOG: PluginSpec[] = [gojiraSpec, soldanoSpec, timHensonSpec]

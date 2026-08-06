@@ -43,6 +43,35 @@ function minimalScene(spec: PluginSpec): Scene {
   return scene as Scene
 }
 
+/** Top-level select validation — runs once against any catalog entry that has a select param. */
+test("a select field becomes a string enum of the plugin's option names", () => {
+  const specWithSelect = CATALOG.find((s) => {
+    const fields = { ...s.ampParams, ...s.params }
+    return Object.values(fields).some((p) => p.type === 'select')
+  })!
+  assert.ok(specWithSelect, 'at least one catalog entry must have a select param')
+  const fields: Record<string, ParamSpec> = { ...specWithSelect.ampParams, ...specWithSelect.params }
+  const json = rigJsonSchema(specWithSelect) as JsonSchemaObject
+  const paramsJson = json.properties!['scenes']!.additionalProperties as JsonSchemaObject
+  const paramsSchema = paramsJson.properties!['params']! as JsonSchemaObject
+  const entry = Object.entries(fields).find(([, p]) => p.type === 'select')!
+  const [name, p] = entry
+  const field = paramsSchema.properties![name]!
+  assert.equal(field.type, 'string')
+  assert.deepEqual(field.enum, Object.keys(p.options ?? {}))
+})
+
+test('an invalid enum value on a select field is rejected', () => {
+  const specWithSelect = CATALOG.find((s) => {
+    const fields = { ...s.ampParams, ...s.params }
+    return Object.values(fields).some((p) => p.type === 'select')
+  })!
+  const fields: Record<string, ParamSpec> = { ...specWithSelect.ampParams, ...specWithSelect.params }
+  const entry = Object.entries(fields).find(([, p]) => p.type === 'select')!
+  const [name] = entry
+  assert.equal(adjust(specWithSelect, { [name]: 'not-a-real-option' }).ok, false)
+})
+
 /**
  * Runs `changes` through `validateAdjustment`, merged onto a fresh minimal
  * `currentScene` — the seam described above for exercising the full `scene`
@@ -99,13 +128,6 @@ for (const spec of CATALOG) {
       assert.equal(field.type, 'boolean')
     })
 
-    test("a select field becomes a string enum of the plugin's option names", () => {
-      const [name, p] = Object.entries(fields).find(([, p]) => p.type === 'select')!
-      const field = paramsSchema.properties![name]!
-      assert.equal(field.type, 'string')
-      assert.deepEqual(field.enum, Object.keys(p.options ?? {}))
-    })
-
     // -------------------------------------------------- JSON Schema shape
 
     test('the JSON Schema required list is exactly the required fields in the spec', () => {
@@ -139,11 +161,6 @@ for (const spec of CATALOG) {
       const [name] = Object.entries(fields).find(([, p]) => p.type === 'knob')!
       assert.equal(adjust(spec, { [name]: 11 }).ok, false)
       assert.equal(adjust(spec, { [name]: -1 }).ok, false)
-    })
-
-    test('an invalid enum value on a select field is rejected', () => {
-      const [name] = Object.entries(fields).find(([, p]) => p.type === 'select')!
-      assert.equal(adjust(spec, { [name]: 'not-a-real-option' }).ok, false)
     })
 
     // ------------------------------------------------- amp-conditional groups
