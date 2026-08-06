@@ -76,6 +76,9 @@ green, and no runtime file enters `contracts`. Roll back by reverting this task 
 
 ## Task 2 — Catalog chat and provider model contract
 
+**Status:** complete 2026-08-06 — catalog selection, text/no-call turns, native history resume,
+model listing, adapter fixtures, and full core proof pass.
+
 **Result:** a core session lets the AI choose among all catalog plugins, returns a valid `Turn`,
 exports resumable provider-native history, and reports available models without network in tests.
 

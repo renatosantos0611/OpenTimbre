@@ -25,7 +25,7 @@
  * types, without a live call.
  */
 import Anthropic from '@anthropic-ai/sdk'
-import type { ProviderId } from '@opentimbre/contracts'
+import type { AvailableModel, ProviderId } from '@opentimbre/contracts'
 import type { Validation } from './resolve.ts'
 import type { Call, Response, Session, ToolDef } from './tool-use.ts'
 
@@ -65,8 +65,10 @@ function textOf(content: readonly Anthropic.ContentBlock[]): string {
     .trim()
 }
 
-export function createSession(client: AnthropicClient, model: string, system: string): Session {
-  const messages: Anthropic.MessageParam[] = []
+export function createSession(client: AnthropicClient, model: string, system: string, history?: unknown): Session {
+  const messages: Anthropic.MessageParam[] = Array.isArray(history)
+    ? [...history] as Anthropic.MessageParam[]
+    : []
   let pending: Anthropic.ToolResultBlockParam | null = null
 
   return {
@@ -185,7 +187,8 @@ export type AnthropicProvider = {
   model(): string
   hasKey(): boolean
   validate(): Promise<Validation>
-  createSession(system: string): Session
+  createSession(system: string, history?: unknown): Session
+  listModels(): Promise<AvailableModel[]>
 }
 
 /** Binds this provider's session/validation logic to an injected client. */
@@ -197,6 +200,10 @@ export function anthropicProvider(client: AnthropicClient): AnthropicProvider {
     model,
     hasKey,
     validate: () => validate(client),
-    createSession: (system) => createSession(client, model(), system),
+    createSession: (system, history) => createSession(client, model(), system, history),
+    listModels: async () => {
+      const page = await client.models.list({ limit: 100 })
+      return page.data.map((item) => ({ provider: 'anthropic', providerLabel: 'Anthropic', id: item.id }))
+    },
   }
 }
