@@ -76,7 +76,12 @@
   hard "never load in tests" constraint. Fixed with createRequire-deferred loading, RED→GREEN
   regression-proven independently by the quality lens (fresh node processes, reverted-then-
   restored). AppInfo port typing upgraded from unknown to real. Both lenses PASS. 100 tests total.
-- next: dispatch Task 9 (platform-node: macOS, explicitly unverified) to a subagent
+- Task 9/10 ✅ 2026-08-04 — macOS platform (openVirtualPort transport, pgrep process detection,
+  ~/Library/Application Support settings path). Correctly applied the Task 8 deferred-require
+  lesson from the start. Explicitly UNVERIFIED on real hardware, as ratified. One gap found
+  (isExitCode's pgrep-exit-1 translation had no direct test) — fixed, double-mutation
+  RED→GREEN-proven independently. No hardcoded plugin data. Both lenses PASS. 113 tests total.
+- next: dispatch Task 10 (CLI: REPL + probe) to a subagent — the last Phase 1 task
 - pending: none
 
 ## History

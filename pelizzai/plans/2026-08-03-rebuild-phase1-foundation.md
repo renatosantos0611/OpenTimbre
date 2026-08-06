@@ -79,6 +79,10 @@ Each phase gets its own plan, written after the previous phase validates:
   level. Accepted as parity, not a regression, since the ratified scope is "same features, better
   built," not new coverage legacy itself never had. Revisit if `findToolUse`/`parseArgs`/`classify`
   prove fragile in practice.
+- `AppInfo.process`'s doc comment in packages/core/src/plugins/types.ts still says "Process name
+  on Windows" even though Task 9's macos.ts now reads the same field for `pgrep -x`. A stale
+  one-line comment, correctly left untouched by Task 9 per the surgical-changes rule (out of that
+  task's file scope) → pick up whenever `types.ts` is next touched.
 - Task 4's key-store `configure()` resets its captured-environment snapshot on every call, not
   only on an actual file change → safe today (no host calls it twice), but if Phase 3's Electron
   main ever calls `configure()` more than once after an app key was already applied to
