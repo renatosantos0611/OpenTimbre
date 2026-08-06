@@ -23,9 +23,8 @@
  *   it, scenes sound wrong with no error
  * - a prompt locale gone missing — `loadSystemPrompt()` crashes on import
  *
- * `CATALOG` currently has only Gojira. The per-plugin `describe` block
- * exercises every invariant against it; adding Soldano, Tim Henson, or
- * Petrucci will automatically run this full suite through the catalog walker.
+ * The per-plugin `describe` block exercises every invariant against every
+ * registered catalog entry, so adding a plugin automatically extends the suite.
  */
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
