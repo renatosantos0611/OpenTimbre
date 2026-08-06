@@ -37,7 +37,8 @@
 - decision: all three new plugins require a real Windows amp-selector probe; non-selector CCs remain export-confirmed only
 - decision: probe evidence is recorded in root capabilities.md
 - setup ✅ 2026-08-06 — branch / subagents / granular / split ratified
-- next: Task 1 — restore mapping data and complete the catalog safety net
+- Task 1 ✅ 215bd51 — invariants extended (spec-to-XML, prompt-pair, MIDI range, amp checks) + all 4 XMLs at root midi-mapping/
+- next: Task 2 — add Soldano SLO-100 X as complete catalog slice
 - pending: none
 
 ## History
