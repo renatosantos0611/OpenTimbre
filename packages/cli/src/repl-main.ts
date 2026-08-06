@@ -155,7 +155,7 @@ Commands
   adjust <instruction>    adjusts the current scene ("more low end")
   show                     prints the loaded rig
   keys                    lists API key status per provider
-  keys save <id> <key>    saves a key (anthropic | openai)
+  keys save <id>           saves a key (anthropic | openai) -- prompts, input hidden on a TTY
   keys remove <id>        removes a saved key
   reload                  reloads the system prompt from disk
   prompt                  prints the assembled system prompt (no API call)
@@ -266,13 +266,91 @@ function cmdKeysList(): void {
   }
 }
 
-function cmdKeysSave(providerArg: string | undefined, key: string | undefined): void {
+/**
+ * Reads a line with input NOT echoed to the terminal (each keystroke shows
+ * `*` instead), so an API key typed here never appears in the terminal's
+ * scrollback or Up-arrow history the way a normal `rl.question()` answer
+ * would. Requires a real TTY: masking a terminal is what this function is
+ * for, and the risk it defends against (terminal echo, shell scrollback)
+ * is inherently a TTY phenomenon in the first place -- piped/non-interactive
+ * input has no terminal to leak into, so `cmdKeysSave` never calls this
+ * function at all in that case (see its own comment). No non-TTY fallback
+ * lives here on purpose: an earlier attempt routed the non-TTY case through
+ * a second `rl.question()` call on the same interface, which reproducibly
+ * hung on this Node/environment combination -- calling `question()` twice
+ * in sequence on one `readline/promises` interface with piped stdin did not
+ * reliably read the second line. Not worth working around for a path that
+ * was never the security-relevant one.
+ */
+async function promptMasked(rl: readline.Interface, query: string): Promise<string> {
+  output.write(query)
+  // The outer rl instance keeps its own listeners on `input` even while
+  // idle between rl.question() calls -- pausing it stops it from also
+  // consuming/interpreting the very keystrokes this function is reading
+  // manually in raw mode. Resumed in every exit path below (Enter, Ctrl+C,
+  // and implicitly never on process.exit, which needs no cleanup).
+  rl.pause()
+  return new Promise((resolve) => {
+    let value = ''
+    input.setRawMode(true)
+    input.resume()
+    input.setEncoding('utf8')
+
+    const onData = (chunk: string) => {
+      for (const char of chunk) {
+        if (char === '\r' || char === '\n') {
+          input.setRawMode(false)
+          input.pause()
+          input.removeListener('data', onData)
+          output.write('\n')
+          rl.resume()
+          resolve(value)
+          return
+        }
+        if (char === '\u0003') {
+          // Ctrl+C during a masked prompt: leave the terminal usable, then exit.
+          input.setRawMode(false)
+          output.write('\n')
+          process.exit(130)
+        }
+        if (char === '\u007f' || char === '\b') {
+          if (value.length > 0) {
+            value = value.slice(0, -1)
+            output.write('\b \b')
+          }
+          continue
+        }
+        value += char
+        output.write('*')
+      }
+    }
+    input.on('data', onData)
+  })
+}
+
+/**
+ * `inlineKey` exists only for a non-TTY invocation (a piped/scripted
+ * session, e.g. this file's own manual smoke tests) -- there, `stdin`
+ * isn't a terminal, so the masking `promptMasked()` exists to defend
+ * against doesn't apply, and passing the key as a normal argument is both
+ * simpler and avoids a real readline hang (see promptMasked's comment). On
+ * a real TTY, `inlineKey` is ignored on purpose: an interactive session
+ * always gets the masked prompt, never an argument that would land in
+ * shell history.
+ */
+async function cmdKeysSave(
+  rl: readline.Interface,
+  providerArg: string | undefined,
+  inlineKey: string | undefined,
+): Promise<void> {
   const known = knownProviderIds()
   const provider = providerArg as ProviderId | undefined
   if (!provider || !known.includes(provider)) {
-    throw new Error(`Usage: keys save <${known.join('|')}> <key>`)
+    throw new Error(`Usage: keys save <${known.join('|')}>`)
   }
-  if (!key) throw new Error(`Usage: keys save ${provider} <key>`)
+
+  const key = input.isTTY ? await promptMasked(rl, `${provider} key: `) : inlineKey
+  if (!key) throw new Error(`Usage: keys save ${provider} <key> (no TTY -- pass the key inline)`)
 
   saveKey(provider, key)
   wireProviders()
@@ -294,7 +372,7 @@ function cmdKeysRemove(providerArg: string | undefined): void {
 
 // ----------------------------------------------------------------- commands
 
-async function handle(line: string): Promise<boolean> {
+async function handle(rl: readline.Interface, line: string): Promise<boolean> {
   const trimmed = line.trim()
   const space = trimmed.indexOf(' ')
   const cmd = (space === -1 ? trimmed : trimmed.slice(0, space)).toLowerCase()
@@ -324,7 +402,7 @@ async function handle(line: string): Promise<boolean> {
       return true
 
     case 'keys':
-      if (args[0] === 'save') cmdKeysSave(args[1], args[2])
+      if (args[0] === 'save') await cmdKeysSave(rl, args[1], args[2])
       else if (args[0] === 'remove') cmdKeysRemove(args[1])
       else cmdKeysList()
       return true
@@ -398,7 +476,7 @@ async function main(): Promise<void> {
   for (;;) {
     const line = await rl.question('rig> ')
     try {
-      if (!(await handle(line))) break
+      if (!(await handle(rl, line))) break
     } catch (err) {
       console.log(err instanceof Error && err.message ? err.message : t('error.generic'))
     }

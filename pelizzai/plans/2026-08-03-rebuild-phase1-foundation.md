@@ -90,6 +90,20 @@ Each phase gets its own plan, written after the previous phase validates:
   reusable strings (chat status, key source, plugin-not-mapped, generic error) already go through
   `t()`; only CLI-specific copy is affected. Revisit when Phase 3's Angular UI needs the same
   catalog anyway — add CLI keys in the same pass.
+- The OWASP review's fix for `keys save`'s masked-input prompt (`promptMasked` in
+  `repl-main.ts`) was verified via a mock-TTY simulation against Node's real `readline/promises`
+  internals (real listener/pause semantics exercised) — this environment has no genuine OS pty, so
+  the raw-mode TTY path was never exercised against a real terminal driver. Strong corroborating
+  evidence, not conclusive proof. → resolution: one real-terminal smoke test (`keys save
+  anthropic`, type a key, confirm masking, confirm the next `rig>` prompt works normally) before
+  treating real-key entry as fully verified — the same category of manual proof the whole REPL
+  already carries per this plan's Task 10.
+- OWASP review (Low, A06): AI-generated free-text fields (song/artist/note/summary/explanation)
+  are validated only as unconstrained `z.string()` and printed raw to the terminal in
+  `repl-main.ts` — no control-character stripping. Plausible terminal-escape-sequence path, not
+  exploited in this diff (no shell/file/exec sink downstream). Accepted as a low-priority
+  hardening item rather than fixed now; revisit if/when REPL output moves to a richer terminal UI
+  or the Angular renderer (Phase 3), where the same untrusted text needs sanitizing regardless.
 - Task 4's key-store `configure()` resets its captured-environment snapshot on every call, not
   only on an actual file change → safe today (no host calls it twice), but if Phase 3's Electron
   main ever calls `configure()` more than once after an app key was already applied to

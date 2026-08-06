@@ -88,10 +88,15 @@
   with 3 throwaway scripts plus a real end-to-end boot on this machine. Added missing
   platform-select tests, documented the chalk omission explicitly. Plaintext-key-leak check
   clean (independently verified twice). Both lenses PASS.
+- OWASP overlay ✅ 2026-08-04 — full-diff security review (b517c7c..HEAD). No Critical/High.
+  One Medium (plaintext key echoed via inline `keys save` REPL argument) fixed: masked TTY input
+  via raw-mode readline, non-TTY sidesteps a real readline hang discovered mid-fix by accepting
+  the key inline instead (terminal-echo risk doesn't apply to piped input anyway). One Low
+  (unstripped control chars in AI free text) accepted as documented hardening debt.
 - PHASE 1 COMPLETE — 124 tests passing across the monorepo, 0 failures, all 4 packages typecheck
-  clean. All 10 tasks done. Next: final delivery validation (overlays, freeze, final review,
-  verification, seal) before handing to pelizzai-finish-task.
-- pending: none
+  clean. All 10 tasks done + OWASP overlay. Next: freeze commit strategy, final branch review,
+  verification-before-completion, seal, hand to pelizzai-finish-task.
+- pending: real-terminal smoke test of masked key input (documented in plan's exposed gaps)
 
 ## History
 
