@@ -1,11 +1,8 @@
 {
-  "name": "@opentimbre/contracts",
+  "name": "@opentimbre/i18n",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "dependencies": {
-    "@opentimbre/i18n": "*"
-  },
   "types": "./src/index.ts",
   "exports": {
     ".": {
@@ -14,6 +11,7 @@
     }
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"src/**/*.test.ts\""
   }
 }

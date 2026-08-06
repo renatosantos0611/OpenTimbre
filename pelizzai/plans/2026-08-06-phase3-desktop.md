@@ -45,6 +45,8 @@ or MIDI/plugin-spec changes. `legacy/` is read-only evidence and stays untracked
 
 ## Task 1 — Shared i18n and complete wire contract
 
+**Status:** complete 2026-08-06 — package tests, workspace typechecks, and full workspace tests pass.
+
 **Result:** CLI/core behavior stays green while the browser-safe package owns both catalogs; the
 wire contract includes locale and a handwritten `DesktopApi` with unsubscribe-returning events.
 

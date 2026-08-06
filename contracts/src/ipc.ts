@@ -25,6 +25,8 @@
 
 // ------------------------------------------------------------- domain shapes
 
+import type { Locale } from '@opentimbre/i18n'
+
 export type ProviderId = 'anthropic' | 'openai'
 
 /** `auto` means no explicit choice saved — `provider.ts`'s default order applies. */
@@ -138,6 +140,7 @@ export type KeyInfo = {
 export type AvailableModel = { provider: ProviderId; providerLabel: string; id: string }
 
 export type AppState = {
+  locale: Locale
   midi: { port: string | null; error: string | null }
   ai: { provider: ProviderId; label: string; model: string; available: AvailableModel[] } | null
   aiError: string | null
@@ -177,26 +180,27 @@ export type ChatStatus = 'querying' | 'validating' | 'correcting' | null
  * methods keep readable parameter names.
  */
 export type IpcChannels = {
-  'app:state': { payload: void; result: AppState }
+  'app:state': { payload: void; result: Result<AppState> }
   'chat:send': { payload: string; result: Result<Turn> }
-  'chat:new': { payload: void; result: void }
+  'chat:new': { payload: void; result: Result<void> }
   'rig:apply': { payload: string; result: Result<AppliedScene> }
   'config:guitar': { payload: Guitar; result: Result<AppState> }
   'ai:model': { payload: [provider: ProviderId, id: string]; result: Result<AppState> }
   'plugin:state': { payload: string; result: Result<PluginState> }
   'plugin:open': { payload: string; result: Result<PluginState> }
   'plugin:installMapping': { payload: string; result: Result<PluginState> }
-  'window:alwaysOnTop': { payload: void; result: boolean }
-  'window:dimOnUnfocus': { payload: boolean; result: boolean }
-  'window:autoApply': { payload: boolean; result: boolean }
-  'window:setTheme': { payload: Theme; result: AppState }
+  'window:alwaysOnTop': { payload: void; result: Result<boolean> }
+  'window:dimOnUnfocus': { payload: boolean; result: Result<boolean> }
+  'window:autoApply': { payload: boolean; result: Result<boolean> }
+  'window:setTheme': { payload: Theme; result: Result<AppState> }
+  'window:setLocale': { payload: Locale; result: Result<AppState> }
   /** The plaintext key goes up once and never comes back — the screen only ever gets the hint. */
   'keys:save': { payload: [provider: ProviderId, key: string]; result: Result<AppState> }
   'keys:remove': { payload: ProviderId; result: Result<AppState> }
   'ai:providerPreference': { payload: ProviderPreference; result: Result<AppState> }
-  'conversations:list': { payload: void; result: Summary[] }
+  'conversations:list': { payload: void; result: Result<Summary[]> }
   'conversations:open': { payload: string; result: Result<OpenConversation> }
-  'conversations:delete': { payload: string; result: Summary[] }
+  'conversations:delete': { payload: string; result: Result<Summary[]> }
 }
 
 /**
@@ -211,3 +215,30 @@ export type IpcEvents = {
   'window:themeChanged': ResolvedTheme
   'plugin:changed': PluginState
 }
+
+export type DesktopApi = {
+  getState(): Promise<Result<AppState>>
+  sendChat(text: string): Promise<Result<Turn>>
+  newChat(): Promise<Result<void>>
+  applyRig(scene: string): Promise<Result<AppliedScene>>
+  setGuitar(guitar: Guitar): Promise<Result<AppState>>
+  setModel(provider: ProviderId, id: string): Promise<Result<AppState>>
+  getPluginState(id: string): Promise<Result<PluginState>>
+  openPlugin(id: string): Promise<Result<PluginState>>
+  installMapping(id: string): Promise<Result<PluginState>>
+  toggleAlwaysOnTop(): Promise<Result<boolean>>
+  setDimOnUnfocus(value: boolean): Promise<Result<boolean>>
+  setAutoApply(value: boolean): Promise<Result<boolean>>
+  setTheme(theme: Theme): Promise<Result<AppState>>
+  setLocale(locale: Locale): Promise<Result<AppState>>
+  saveKey(provider: ProviderId, key: string): Promise<Result<AppState>>
+  removeKey(provider: ProviderId): Promise<Result<AppState>>
+  setProviderPreference(preference: ProviderPreference): Promise<Result<AppState>>
+  listConversations(): Promise<Result<Summary[]>>
+  openConversation(id: string): Promise<Result<OpenConversation>>
+  deleteConversation(id: string): Promise<Result<Summary[]>>
+  onChatStatus(callback: (status: ChatStatus) => void): () => void
+  onThemeChanged(callback: (theme: ResolvedTheme) => void): () => void
+  onPluginChanged(callback: (state: PluginState) => void): () => void
+}
+

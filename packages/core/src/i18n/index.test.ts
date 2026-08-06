@@ -4,33 +4,13 @@
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { _testCatalogs, resolveLocale, setLocale, t } from './index.ts'
+import { resolveLocale, setLocale, t } from './index.ts'
 
 test('t() returns the en.json value for a known key', () => {
   setLocale('en')
   assert.equal(t('error.generic'), 'Something went wrong.')
 })
 
-test('t() falls back to en.json when a key is missing from the active catalog', () => {
-  // Every real key ships in both en.json and pt.json (opentimbre-i18n's own
-  // review checklist) -- there is no permanent gap left to borrow for this
-  // test. Temporarily delete a real key from the live pt catalog instead,
-  // so this proves the actual fallback code path rather than a synthetic
-  // key nothing in production would ever hit.
-  const key = 'plugin.notMapped'
-  const original = _testCatalogs.pt[key]
-  delete _testCatalogs.pt[key]
-  try {
-    setLocale('pt')
-    assert.equal(
-      t(key, { amp: 'RUST', fallback: 'CLN' }),
-      "the RUST amp isn't mapped yet — applying to CLN",
-    )
-  } finally {
-    _testCatalogs.pt[key] = original
-    setLocale('en')
-  }
-})
 
 test('t() returns the real pt.json translation when the key exists there', () => {
   setLocale('pt')

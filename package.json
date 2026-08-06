@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "packages/i18n",
     "packages/core",
     "packages/platform-node",
     "packages/cli",

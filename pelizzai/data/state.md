@@ -42,8 +42,9 @@
 - decision: shared runtime catalogs move to @opentimbre/i18n; contracts remains type-only
 - decision: Angular uses the official application/unit-test builders; platform-node exposes a deep PluginHost
 - decision: AI selects the plugin through one catalog tool per PluginSpec in a persistent core chat session
-- next: execute Task 1 with TDD, split review, focused proof, and a granular commit
-- pending: Tasks 1-10
+- Task 1 ✅ 2026-08-06 — shared browser-safe i18n, catalog parity, locale IPC contract, and DesktopApi; full workspace tests/typechecks pass
+- next: execute Task 2 with TDD, split review, focused proof, and a granular commit
+- pending: Tasks 2-10
 
 ## History
 
