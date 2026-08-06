@@ -18,13 +18,18 @@
 | opentimbre-secrets | 2026-08-03 | 2026-08-03 | 82d6085 | bootstrap | repo-scan (legacy) |
 | opentimbre-angular-ui | 2026-08-03 | 2026-08-03 | 82d6085 | bootstrap | official docs + registry |
 | opentimbre-testing | 2026-08-03 | 2026-08-03 | 82d6085 | bootstrap | repo-scan (legacy) |
-| opentimbre-code-style | 2026-08-03 | 2026-08-03 | 82d6085 | bootstrap | repo-scan (legacy) |
+| opentimbre-code-style | 2026-08-03 | 2026-08-03 | 82d6085 | version-driven | design edge (i18n resolved the pending item) |
+| opentimbre-i18n | 2026-08-03 | 2026-08-03 | <pending: spec/rebuild-design HEAD> | adoption-driven | design edge (i18n ratified in discovery) |
 
 ## Known gaps
 
-- **`opentimbre-packaging` not created.** Proposed at bootstrap, deferred by the user: it presumes
-  a packaging tool (electron-builder vs Electron Forge) not yet chosen. Re-propose at the
-  design→plan edge, grounded for the chosen tool.
+- **`opentimbre-packaging` not created (twice deferred).** Proposed at bootstrap (no tool chosen
+  yet); electron-builder was chosen during design, the skill was drafted and grounded, but
+  declined at the confirmation gate on 2026-08-03. Re-propose when packaging work starts.
+- **Process note:** the `opentimbre-i18n` (and the now-removed `opentimbre-packaging`) drafts were
+  initially written before presenting the mandatory confirmation gate — a process slip, corrected
+  same-session before either was committed. No skill entered the catalog without an explicit user
+  confirmation.
 - **`opentimbre-code-style` carries `<pending ratification>`** on the language of comments and
   user-facing text. Resolve during discovery; update the skill and this ledger together.
 - **Context7 was unavailable at bootstrap.** Stack skills (`opentimbre-electron-ipc`,
@@ -42,3 +47,6 @@
 - 2026-08-03 — ledger initialized by `pelizzai-writing-skills` at bootstrap (orchestration:
   `pelizzai-audit`; baseline = bootstrap date). Eight domain skills created from the `legacy/`
   repo-scan and current official documentation; one deferred.
+- 2026-08-03 — design edge of the rebuild spec: `opentimbre-code-style` updated (i18n resolved the
+  pending language item); `opentimbre-i18n` created and ratified at the confirmation gate;
+  `opentimbre-packaging` drafted, grounded, then declined at the same gate and removed.

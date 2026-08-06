@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Mapa MIDI do Neural DSP Soldano SLO-100 X (v1.0.0), para uso com o
+  PluginSpec em src/plugins/soldano.ts.
+
+  Todos os 84 target="" abaixo foram confirmados por export real feito no
+  próprio plugin: os parâmetros do schema da app foram mapeados à mão na
+  janela MIDI Mappings, escolhendo cada um pelo nome no dropdown
+  "Parameter/Preset", e o resultado foi salvo com "Save as...". Isso substitui
+  de vez a extração de binário anterior, que tinha acertado poucos nomes por
+  coincidência (eqActive, chorusMix/Rate/Depth/Delay, delayPingPong/Tempo/
+  SyncNote, inputGain/outputGain, transpose, doublerActive, gateActive) e
+  errado a maioria (ex.: "bass" em vez de "ampBass", "od1Bypass" em vez de
+  "drive1Active").
+
+  O CC 48 (Overdrive 2 Active) precisou de duas rodadas: a primeira exportou
+  "drive2Drive" duplicado nos CC 48 e 49 (a mesma opção do dropdown foi
+  selecionada duas vezes por engano). O nome certo, "drive2Active", foi
+  confirmado numa segunda exportação depois de corrigir a linha no plugin.
+
+  Achado interessante: os 4 bypasses de seção (pedalsActiveID, ampActive,
+  cabActive, fxActive) usam os MESMOS nomes do Gojira — os dois plugins
+  parecem compartilhar essa parte da infraestrutura de MIDI Mapping, mesmo
+  com o resto do naming divergindo completamente.
+
+  CC 1..125, canal 1 (midiChannel="0", 0-indexed) — o mesmo canal que a app
+  usa (status byte 0xB0). data2 e value não importam para type="cc_absolute"
+  (o plugin recalcula value a partir do CC recebido) — mantidos "0" e "0.0".
+
+  Instalação: copie este arquivo para
+    %APPDATA%\Neural DSP\Soldano SLO-100 X\MIDI\
+  e carregue pela janela MIDI Mappings. A subpasta é "MIDI", não
+  "MIDI Mappings" como no Gojira.
+-->
+
+<midi>
+  <routings>
+
+    <!-- ============================ GLOBAL =============================== -->
+    <routing type="cc_absolute" target="gateActive" midiChannel="0" data1="1" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="gateThreshold" midiChannel="0" data1="2" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="transpose" midiChannel="0" data1="3" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="doublerActive" midiChannel="0" data1="4" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="doublerSpread" midiChannel="0" data1="5" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ AMP (canal) =========================== -->
+    <routing type="cc_absolute" target="ampNormalOverdrive" midiChannel="0" data1="20" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampPreampNormal" midiChannel="0" data1="21" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampMasterNormal" midiChannel="0" data1="22" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampBright" midiChannel="0" data1="23" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampCleanCrunch" midiChannel="0" data1="24" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampPreampOverdrive" midiChannel="0" data1="25" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampMasterOverdrive" midiChannel="0" data1="26" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ==================== Tonestack e power amp (2 canais) ============== -->
+    <routing type="cc_absolute" target="ampBass" midiChannel="0" data1="27" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampMid" midiChannel="0" data1="28" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampTreble" midiChannel="0" data1="29" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampPresence" midiChannel="0" data1="30" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampDepth" midiChannel="0" data1="31" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ COMP (pré) ============================ -->
+    <routing type="cc_absolute" target="compressorActive" midiChannel="0" data1="40" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="compressorCompression" midiChannel="0" data1="41" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="compressorLevel" midiChannel="0" data1="42" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="compressorAttack" midiChannel="0" data1="43" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ OD1 (pré) ============================= -->
+    <routing type="cc_absolute" target="drive1Active" midiChannel="0" data1="44" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="drive1Drive" midiChannel="0" data1="45" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="drive1Tone" midiChannel="0" data1="46" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="drive1Level" midiChannel="0" data1="47" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ OD2 (pré) ============================= -->
+    <routing type="cc_absolute" target="drive2Active" midiChannel="0" data1="48" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="drive2Drive" midiChannel="0" data1="49" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="drive2HiPeak" midiChannel="0" data1="50" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="drive2Tone" midiChannel="0" data1="51" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="drive2Level" midiChannel="0" data1="52" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ CHR (pré) ============================= -->
+    <routing type="cc_absolute" target="chorusActive" midiChannel="0" data1="53" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="chorusMix" midiChannel="0" data1="54" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="chorusRate" midiChannel="0" data1="55" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="chorusDepth" midiChannel="0" data1="56" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="chorusDelay" midiChannel="0" data1="57" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ CAB — mic esquerdo ==================== -->
+    <routing type="cc_absolute" target="leftCabActive" midiChannel="0" data1="60" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leftCabPosition" midiChannel="0" data1="61" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leftCabDistance" midiChannel="0" data1="62" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leftCabMicLevel" midiChannel="0" data1="63" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leftCabPan" midiChannel="0" data1="64" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leftCabPhase" midiChannel="0" data1="65" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leftRoomActive" midiChannel="0" data1="66" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leftRoomMicLevel" midiChannel="0" data1="67" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ CAB — mic direito ===================== -->
+    <routing type="cc_absolute" target="rightCabActive" midiChannel="0" data1="68" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rightCabPosition" midiChannel="0" data1="69" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rightCabDistance" midiChannel="0" data1="70" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rightCabMicLevel" midiChannel="0" data1="71" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rightCabPan" midiChannel="0" data1="72" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rightCabPhase" midiChannel="0" data1="73" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rightRoomActive" midiChannel="0" data1="74" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rightRoomMicLevel" midiChannel="0" data1="75" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ EQ ===================================== -->
+    <routing type="cc_absolute" target="eqActive" midiChannel="0" data1="80" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQBand1" midiChannel="0" data1="81" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQBand2" midiChannel="0" data1="82" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQBand3" midiChannel="0" data1="83" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQBand4" midiChannel="0" data1="84" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQBand5" midiChannel="0" data1="85" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQBand6" midiChannel="0" data1="86" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQBand7" midiChannel="0" data1="87" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQBand8" midiChannel="0" data1="88" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQBand9" midiChannel="0" data1="89" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQHpf" midiChannel="0" data1="90" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="soldanoEQLpf" midiChannel="0" data1="91" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ DLY (pós) ============================== -->
+    <routing type="cc_absolute" target="delayActive" midiChannel="0" data1="92" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="delayMix" midiChannel="0" data1="93" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="delayTime" midiChannel="0" data1="94" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="delayFeedback" midiChannel="0" data1="95" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="delayTone" midiChannel="0" data1="96" data2="0" value="0.0" enabled="1"/>
+    <!-- delaySync: "Delay Sync Mode" no dropdown — confirmar com sweep se é
+         mesmo 3 posições (FREE/DAW/TAP) ou um toggle simples -->
+    <routing type="cc_absolute" target="delaySync" midiChannel="0" data1="97" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="delayPingPong" midiChannel="0" data1="98" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ RVB (pós) ============================== -->
+    <routing type="cc_absolute" target="reverbActive" midiChannel="0" data1="99" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="reverbMix" midiChannel="0" data1="100" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="reverbDecay" midiChannel="0" data1="101" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="reverbTone" midiChannel="0" data1="102" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ==================== Bypass de seção (sempreLigado) ================= -->
+    <!-- Mesmos nomes do Gojira — os dois plugins compartilham essa parte -->
+    <routing type="cc_absolute" target="pedalsActiveID" midiChannel="0" data1="110" data2="0" value="1.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampActive" midiChannel="0" data1="111" data2="0" value="1.0" enabled="1"/>
+    <routing type="cc_absolute" target="cabActive" midiChannel="0" data1="112" data2="0" value="1.0" enabled="1"/>
+    <routing type="cc_absolute" target="fxActive" midiChannel="0" data1="113" data2="0" value="1.0" enabled="1"/>
+
+    <!-- ================= Fora do schema da IA, mas mapeados =============== -->
+    <routing type="cc_absolute" target="inputGain" midiChannel="0" data1="120" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="outputGain" midiChannel="0" data1="121" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leftMicType" midiChannel="0" data1="122" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rightMicType" midiChannel="0" data1="123" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="delayTempo" midiChannel="0" data1="124" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="delaySyncNote" midiChannel="0" data1="125" data2="0" value="0.0" enabled="1"/>
+
+  </routings>
+</midi>

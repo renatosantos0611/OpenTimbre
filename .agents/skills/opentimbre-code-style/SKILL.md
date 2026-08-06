@@ -74,13 +74,16 @@ records a bug that actually happened, it is worth more than the code.
 
 ### Language of comments and user-facing text
 
-**`<pending ratification>`** — the legacy wrote comments, user-facing messages, and domain
-vocabulary in **Portuguese** (`cena`, `catalogo`, `exigir`, `padrao`, `sempreLigado`), keeping
-established technical terms in English. Whether the rebuilt app keeps Portuguese, moves to English,
-or ships localized is a product decision that has not been made.
+**Ratified: the app ships both English and Portuguese**, via the message catalog described in
+`opentimbre-i18n` — there is no longer a single "the" UI language. That skill governs every
+user-facing string.
 
-Until it is decided, **match the language of the surrounding file** and do not mix languages within
-one file. When the decision is made, update this section and this skill's ledger entry.
+This section governs what `opentimbre-i18n` does not: **code comments and identifiers stay in
+English**, project-wide, regardless of which locale a string displays in. The legacy's Portuguese
+domain vocabulary in code (`cena`, `catalogo`, `sempreLigado`) does not carry over to identifiers —
+it lives on as the *content* of `pt.json` keys, not as variable or function names. Naming rule §5
+above (kebab-case files, camelCase/PascalCase code) already assumes English; this just makes it
+explicit now that the UI itself is bilingual.
 
 ## 6. A new dependency must justify itself
 
