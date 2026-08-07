@@ -1,19 +1,32 @@
-/** Electron entry point. Functional IPC handlers arrive in Task 5; this task owns the secure shell. */
-import { app, BrowserWindow, net, protocol } from 'electron'
+/** Electron entry point - wires store, IPC handlers, and security lockdown. */
+import { app, BrowserWindow, protocol } from 'electron'
 import path from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import os from 'node:os'
 import { createMainWindow } from './window.ts'
+import { initStore, getStore } from './storage/desktop-store.ts'
+import { registerIpcHandlers } from './ipc/handlers.ts'
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true } },
 ])
 
+/** Resolves Electron App.getPath('userData') directory on each platform. */
+function resolveDataDir(): string {
+  const name = 'OpenTimbre'
+  if (process.platform === 'darwin') return path.join(os.homedir(), 'Library', 'Application Support', name)
+  if (process.platform === 'win32') return path.join(process.env.APPDATA ?? '', name)
+  return path.join(
+    process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config'),
+    name,
+  )
+}
+
 app.whenReady().then(() => {
-  protocol.handle('app', (request) => {
-    const requested = new URL(request.url).pathname.replace(/^\/+/, '')
-    const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../renderer/browser')
-    return net.fetch(pathToFileURL(path.join(root, requested)).toString())
-  })
+  const dataDir = resolveDataDir()
+  initStore(path.join(dataDir, 'settings.db'))
+
+  registerIpcHandlers({ store: getStore() })
+
   createMainWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow()

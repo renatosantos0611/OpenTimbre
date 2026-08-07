@@ -45,8 +45,10 @@
 - Task 1 ✅ 2026-08-06 — shared browser-safe i18n, catalog parity, locale IPC contract, and DesktopApi; full workspace tests/typechecks pass
 - Task 2 ✅ 2026-08-06 — catalog-driven RigChat, provider-native history resume, model listing, and adapter fixtures; core tests/typecheck pass
 - Task 3 ✅ 2026-08-06 — injected cross-platform PluginHost, launch/mapping lifecycle, Windows/macOS factories, and real catalog boundary checks; 29 tests pass
-- next: execute Task 4 with TDD, split review, focused proof, and a granular commit
-- pending: Tasks 4-10
+- Task 4 ✅ 2026-08-07 — secure 420x700 shell (min 360x520), typed DesktopApi, Zod payload validation, sender/nav/permission lockdown, ESLint coverage for .cts; 6 tests pass, build clean, zero lint warnings
+- Task 5 ✅ 2026-08-07 — SQLite settings store with versioned migrations, IPC handler registry (settings/config/keys stubs + deferred chat/rig/plugin/conversation), main.ts integration; 13 tests pass, build+lint clean
+- next: execute Task 6 with TDD, split review, focused proof, and a granular commit
+- pending: Tasks 6-10
 
 ## History
 
@@ -55,4 +57,4 @@
 - 2026-08-06 rebuild-phase1-foundation — done — local delivery accepted; 125 tests passed → data/history/2026-08-05-rebuild-phase1-foundation.md
 - 2026-08-06 rebuild-phase2-plugins — done 2026-08-06 — PR #1 merged into origin/main at 0e1f593 → data/history/2026-08-06-rebuild-phase2-plugins.md
 
-_Last updated: 2026-08-06_
+_Last updated: 2026-08-07_

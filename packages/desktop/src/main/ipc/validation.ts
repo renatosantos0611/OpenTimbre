@@ -13,6 +13,7 @@ const schemas = {
   'window:setTheme': z.enum(['system', 'light', 'dark']),
   'keys:remove': z.enum(['anthropic', 'openai']),
   'keys:save': z.tuple([z.enum(['anthropic', 'openai']), z.string().min(1)]),
+  'config:guitar': z.enum(['stratocaster', 'les_paul', 'custom']),
 } as const
 
 export type ValidatedChannel = keyof typeof schemas
