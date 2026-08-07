@@ -198,7 +198,7 @@ function build(plugin: PluginSpec): Built {
     // plugin's full parameter set. The `any` here is a compile-time-only
     // escape from that — the runtime call and this function's own return
     // type are unaffected.
-    const out = zodToJsonSchema(s as any, { target: 'jsonSchema7', $refStrategy: 'none' }) as Record<string, unknown>
+    const out = zodToJsonSchema(s as unknown as z.ZodTypeAny, { target: 'jsonSchema7', $refStrategy: 'none' }) as Record<string, unknown>
     delete out['$schema']
     return out
   }

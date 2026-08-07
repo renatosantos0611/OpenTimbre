@@ -98,13 +98,14 @@ function rig(plugin: string): Rig {
 
 test('RigChat exposes one tool per catalog plugin and uses the selected tool', async () => {
   const selected = CATALOG.find((spec) => spec.id === 'petrucci')!
-  const { plugin: _plugin, ...args } = rig(selected.id)
+  const { plugin, ...args } = rig(selected.id)
   const fake = provider([{ text: 'Here is the rig.', call: { id: '1', name: `apply_rig_${selected.id}`, args }, raw: {}, usage: { input: 1, output: 1 }, stopReason: 'tool_use' }])
   const chat = createRigChat({ providers: [fake], locale: 'en', guitar: GUITAR })
 
   const turn = await chat.send('Make a Petrucci tone')
 
   assert.equal((turn as Turn).text, 'Here is the rig.')
+  assert.equal(plugin, selected.id)
   assert.equal((turn as Turn).rig?.plugin, 'petrucci')
   assert.equal(fake.tools[0]?.length, CATALOG.length)
   assert.deepEqual(fake.tools[0]?.map((tool) => tool.name), CATALOG.map((spec) => `apply_rig_${spec.id}`))
@@ -123,7 +124,7 @@ test('RigChat accepts a text-only model answer without inventing a rig', async (
 
 test('RigChat keeps the successful response text after one validation correction', async () => {
   const selected = CATALOG.find((spec) => spec.id === 'gojira')!
-  const { plugin: _plugin, ...args } = rig(selected.id)
+  const { plugin, ...args } = rig(selected.id)
   const fake = provider([
     response({ id: 'bad', name: `apply_rig_${selected.id}`, args: { invalid: true } }, 'Try one more time.'),
     response({ id: 'good', name: `apply_rig_${selected.id}`, args }, 'Corrected rig.'),
@@ -133,6 +134,7 @@ test('RigChat keeps the successful response text after one validation correction
   const turn = await chat.send('Make a Gojira tone')
 
   assert.equal(turn.text, 'Corrected rig.')
+  assert.equal(plugin, selected.id)
   assert.equal(turn.rig?.plugin, 'gojira')
 })
 
