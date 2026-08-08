@@ -177,6 +177,12 @@ app.whenReady().then(() => {
   // Warm the model cache in the background; failures leave it empty.
   void listModels(wireProviders()).then((models) => modelCache.push(...models)).catch(() => undefined)
 
+  // When the OS theme changes and the window follows `system`, push the new
+  // resolved theme so the renderer repaints without a reload.
+  nativeTheme.on('updated', () => {
+    if (store.get('theme') === 'system') send('window:themeChanged', nativeTheme.shouldUseDarkColors ? 'dark' : 'light')
+  })
+
   function openWindow(): void {
     win = createMainWindow({
       alwaysOnTop: store.getBool('always_on_top'),
