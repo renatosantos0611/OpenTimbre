@@ -40,6 +40,7 @@ export function makeAppState(overrides: Partial<AppState> = {}): AppState {
     providerPreference: 'auto',
     forcedProvider: null,
     keysStorePath: '/tmp/keys.json',
+    pluginIds: ['gojira', 'soldano', 'tim-henson', 'petrucci'],
     version: '0.0.0',
     ...overrides,
   }
@@ -59,6 +60,12 @@ export type FakeDesktopApi = DesktopApi & {
     deleteConversation: string[]
     setTheme: string[]
     setLocale: string[]
+    setGuitar: Guitar[]
+    setModel: [string, string][]
+    saveKey: [string, string][]
+    removeKey: string[]
+    setProviderPreference: string[]
+    getPluginState: string[]
   }
 }
 
@@ -69,7 +76,7 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
   let current = state
 
   const fake: FakeDesktopApi = {
-    calls: { getState: 0, sendChat: [], applyRig: [], deleteConversation: [], setTheme: [], setLocale: [] },
+    calls: { getState: 0, sendChat: [], applyRig: [], deleteConversation: [], setTheme: [], setLocale: [], setGuitar: [], setModel: [], saveKey: [], removeKey: [], setProviderPreference: [], getPluginState: [] },
 
     getState: async () => {
       fake.calls.getState += 1
@@ -87,17 +94,26 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
       fake.calls.applyRig.push(scene)
       return { scene, amp: 'Rust', ccsSent: 3, ms: 12, warnings: [] }
     },
-    setGuitar: async () => state,
-    setModel: async () => state,
+    setGuitar: async (guitar: Guitar) => {
+      fake.calls.setGuitar.push(guitar)
+      return state
+    },
+    setModel: async (provider: string, id: string) => {
+      fake.calls.setModel.push([provider, id])
+      return state
+    },
 
-    getPluginState: async () => ({
-      id: 'gojira',
-      name: 'Gojira',
-      installed: false,
-      path: null,
-      running: false,
-      mappingStatus: 'missing',
-    }),
+    getPluginState: async (id: string) => {
+      fake.calls.getPluginState.push(id)
+      return {
+        id,
+        name: 'Gojira',
+        installed: false,
+        path: null,
+        running: false,
+        mappingStatus: 'missing',
+      }
+    },
     openPlugin: async () => plugins(),
     installMapping: async () => plugins(),
 
@@ -117,9 +133,18 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
       return current
     },
 
-    saveKey: async () => state,
-    removeKey: async () => state,
-    setProviderPreference: async () => state,
+    saveKey: async (provider: string, key: string) => {
+      fake.calls.saveKey.push([provider, key])
+      return state
+    },
+    removeKey: async (provider: string) => {
+      fake.calls.removeKey.push(provider)
+      return state
+    },
+    setProviderPreference: async (preference: string) => {
+      fake.calls.setProviderPreference.push(preference)
+      return state
+    },
 
     listConversations: async () => [],
     openConversation: async () => ({ id: 'c1', title: 'Tone hunt', messages: [], plugin: null, memoryLost: false }),

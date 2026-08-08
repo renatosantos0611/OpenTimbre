@@ -1,17 +1,24 @@
 /**
- * Registers all IPC handlers for the desktop renderer. Settings and keys
- * delegate to the injected store; plugin and rig operations delegate to the
- * injected PluginManager and SceneApplier; chat/conversation operations
- * delegate to the injected ChatController.
+ * Registers all IPC handlers for the desktop renderer. Every handler returns
+ * the contract's camelCase `Result<T>` — an `AppState` on success or a
+ * localized `{ error }` — never the legacy `{ok,data,status}` envelope (see
+ * `opentimbre-electron-ipc`).
+ *
+ * Settings and keys delegate to the injected store and the core key-store;
+ * plugin and rig operations delegate to the injected PluginManager and
+ * SceneApplier; chat/conversation operations delegate to the injected
+ * ChatController.
  */
-import { ipcMain } from 'electron'
+import { ipcMain, type IpcMainInvokeEvent } from 'electron'
+import { list as listKeys, remove as removeKey, save as saveKey } from '@opentimbre/core/src/secrets/key-store.ts'
+import { assertTrustedSender } from '../security.ts'
+import { APP_ORIGIN } from '../window.ts'
 import type { DesktopStore } from '../storage/desktop-store.ts'
 import type { PluginManager } from '../plugins/plugin-manager.ts'
 import type { SceneApplier } from '../rig/scene-applier.ts'
 import type { ChatController } from '../chat/chat-controller.ts'
+import { buildAppState, type AiState } from './app-state.ts'
 import { validatePayload } from './validation.ts'
-
-export type KeyCountFn = () => number
 
 type Deps = {
   store: DesktopStore
@@ -19,160 +26,182 @@ type Deps = {
   applier: SceneApplier
   chat: ChatController
   send: (channel: string, payload: unknown) => void
+  getAi: () => AiState | null
+  getGuitar: () => import('@opentimbre/contracts').Guitar
+  getLocale: () => import('@opentimbre/i18n').Locale
+  version: string
 }
 
-function appState(deps: Deps): Record<string, unknown> {
-  const s = deps.store
-  return {
-    git_sha: 'dev',
-    midi: { port: null, error: null },
-    ai: null,
-    guitar: s.get('guitar'),
-    model_id: s.get('model_id') ?? '',
-    provider_id: '',
-    provider_preference: s.get('provider_preference'),
-    always_on_top: s.getBool('always_on_top'),
-    dim_on_unfocus: s.getBool('dim_on_unfocus'),
-    auto_apply: s.getBool('auto_apply'),
-    theme: { chosen: s.get('theme') || 'system', resolved: s.get('theme') || 'system' },
-    keysError: null,
-    version: '3.0-dev',
-  }
+function appState(deps: Deps): import('@opentimbre/contracts').AppState {
+  return buildAppState({
+    store: deps.store,
+    listKeys,
+    getGuitar: deps.getGuitar,
+    getLocale: deps.getLocale,
+    ai: deps.getAi(),
+    version: deps.version,
+  })
 }
 
-function ok(state: Record<string, unknown>) {
-  return { ok: true, data: state, status: '' }
-}
+const failure = (message: string): { error: string } => ({ error: message })
 
-function err(message: string) {
-  return { ok: false, data: null, status: message }
+/**
+ * Every handler checks the sender before doing work. A request from outside
+ * the app origin never reaches a side effect (see `opentimbre-electron-ipc`).
+ */
+function trusted(event: IpcMainInvokeEvent): void {
+  assertTrustedSender({ url: event.senderFrame?.url ?? '' }, APP_ORIGIN)
 }
-
-/** Wires up every IPC channel that the preload API calls via invoke. */
 export function registerIpcHandlers(deps: Deps): void {
   // ── State / config ───────────────────────────────────────
 
-  ipcMain.handle('app:state', () => ok(appState(deps)))
-
-  ipcMain.handle('config:guitar', (_event, guitar) => {
-    try {
-      deps.store.set('guitar', guitar)
-      return ok(appState(deps))
-    } catch (e) { return err(String(e)) }
+  ipcMain.handle('app:state', (event) => {
+    trusted(event)
+    return appState(deps)
   })
 
-  ipcMain.handle('ai:model', (_event, [provider, id]: [string, string]) => {
+  ipcMain.handle('config:guitar', (event, guitar) => {
     try {
+      trusted(event)
+      deps.store.set('guitar', JSON.stringify(validatePayload('config:guitar', guitar)))
+      return appState(deps)
+    } catch (e) { return failure(String(e)) }
+  })
+
+  ipcMain.handle('ai:model', (event, payload) => {
+    try {
+      trusted(event)
+      const [provider, id] = validatePayload('ai:model', payload) as [string, string]
       deps.store.set('model_id', id)
       deps.store.set('provider_id', provider)
-      return ok(appState(deps))
-    } catch (e) { return err(String(e)) }
+      return appState(deps)
+    } catch (e) { return failure(String(e)) }
   })
 
-  ipcMain.handle('window:setTheme', (_event, theme) => {
-    try { deps.store.set('theme', theme); return ok(appState(deps)) } catch (e) { return err(String(e)) }
+  ipcMain.handle('window:setTheme', (event, theme) => {
+    try { trusted(event); deps.store.set('theme', validatePayload('window:setTheme', theme) as string); return appState(deps) } catch (e) { return failure(String(e)) }
   })
 
-  ipcMain.handle('window:setLocale', (_event, locale) => {
-    try { deps.store.set('locale', locale); return ok(appState(deps)) } catch (e) { return err(String(e)) }
+  ipcMain.handle('window:setLocale', (event, locale) => {
+    try { trusted(event); deps.store.set('locale', validatePayload('window:setLocale', locale) as string); return appState(deps) } catch (e) { return failure(String(e)) }
   })
 
-  ipcMain.handle('window:alwaysOnTop', () => {
+  ipcMain.handle('window:alwaysOnTop', (event) => {
     try {
+      trusted(event)
       const next = !deps.store.getBool('always_on_top')
       deps.store.setBool('always_on_top', next)
-      return ok(appState(deps))
-    } catch (e) { return err(String(e)) }
+      return appState(deps)
+    } catch (e) { return failure(String(e)) }
   })
 
-  ipcMain.handle('window:dimOnUnfocus', (_event, value) => {
-    try { deps.store.setBool('dim_on_unfocus', Boolean(value)); return ok(appState(deps)) } catch (e) { return err(String(e)) }
+  ipcMain.handle('window:dimOnUnfocus', (event, value) => {
+    try { trusted(event); deps.store.setBool('dim_on_unfocus', validatePayload('window:dimOnUnfocus', value) as boolean); return appState(deps) } catch (e) { return failure(String(e)) }
   })
 
-  ipcMain.handle('window:autoApply', (_event, value) => {
-    try { deps.store.setBool('auto_apply', Boolean(value)); return ok(appState(deps)) } catch (e) { return err(String(e)) }
+  ipcMain.handle('window:autoApply', (event, value) => {
+    try { trusted(event); deps.store.setBool('auto_apply', validatePayload('window:autoApply', value) as boolean); return appState(deps) } catch (e) { return failure(String(e)) }
   })
 
   // ── Window bounds ────────────────────────────────────────
 
-  ipcMain.handle('window:setBounds', (_event, bounds) => {
+  ipcMain.handle('window:setBounds', (event, bounds) => {
     try {
+      trusted(event)
       const b = bounds as Record<string, unknown>
       if ('x' in b && typeof b.x === 'number') deps.store.setNumber('bounds_x', b.x)
       if ('y' in b && typeof b.y === 'number') deps.store.setNumber('bounds_y', b.y)
       if ('width' in b && typeof b.width === 'number') deps.store.setNumber('width', Number(b.width))
-      if ('height' in b && typeof b.height === 'number') deps.store.setNumber('height', Number(bounds.height))
-      return ok(appState(deps))
-    } catch (e) { return err(String(e)) }
+      if ('height' in b && typeof b.height === 'number') deps.store.setNumber('height', Number(b.height))
+      return appState(deps)
+    } catch (e) { return failure(String(e)) }
   })
 
   // ── Keys ─────────────────────────────────────────────────
+  // Plaintext keys cross IPC exactly once, renderer→main, in `keys:save`.
+  // The key-store encrypts immediately (safeStorage) and returns only KeyInfo;
+  // no plaintext ever travels main→renderer or enters logs (opentimbre-secrets).
 
-  ipcMain.handle('keys:save', async (_event, payload) => {
+  ipcMain.handle('keys:save', (event, payload) => {
     try {
-      const [, key] = payload as [string, string]
-      if (!key?.trim()) return err('Empty key — paste the whole key before saving.')
-      if (/[\s]/.test(key.trim())) return err('Key has whitespace in the middle — paste only the key.')
-      return ok(appState(deps))
-    } catch (e) { return err(String(e)) }
+      trusted(event)
+      const [provider, key] = validatePayload('keys:save', payload) as [string, string]
+      saveKey(provider as Parameters<typeof saveKey>[0], key)
+      return appState(deps)
+    } catch (e) {
+      return failure(e instanceof Error ? e.message : String(e))
+    }
   })
 
-  ipcMain.handle('keys:remove', async () => {
-    try { return ok(appState(deps)) } catch (e) { return err(String(e)) }
+  ipcMain.handle('keys:remove', (event, provider) => {
+    try {
+      trusted(event)
+      removeKey(validatePayload('keys:remove', provider) as Parameters<typeof removeKey>[0])
+      return appState(deps)
+    } catch (e) { return failure(String(e)) }
   })
 
   // ── Chat & conversation ───────────────────────────────────
 
-  ipcMain.handle('chat:send', async (_event, payload) => {
+  ipcMain.handle('chat:send', async (event, payload) => {
     try {
+      trusted(event)
       return await deps.chat.send(validatePayload('chat:send', payload) as string)
-    } catch (e) { return { error: String(e) } }
+    } catch (e) { return failure(String(e)) }
   })
-  ipcMain.handle('chat:new', async () => {
+  ipcMain.handle('chat:new', async (event) => {
     try {
+      trusted(event)
       return await deps.chat.newChat()
-    } catch (e) { return { error: String(e) } }
+    } catch (e) { return failure(String(e)) }
   })
-  ipcMain.handle('conversations:list', async () => {
+  ipcMain.handle('conversations:list', async (event) => {
     try {
+      trusted(event)
       return await deps.chat.list()
-    } catch (e) { return { error: String(e) } }
+    } catch (e) { return failure(String(e)) }
   })
-  ipcMain.handle('conversations:open', async (_event, payload) => {
+  ipcMain.handle('conversations:open', async (event, payload) => {
     try {
+      trusted(event)
       return await deps.chat.open(validatePayload('conversations:open', payload) as string)
-    } catch (e) { return { error: String(e) } }
+    } catch (e) { return failure(String(e)) }
   })
-  ipcMain.handle('conversations:delete', async (_event, payload) => {
+  ipcMain.handle('conversations:delete', async (event, payload) => {
     try {
+      trusted(event)
       return await deps.chat.delete(validatePayload('conversations:delete', payload) as string)
-    } catch (e) { return { error: String(e) } }
+    } catch (e) { return failure(String(e)) }
   })
 
   // ── Rig operations ────────────────────────────────────────
 
-  ipcMain.handle('rig:apply', async (_event, scene) => {
+  ipcMain.handle('rig:apply', async (event, scene) => {
     try {
+      trusted(event)
       return deps.applier.apply(validatePayload('rig:apply', scene) as string)
-    } catch (e) { return { error: String(e) } }
+    } catch (e) { return failure(String(e)) }
   })
 
   // ── Plugin operations ─────────────────────────────────────
 
-  ipcMain.handle('plugin:state', async (_event, id) => {
+  ipcMain.handle('plugin:state', async (event, id) => {
     try {
+      trusted(event)
       return deps.plugins.getState(validatePayload('plugin:state', id) as string)
-    } catch (e) { return { error: String(e) } }
+    } catch (e) { return failure(String(e)) }
   })
-  ipcMain.handle('plugin:open', async (_event, id) => {
+  ipcMain.handle('plugin:open', async (event, id) => {
     try {
+      trusted(event)
       return deps.plugins.open(validatePayload('plugin:open', id) as string)
-    } catch (e) { return { error: String(e) } }
+    } catch (e) { return failure(String(e)) }
   })
-  ipcMain.handle('plugin:installMapping', async (_event, id) => {
+  ipcMain.handle('plugin:installMapping', async (event, id) => {
     try {
+      trusted(event)
       return deps.plugins.installMapping(validatePayload('plugin:installMapping', id) as string)
-    } catch (e) { return { error: String(e) } }
+    } catch (e) { return failure(String(e)) }
   })
 
   // Push the changed plugin state to the renderer whenever the poller sees it move.
@@ -180,7 +209,7 @@ export function registerIpcHandlers(deps: Deps): void {
 
   // ── AI preference ────────────────────────────────────────
 
-  ipcMain.handle('ai:providerPreference', (_event, pref) => {
-    try { deps.store.set('provider_preference', pref); return ok(appState(deps)) } catch (e) { return err(String(e)) }
+  ipcMain.handle('ai:providerPreference', (event, pref) => {
+    try { trusted(event); deps.store.set('provider_preference', validatePayload('ai:providerPreference', pref) as string); return appState(deps) } catch (e) { return failure(String(e)) }
   })
 }

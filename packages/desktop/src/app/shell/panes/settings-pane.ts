@@ -1,7 +1,8 @@
 /**
- * Settings pane: theme, locale, and window-behavior toggles. Each control
- * forwards intent to `DesktopService`; the active value is read from its
- * signals, so a change from the main process (push) re-renders here too.
+ * Settings pane: theme, locale, window-behavior toggles, guitar, AI, and keys.
+ * Each control forwards intent to `DesktopService`; the active value is read
+ * from its signals, so a change from the main process (push) re-renders here
+ * too. The heavier sections live in `GuitarForm` and `AiSettings`.
  */
 import {
   ChangeDetectionStrategy,
@@ -13,14 +14,21 @@ import type { Locale } from '@opentimbre/i18n'
 import type { Theme } from '@opentimbre/contracts'
 import { DesktopService } from '../../desktop.service'
 import { I18nService } from '../../i18n.service'
+import { GuitarForm } from './guitar-form'
+import { AiSettings } from './ai-settings'
 
 @Component({
   selector: 'ot-settings-pane',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [GuitarForm, AiSettings],
   template: `
     <div class="scroll">
       <p class="label">{{ i18n.t('settings.title') }}</p>
+
+      <ot-guitar-form />
+
+      <ot-ai-settings />
 
       <fieldset class="group">
         <legend>{{ i18n.t('settings.theme') }}</legend>
@@ -72,6 +80,16 @@ import { I18nService } from '../../i18n.service'
           (change)="desktop.toggleAlwaysOnTop()"
         />
         <span>{{ i18n.t('settings.alwaysOnTop') }}</span>
+      </label>
+
+      <label class="toggle">
+        <input
+          type="checkbox"
+          [attr.aria-label]="i18n.t('settings.autoApply')"
+          [checked]="desktop.autoApply()"
+          (change)="desktop.setAutoApply($any($event.target).checked)"
+        />
+        <span>{{ i18n.t('settings.autoApply') }}</span>
       </label>
     </div>
   `,

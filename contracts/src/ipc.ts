@@ -156,8 +156,10 @@ export type AppState = {
   providerPreference: ProviderPreference
   /** `AI_PROVIDER` from the environment, when present it overrides the window's preference. */
   forcedProvider: string | null
-  /** Where the keys are stored, for the screen to display. */
+  /** Placeholder hint for the settings screen; the key path is never shown. */
   keysStorePath: string
+  /** Catalog plugin ids in registry order, for the plugin bar to render. */
+  pluginIds: string[]
   version: string
 }
 

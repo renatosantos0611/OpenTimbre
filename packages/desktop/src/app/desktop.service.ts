@@ -20,6 +20,7 @@ import type {
   MessageWithCards,
   OpenConversation,
   PluginState,
+  ProviderId,
   ProviderPreference,
   ResolvedTheme,
   Summary,
@@ -69,6 +70,7 @@ export class DesktopService {
   readonly keysError = signal<string | null>(null)
   readonly providerPreference = signal<ProviderPreference>('auto')
   readonly forcedProvider = signal<string | null>(null)
+  readonly pluginIds = signal<string[]>([])
 
   readonly chatStatus = signal<ChatStatus>(null)
   readonly conversations = signal<Summary[]>([])
@@ -117,6 +119,7 @@ export class DesktopService {
     this.keysError.set(state.keysError)
     this.providerPreference.set(state.providerPreference)
     this.forcedProvider.set(state.forcedProvider)
+    this.pluginIds.set(state.pluginIds)
   }
 
   // -- request/response actions ---------------------------------------------
@@ -203,11 +206,45 @@ export class DesktopService {
   }
 
   async openPlugin(id: string): Promise<void> {
-    await this.api.openPlugin(id)
+    const result = await this.api.openPlugin(id)
+    if (!('error' in result)) this.pluginStates.set({ ...this.pluginStates(), [result.id]: result })
   }
 
   async installMapping(id: string): Promise<void> {
-    await this.api.installMapping(id)
+    const result = await this.api.installMapping(id)
+    if (!('error' in result)) this.pluginStates.set({ ...this.pluginStates(), [result.id]: result })
+  }
+
+  async setGuitar(guitar: Guitar): Promise<void> {
+    this.applyResult(await this.api.setGuitar(guitar))
+  }
+
+  async setModel(provider: string, id: string): Promise<void> {
+    this.applyResult(await this.api.setModel(provider as ProviderId, id))
+  }
+
+  async saveKey(provider: string, key: string): Promise<void> {
+    const result = await this.api.saveKey(provider as ProviderId, key)
+    if ('error' in result) {
+      this.keysError.set(result.error)
+      return
+    }
+    this.keysError.set(null)
+    this.applyState(result)
+  }
+
+  async removeKey(provider: string): Promise<void> {
+    const result = await this.api.removeKey(provider as ProviderId)
+    if ('error' in result) {
+      this.keysError.set(result.error)
+      return
+    }
+    this.keysError.set(null)
+    this.applyState(result)
+  }
+
+  async setProviderPreference(preference: ProviderPreference): Promise<void> {
+    this.applyResult(await this.api.setProviderPreference(preference))
   }
 
   private applyResult(result: AppState | { error: string }): void {

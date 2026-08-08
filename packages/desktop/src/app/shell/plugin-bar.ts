@@ -1,23 +1,62 @@
 /**
- * Reserved band for the installed plugins. Plugin catalogs and card actions are
- * Tasks 9-10; this shell only fixes the band and its empty state so the window
- * has a stable place for them.
+ * The plugin bar: one row per catalog plugin, rendering its status
+ * (installed/running/mapping) and actions (open, install mapping). The plugin
+ * id list comes from `AppState.pluginIds` — main derives it from `CATALOG`,
+ * this component never imports core (see `opentimbre-plugin-spec`). States
+ * arrive via `plugin:changed` pushes into `DesktopService.pluginStates`.
  */
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import { LucideAudioLines } from '@lucide/angular'
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { LucideAudioLines, LucideDownload, LucidePlay } from '@lucide/angular'
+import { DesktopService } from '../desktop.service'
 import { I18nService } from '../i18n.service'
 
 @Component({
   selector: 'ot-plugin-bar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucideAudioLines],
+  imports: [LucideAudioLines, LucideDownload, LucidePlay],
   template: `
     <span class="label">{{ i18n.t('shell.plugin.title') }}</span>
-    <span class="empty">
-      <svg lucideAudioLines [size]="14"></svg>
-      {{ i18n.t('shell.plugin.empty') }}
-    </span>
+    @if (pluginIds().length === 0) {
+      <span class="empty">
+        <svg lucideAudioLines [size]="14"></svg>
+        {{ i18n.t('shell.plugin.empty') }}
+      </span>
+    } @else {
+      <div class="plugins">
+        @for (id of pluginIds(); track id) {
+          @if (state(id); as p) {
+            <div class="plugin" [attr.data-status]="p.mappingStatus">
+              <span class="dot" [class.running]="p.running"></span>
+              <span class="name">{{ p.name }}</span>
+              <span class="meta">{{ metaLabel(p) }}</span>
+              @if (p.installed) {
+                <button
+                  class="action"
+                  type="button"
+                  [attr.aria-label]="i18n.t('plugin.open', { name: p.name })"
+                  [attr.title]="i18n.t('plugin.open', { name: p.name })"
+                  (click)="desktop.openPlugin(id)"
+                >
+                  <svg lucidePlay [size]="13"></svg>
+                </button>
+              }
+              @if (p.mappingStatus === 'missing' || p.mappingStatus === 'outdated') {
+                <button
+                  class="action"
+                  type="button"
+                  [attr.aria-label]="i18n.t('plugin.installMapping')"
+                  [attr.title]="i18n.t('plugin.installMapping')"
+                  (click)="desktop.installMapping(id)"
+                >
+                  <svg lucideDownload [size]="13"></svg>
+                </button>
+              }
+            </div>
+          }
+        }
+      </div>
+    }
   `,
   styles: [
     `
@@ -47,12 +86,73 @@ import { I18nService } from '../i18n.service'
         gap: 6px;
         color: var(--text-faint);
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+      }
+      .plugins {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        min-width: 0;
+      }
+      .plugin {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex: none;
+        padding: 2px 6px;
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        background: var(--surface-raised);
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--text-faint);
+      }
+      .dot.running {
+        background: var(--success);
+      }
+      .name {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .meta {
+        color: var(--text-faint);
+        font-size: 11px;
+      }
+      .action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: 0;
+        border-radius: var(--r-sm);
+        background: transparent;
+        color: var(--text-dim);
+        cursor: pointer;
+      }
+      .action:hover {
+        background: var(--surface-raise);
+        color: var(--text);
       }
     `,
   ],
 })
 export class PluginBar {
+  readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
+
+  readonly pluginIds = computed(() => this.desktop.pluginIds())
+
+  state(id: string) {
+    return this.desktop.pluginStates()[id]
+  }
+
+  metaLabel(p: import('@opentimbre/contracts').PluginState): string {
+    if (!p.installed) return this.i18n.t('plugin.notInstalled')
+    if (p.running) return this.i18n.t('plugin.running')
+    return this.i18n.t('plugin.stopped')
+  }
 }

@@ -138,6 +138,16 @@ describe('DesktopService', () => {
     expect(result).toEqual({ scene: 'base', amp: 'Rust', ccsSent: 3, ms: 12, warnings: [] })
   })
 
+  it('surfaces a key-save failure through keysError and keeps applying the next success', async () => {
+    await service.load()
+    fake.saveKey = async () => ({ error: 'Key has whitespace in the middle — paste only the key.' })
+    await service.saveKey('openai', 'sk-a b')
+    expect(service.keysError()).toBe('Key has whitespace in the middle — paste only the key.')
+    fake.saveKey = async () => makeAppState()
+    await service.saveKey('openai', 'sk-ok')
+    expect(service.keysError()).toBeNull()
+  })
+
   it('unsubscribes push listeners when its injector is destroyed', async () => {
     const child = createEnvironmentInjector(
       [{ provide: DESKTOP_API, useValue: fake }, DesktopService],
@@ -150,5 +160,49 @@ describe('DesktopService', () => {
     child.destroy()
     fake.pushChatStatus('correcting')
     expect(svc.chatStatus()).toBe('querying')
+  })
+
+  it('records a guitar change through the bridge', async () => {
+    await service.load()
+    const guitar = { model: 'Tele', pickups: 'single' as const, tuning: 'Drop D', strings: 6 }
+    await service.setGuitar(guitar)
+    expect(fake.calls.setGuitar).toEqual([guitar])
+  })
+
+  it('records a model change through the bridge', async () => {
+    await service.load()
+    await service.setModel('openai', 'gpt-4o-mini')
+    expect(fake.calls.setModel).toEqual([['openai', 'gpt-4o-mini']])
+  })
+
+  it('saves a key and applies the returned state', async () => {
+    await service.load()
+    fake.saveKey = async () => {
+      fake.calls.saveKey.push(['openai', 'sk-secret'])
+      return makeAppState({
+        keys: [{ provider: 'openai', label: 'OpenAI', env: 'OPENAI_API_KEY', source: 'app', hint: 'sk-…f3a', updatedAt: 'now', protected: true, readable: true }],
+      })
+    }
+    await service.saveKey('openai', 'sk-secret')
+    expect(fake.calls.saveKey).toEqual([['openai', 'sk-secret']])
+    expect(service.keys()).toHaveLength(1)
+  })
+
+  it('removes a key through the bridge', async () => {
+    await service.load()
+    await service.removeKey('openai')
+    expect(fake.calls.removeKey).toEqual(['openai'])
+  })
+
+  it('records a provider preference through the bridge', async () => {
+    await service.load()
+    await service.setProviderPreference('anthropic')
+    expect(fake.calls.setProviderPreference).toEqual(['anthropic'])
+  })
+
+  it('loads a single plugin state through the bridge', async () => {
+    await service.load()
+    await service.getPluginState('gojira')
+    expect(fake.calls.getPluginState).toEqual(['gojira'])
   })
 })

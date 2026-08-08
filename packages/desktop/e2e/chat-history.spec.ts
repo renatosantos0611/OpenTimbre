@@ -61,6 +61,7 @@ async function stubBridge(page: Page, opts: { busy?: boolean } = {}): Promise<vo
         providerPreference: 'auto',
         forcedProvider: null,
         keysStorePath: '/tmp/keys.json',
+        pluginIds: ['gojira', 'soldano', 'tim-henson', 'petrucci'],
         version: '1.2.3',
       }
       window.api = {

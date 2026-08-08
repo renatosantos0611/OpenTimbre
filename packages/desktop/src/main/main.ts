@@ -1,14 +1,21 @@
 /** Electron entry point - wires store, IPC handlers, plugin host, and security lockdown. */
-import { app, BrowserWindow, protocol } from 'electron'
+import { app, BrowserWindow, protocol, safeStorage } from 'electron'
 import path from 'node:path'
 import os from 'node:os'
 import { spawn } from 'node:child_process'
 import { access, copyFile, mkdir, readFile } from 'node:fs/promises'
-import type { Guitar } from '@opentimbre/contracts'
+import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
+import type { Guitar, AvailableModel, ProviderId } from '@opentimbre/contracts'
 import type { Locale } from '@opentimbre/i18n'
 import type { RigChatProvider } from '@opentimbre/core/src/chat/rig-chat.ts'
+import { listModels } from '@opentimbre/core/src/chat/rig-chat.ts'
+import { openaiProvider } from '@opentimbre/core/src/providers/openai.ts'
+import { anthropicProvider } from '@opentimbre/core/src/providers/anthropic.ts'
+import { configure as configureKeys } from '@opentimbre/core/src/secrets/key-store.ts'
 import { createMainWindow } from './window.ts'
 import { initStore, getStore } from './storage/desktop-store.ts'
+import { createSafeStorageVault } from './storage/vault.ts'
 import { registerIpcHandlers } from './ipc/handlers.ts'
 import { createPluginManager } from './plugins/plugin-manager.ts'
 import { createSceneApplier } from './rig/scene-applier.ts'
@@ -64,28 +71,48 @@ function launchProcess(executable: string): Promise<void> {
 }
 
 /**
- * The provider set, read lazily so a key saved later applies without a restart.
- * Real provider clients need an API key from the key store, which isn't wired
- * into this composition root yet (this task's `keys:save` is a stub and
- * `main.ts` never calls the key store's `configure`), so no provider is
- * configured here; the chat backend returns a localized "no provider" error
- * until that wiring lands. Tests inject a fake provider through this seam.
+ * The provider set, read lazily so a key saved later applies without a
+ * restart. Real provider clients are built `new OpenAI()` / `new Anthropic()`,
+ * which read the key from `process.env` — the core key-store's
+ * `applyToEnvironment()` keeps that in step with what's saved. A missing key
+ * makes the SDK constructor throw; caught here so the app still boots with
+ * that provider simply absent as a candidate (absence is a supported state).
  */
-function getProviders(): readonly RigChatProvider[] {
-  return []
+function wireProviders(): RigChatProvider[] {
+  const providers: RigChatProvider[] = []
+  try {
+    providers.push(openaiProvider(new OpenAI()))
+  } catch {
+    /* no OpenAI key — not a candidate */
+  }
+  try {
+    providers.push(anthropicProvider(new Anthropic()))
+  } catch {
+    /* no Anthropic key — not a candidate */
+  }
+  return providers
 }
 
-/** The full guitar object the AI prompt needs; the store only persists a preset
- *  id, so a default is used until that guitar wiring lands. */
+/** The full guitar object the AI prompt needs; read from the persisted store. */
 const DEFAULT_GUITAR: Guitar = { model: 'Default guitar', pickups: 'humbucker', tuning: 'E standard', strings: 6 }
 
 function getGuitar(): Guitar {
-  return DEFAULT_GUITAR
+  const raw = getStore().get('guitar')
+  if (!raw) return DEFAULT_GUITAR
+  try {
+    return JSON.parse(raw) as Guitar
+  } catch {
+    return DEFAULT_GUITAR
+  }
 }
 
 app.whenReady().then(() => {
   const dataDir = resolveDataDir()
   initStore(path.join(dataDir, 'settings.db'))
+  configureKeys({
+    file: path.join(dataDir, 'settings.db'),
+    vault: safeStorage.isEncryptionAvailable() ? createSafeStorageVault() : null,
+  })
 
   // The OS branch is confined to this composition root — the shared modules
   // never read `process.platform` (see `opentimbre-cross-platform`). Windows
@@ -110,14 +137,38 @@ app.whenReady().then(() => {
   const store = getStore()
   const chat = createChatController({
     repo: createConversationRepository(store.connection),
-    getProviders,
+    getProviders: wireProviders,
     getGuitar,
     getLocale: () => store.get('locale') as Locale,
     applier,
     send,
   })
 
-  registerIpcHandlers({ store, plugins, applier, chat, send })
+  const modelCache: AvailableModel[] = []
+  registerIpcHandlers({
+    store,
+    plugins,
+    applier,
+    chat,
+    send,
+    getLocale: () => store.get('locale') as Locale,
+    getGuitar,
+    version: app.getVersion() || '3.0-dev',
+    getAi: () => {
+      const modelId = store.get('model_id')
+      const providerId = (store.get('provider_id') as ProviderId) || 'openai'
+      if (!modelId) return null
+      return {
+        provider: providerId,
+        label: '',
+        model: modelId,
+        available: modelCache,
+      }
+    },
+  })
+
+  // Warm the model cache in the background; failures leave it empty.
+  void listModels(wireProviders()).then((models) => modelCache.push(...models)).catch(() => undefined)
 
   function openWindow(): void {
     const window = createMainWindow()

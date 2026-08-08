@@ -20,3 +20,19 @@ test('recognizes only channels with runtime schemas', () => {
   assert.equal(isValidatedChannel('chat:send'), true)
   assert.equal(isValidatedChannel('unknown:channel'), false)
 })
+
+test('multi-arg channels expect a single tuple payload, as the preload sends', () => {
+  // The preload packages provider/id (and provider/key) as one tuple
+  // argument; the handler and schema must agree on that shape.
+  assert.deepEqual(validatePayload('ai:model', ['openai', 'gpt-4o']), ['openai', 'gpt-4o'])
+  assert.deepEqual(validatePayload('keys:save', ['openai', 'sk-test']), ['openai', 'sk-test'])
+  assert.throws(() => validatePayload('ai:model', 'openai'), /array/)
+  assert.throws(() => validatePayload('keys:save', 'openai'), /array/)
+})
+
+test('config:guitar validates a full Guitar object', () => {
+  const guitar = { model: 'Tele', pickups: 'HSS', tuning: 'Drop D', strings: 6 }
+  assert.deepEqual(validatePayload('config:guitar', guitar), guitar)
+  assert.throws(() => validatePayload('config:guitar', { model: 'x' }), /pickups/)
+  assert.throws(() => validatePayload('config:guitar', 'stratocaster'), /object/)
+})
