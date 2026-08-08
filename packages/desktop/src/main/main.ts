@@ -2,6 +2,7 @@
 import { app, BrowserWindow, protocol, safeStorage, nativeTheme } from 'electron'
 import path from 'node:path'
 import os from 'node:os'
+import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
 import { access, copyFile, mkdir, readFile } from 'node:fs/promises'
 import Anthropic from '@anthropic-ai/sdk'
@@ -14,6 +15,7 @@ import { openaiProvider } from '@opentimbre/core/src/providers/openai.ts'
 import { anthropicProvider } from '@opentimbre/core/src/providers/anthropic.ts'
 import { configure as configureKeys } from '@opentimbre/core/src/secrets/key-store.ts'
 import { createMainWindow } from './window.ts'
+import { registerRendererProtocol } from './renderer-protocol.ts'
 import { initStore, getStore } from './storage/desktop-store.ts'
 import { createSafeStorageVault } from './storage/vault.ts'
 import { registerIpcHandlers } from './ipc/handlers.ts'
@@ -182,6 +184,12 @@ app.whenReady().then(() => {
   nativeTheme.on('updated', () => {
     if (store.get('theme') === 'system') send('window:themeChanged', nativeTheme.shouldUseDarkColors ? 'dark' : 'light')
   })
+
+  // Angular's application builder emits the browsable bundle under
+  // dist/renderer/browser/, next to dist/main — the same layout in dev and
+  // inside the packaged asar, which fs reads transparently.
+  const rendererDir = fileURLToPath(new URL('../renderer/browser', import.meta.url))
+  registerRendererProtocol(rendererDir)
 
   function openWindow(): void {
     win = createMainWindow({

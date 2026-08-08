@@ -10,23 +10,24 @@
 - slug: phase4-packaging
 - track: infra
 - lane: exploratory
-- phase: brainstorm
+- phase: exec
 - branch: feat/phase4-packaging
 - base-ref: refs/remotes/origin/main
 - base-sha: 49e0dea76cf8ba42ec44db016aabc5fc20ac7b85
 - validated-head: <none>
 - confirm: <none>
-- kickoff: pending
-- isolation: <pending>
+- kickoff: ratified 2026-08-08
+- isolation: branch
 - worktree-path: <none>
-- execution-mode: <pending>
-- commit-strategy: <pending>
+- execution-mode: subagents
+- commit-strategy: granular
+- review-profile: split
 - effect: write-local
 - risk: high
 - overlays: pelizzai-oswap, pelizzai-documenting-features
 - audience: technical
-- spec: pending
-- plan: pending
+- spec: pelizzai/specs/2026-08-08-phase4-packaging.md
+- plan: pelizzai/plans/2026-08-08-phase4-packaging.md
 - project: /workspace/OpenTimbre
 
 ## Progress
