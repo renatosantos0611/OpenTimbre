@@ -6,10 +6,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core'
-import { LucideSend } from '@lucide/angular'
+import { LucidePlus, LucideSend } from '@lucide/angular'
 import { DesktopService } from '../desktop.service'
 import { I18nService } from '../i18n.service'
 
@@ -17,7 +18,7 @@ import { I18nService } from '../i18n.service'
   selector: 'ot-composer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucideSend],
+  imports: [LucidePlus, LucideSend],
   template: `
     <textarea
       class="entry"
@@ -28,6 +29,15 @@ import { I18nService } from '../i18n.service'
       (keydown.enter)="onEnter($event)"
       [attr.aria-label]="i18n.t('shell.composer.placeholder')"
     ></textarea>
+    <button
+      class="new"
+      type="button"
+      [attr.aria-label]="i18n.t('shell.composer.new')"
+      [attr.title]="i18n.t('shell.composer.new')"
+      (click)="newChat()"
+    >
+      <svg lucidePlus [size]="16"></svg>
+    </button>
     <button
       class="send"
       type="button"
@@ -86,6 +96,23 @@ import { I18nService } from '../i18n.service'
         opacity: 0.45;
         cursor: default;
       }
+      .new {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        flex: none;
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        background: var(--surface-raised);
+        color: var(--text-dim);
+        cursor: pointer;
+      }
+      .new:hover {
+        border-color: var(--border-strong);
+        color: var(--text);
+      }
     `,
   ],
 })
@@ -94,7 +121,8 @@ export class Composer {
   readonly i18n = inject(I18nService)
 
   readonly draft = signal('')
-  readonly canSend = () => this.draft().trim().length > 0
+  /** Disabled while empty or while a provider call is in flight. */
+  readonly canSend = computed(() => this.draft().trim().length > 0 && !this.desktop.busy())
 
   onInput(event: Event): void {
     this.draft.set((event.target as HTMLTextAreaElement).value)
@@ -102,9 +130,14 @@ export class Composer {
 
   send(): void {
     const text = this.draft().trim()
-    if (!text) return
+    if (!text || this.desktop.busy()) return
     this.draft.set('')
     void this.desktop.sendChat(text)
+  }
+
+  newChat(): void {
+    this.draft.set('')
+    void this.desktop.newChat()
   }
 
   onEnter(event: Event): void {

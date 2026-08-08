@@ -52,7 +52,14 @@ export type FakeDesktopApi = DesktopApi & {
   pushThemeChanged(theme: ResolvedTheme): void
   /** Fires the `plugin:changed` push. */
   pushPluginChanged(state: PluginState): void
-  calls: { getState: number; sendChat: string[]; setTheme: string[]; setLocale: string[] }
+  calls: {
+    getState: number
+    sendChat: string[]
+    applyRig: string[]
+    deleteConversation: string[]
+    setTheme: string[]
+    setLocale: string[]
+  }
 }
 
 export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesktopApi {
@@ -62,7 +69,7 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
   let current = state
 
   const fake: FakeDesktopApi = {
-    calls: { getState: 0, sendChat: [], setTheme: [], setLocale: [] },
+    calls: { getState: 0, sendChat: [], applyRig: [], deleteConversation: [], setTheme: [], setLocale: [] },
 
     getState: async () => {
       fake.calls.getState += 1
@@ -76,7 +83,10 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
     },
 
     newChat: async () => undefined,
-    applyRig: async () => ({ scene: 'scene', amp: 'amp', ccsSent: 0, ms: 0, warnings: [] }),
+    applyRig: async (scene: string) => {
+      fake.calls.applyRig.push(scene)
+      return { scene, amp: 'Rust', ccsSent: 3, ms: 12, warnings: [] }
+    },
     setGuitar: async () => state,
     setModel: async () => state,
 
@@ -113,7 +123,10 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
 
     listConversations: async () => [],
     openConversation: async () => ({ id: 'c1', title: 'Tone hunt', messages: [], plugin: null, memoryLost: false }),
-    deleteConversation: async () => [],
+    deleteConversation: async (id: string) => {
+      fake.calls.deleteConversation.push(id)
+      return []
+    },
 
     onChatStatus: (cb) => {
       chatStatusListeners.add(cb)

@@ -73,6 +73,71 @@ describe('DesktopService', () => {
     expect(service.locale()).toBe('pt')
   })
 
+  it('appends a user + ai turn to the transcript on a successful send', async () => {
+    await service.load()
+    fake.sendChat = async (text) => ({ text, rig: null, cards: null })
+    await service.sendChat('a heavy chug')
+    expect(service.transcript()).toEqual([
+      { role: 'user', text: 'a heavy chug' },
+      { role: 'ai', text: 'a heavy chug' },
+    ])
+    expect(service.busy()).toBe(false)
+  })
+
+  it('marks busy while a provider call is in flight', async () => {
+    await service.load()
+    let release!: () => void
+    const gate = new Promise<void>((r) => (release = r))
+    fake.sendChat = async (text) => {
+      await gate
+      return { text, rig: null, cards: null }
+    }
+    const pending = service.sendChat('hello')
+    expect(service.busy()).toBe(true)
+    release()
+    await pending
+    expect(service.busy()).toBe(false)
+  })
+
+  it('appends a user + error message when the provider call fails', async () => {
+    await service.load()
+    fake.sendChat = async () => ({ error: 'The AI couldn\'t answer.' })
+    await service.sendChat('hello')
+    expect(service.transcript()).toEqual([
+      { role: 'user', text: 'hello' },
+      { role: 'error', text: 'The AI couldn\'t answer.' },
+    ])
+    expect(service.busy()).toBe(false)
+  })
+
+  it('clears the transcript and conversation on newChat', async () => {
+    await service.load()
+    await service.sendChat('hello')
+    await service.newChat()
+    expect(service.transcript()).toEqual([])
+    expect(service.currentConversation()).toBeNull()
+  })
+
+  it('loads a conversation transcript on open', async () => {
+    await service.load()
+    fake.openConversation = async () => ({
+      id: 'c1',
+      title: 't',
+      messages: [{ role: 'user', text: 'hi' }],
+      plugin: null,
+      memoryLost: false,
+    })
+    await service.openConversation('c1')
+    expect(service.transcript()).toEqual([{ role: 'user', text: 'hi' }])
+  })
+
+  it('forwards applyRig and clears the busy flag', async () => {
+    await service.load()
+    const result = await service.applyRig('base')
+    expect(fake.calls.applyRig).toEqual(['base'])
+    expect(result).toEqual({ scene: 'base', amp: 'Rust', ccsSent: 3, ms: 12, warnings: [] })
+  })
+
   it('unsubscribes push listeners when its injector is destroyed', async () => {
     const child = createEnvironmentInjector(
       [{ provide: DESKTOP_API, useValue: fake }, DesktopService],

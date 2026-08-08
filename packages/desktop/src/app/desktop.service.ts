@@ -11,18 +11,19 @@
  */
 import { DestroyRef, Injectable, InjectionToken, inject, signal } from '@angular/core'
 import type {
+  AppliedScene,
   AppState,
   ChatStatus,
   DesktopApi,
   Guitar,
   KeyInfo,
+  MessageWithCards,
   OpenConversation,
   PluginState,
   ProviderPreference,
   ResolvedTheme,
   Summary,
   Theme,
-  Turn,
 } from '@opentimbre/contracts'
 import type { Locale } from '@opentimbre/i18n'
 import { I18nService } from './i18n.service'
@@ -74,6 +75,11 @@ export class DesktopService {
   readonly currentConversation = signal<OpenConversation | null>(null)
   readonly pluginStates = signal<Record<string, PluginState>>({})
 
+  /** The visible transcript of the open conversation, kept in the service. */
+  readonly transcript = signal<MessageWithCards[]>([])
+  /** True while a provider call is in flight, so the composer stops duplicate sends. */
+  readonly busy = signal(false)
+
   /** Loads AppState and subscribes to push channels. Call once at startup. */
   load(): void {
     const result = this.api.getState()
@@ -115,13 +121,34 @@ export class DesktopService {
 
   // -- request/response actions ---------------------------------------------
 
-  async sendChat(text: string): Promise<Turn | undefined> {
-    const result = await this.api.sendChat(text)
-    return 'error' in result ? undefined : result
+  async sendChat(text: string): Promise<void> {
+    if (this.busy()) return
+    this.busy.set(true)
+    this.transcript.update((msgs) => [...msgs, { role: 'user', text }])
+    try {
+      const result = await this.api.sendChat(text)
+      if ('error' in result) {
+        this.transcript.update((msgs) => [...msgs, { role: 'error', text: result.error }])
+        return
+      }
+      this.transcript.update((msgs) => [
+        ...msgs,
+        result.rig ? { role: 'ai', text: result.text, rig: result.rig, cards: result.cards ?? undefined } : { role: 'ai', text: result.text },
+      ])
+    } finally {
+      this.busy.set(false)
+    }
   }
 
   async newChat(): Promise<void> {
     await this.api.newChat()
+    this.transcript.set([])
+    this.currentConversation.set(null)
+  }
+
+  async applyRig(scene: string): Promise<AppliedScene | undefined> {
+    const result = await this.api.applyRig(scene)
+    return 'error' in result ? undefined : result
   }
 
   async setTheme(theme: Theme): Promise<void> {
@@ -154,12 +181,19 @@ export class DesktopService {
 
   async openConversation(id: string): Promise<void> {
     const result = await this.api.openConversation(id)
-    if (!('error' in result)) this.currentConversation.set(result)
+    if ('error' in result) return
+    this.currentConversation.set(result)
+    this.transcript.set(result.messages)
   }
 
   async deleteConversation(id: string): Promise<void> {
     const result = await this.api.deleteConversation(id)
-    if (!('error' in result)) this.conversations.set(result)
+    if ('error' in result) return
+    this.conversations.set(result)
+    if (this.currentConversation()?.id === id) {
+      this.currentConversation.set(null)
+      this.transcript.set([])
+    }
   }
 
   async getPluginState(id: string): Promise<void> {
