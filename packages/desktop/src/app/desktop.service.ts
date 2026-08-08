@@ -4,8 +4,9 @@
  * reads the readonly signals or calls these methods, and never touches the
  * bridge directly (see `opentimbre-angular-ui`).
  *
- * Push channels (`onChatStatus`, `onThemeChanged`, `onPluginChanged`) are
- * converted into signals here; each subscription is unsubscribed on destroy.
+ * Push channels (`onChatStatus`, `onThemeChanged`, `onPluginChanged`,
+ * `onUpdaterStatus`) are converted into signals here; each subscription is
+ * unsubscribed on destroy.
  * Locale is forwarded to `I18nService` so catalog rendering follows the state
  * the main process owns.
  */
@@ -25,6 +26,7 @@ import type {
   ResolvedTheme,
   Summary,
   Theme,
+  UpdaterStatus,
 } from '@opentimbre/contracts'
 import type { Locale } from '@opentimbre/i18n'
 import { I18nService } from './i18n.service'
@@ -77,6 +79,11 @@ export class DesktopService {
   readonly currentConversation = signal<OpenConversation | null>(null)
   readonly pluginStates = signal<Record<string, PluginState>>({})
 
+  /** The last `updater:status` push; `null` until main announces something. */
+  readonly updaterStatus = signal<UpdaterStatus | null>(null)
+  /** Renderer-only dismissal: hides the banner until the window reloads. */
+  readonly updaterDismissed = signal(false)
+
   /** The visible transcript of the open conversation, kept in the service. */
   readonly transcript = signal<MessageWithCards[]>([])
   /** True while a provider call is in flight, so the composer stops duplicate sends. */
@@ -100,6 +107,7 @@ export class DesktopService {
     this.destroyRef.onDestroy(
       this.api.onPluginChanged((state) => this.pluginStates.set({ ...this.pluginStates(), [state.id]: state })),
     )
+    this.destroyRef.onDestroy(this.api.onUpdaterStatus((status) => this.updaterStatus.set(status)))
   }
 
   private applyState(state: AppState): void {
@@ -213,6 +221,20 @@ export class DesktopService {
   async installMapping(id: string): Promise<void> {
     const result = await this.api.installMapping(id)
     if (!('error' in result)) this.pluginStates.set({ ...this.pluginStates(), [result.id]: result })
+  }
+
+  /** Confirms the update download; errors surface via the `updater:status` push. */
+  async downloadUpdate(): Promise<void> {
+    await this.api.downloadUpdate()
+  }
+
+  async installUpdate(): Promise<void> {
+    await this.api.installUpdate()
+  }
+
+  /** Hides the banner for this session only; the next startup re-notifies. */
+  dismissUpdate(): void {
+    this.updaterDismissed.set(true)
   }
 
   async setGuitar(guitar: Guitar): Promise<void> {

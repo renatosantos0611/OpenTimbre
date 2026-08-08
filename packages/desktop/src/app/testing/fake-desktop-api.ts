@@ -14,6 +14,7 @@ import type {
   ProviderPreference,
   ResolvedTheme,
   Turn,
+  UpdaterStatus,
 } from '@opentimbre/contracts'
 import type { Locale } from '@opentimbre/i18n'
 
@@ -53,6 +54,8 @@ export type FakeDesktopApi = DesktopApi & {
   pushThemeChanged(theme: ResolvedTheme): void
   /** Fires the `plugin:changed` push. */
   pushPluginChanged(state: PluginState): void
+  /** Fires the `updater:status` push. */
+  pushUpdaterStatus(status: UpdaterStatus): void
   calls: {
     getState: number
     sendChat: string[]
@@ -66,6 +69,8 @@ export type FakeDesktopApi = DesktopApi & {
     removeKey: string[]
     setProviderPreference: string[]
     getPluginState: string[]
+    downloadUpdate: number
+    installUpdate: number
   }
 }
 
@@ -73,10 +78,11 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
   const chatStatusListeners = new Set<(s: ChatStatus) => void>()
   const themeListeners = new Set<(t: ResolvedTheme) => void>()
   const pluginListeners = new Set<(s: PluginState) => void>()
+  const updaterListeners = new Set<(s: UpdaterStatus) => void>()
   let current = state
 
   const fake: FakeDesktopApi = {
-    calls: { getState: 0, sendChat: [], applyRig: [], deleteConversation: [], setTheme: [], setLocale: [], setGuitar: [], setModel: [], saveKey: [], removeKey: [], setProviderPreference: [], getPluginState: [] },
+    calls: { getState: 0, sendChat: [], applyRig: [], deleteConversation: [], setTheme: [], setLocale: [], setGuitar: [], setModel: [], saveKey: [], removeKey: [], setProviderPreference: [], getPluginState: [], downloadUpdate: 0, installUpdate: 0 },
 
     getState: async () => {
       fake.calls.getState += 1
@@ -121,8 +127,12 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
     setDimOnUnfocus: async () => true,
     setAutoApply: async () => true,
 
-    downloadUpdate: async () => undefined,
-    installUpdate: async () => undefined,
+    downloadUpdate: async () => {
+      fake.calls.downloadUpdate += 1
+    },
+    installUpdate: async () => {
+      fake.calls.installUpdate += 1
+    },
 
     setTheme: async (theme: 'system' | 'light' | 'dark') => {
       fake.calls.setTheme.push(theme)
@@ -168,11 +178,15 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
       pluginListeners.add(cb)
       return () => pluginListeners.delete(cb)
     },
-    onUpdaterStatus: () => () => {},
+    onUpdaterStatus: (cb) => {
+      updaterListeners.add(cb)
+      return () => updaterListeners.delete(cb)
+    },
 
     pushChatStatus: (status) => chatStatusListeners.forEach((cb) => cb(status)),
     pushThemeChanged: (theme) => themeListeners.forEach((cb) => cb(theme)),
     pushPluginChanged: (p) => pluginListeners.forEach((cb) => cb(p)),
+    pushUpdaterStatus: (status) => updaterListeners.forEach((cb) => cb(status)),
   }
 
   function plugins(): PluginState {
