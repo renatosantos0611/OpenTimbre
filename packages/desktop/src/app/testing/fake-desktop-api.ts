@@ -121,6 +121,9 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
     setDimOnUnfocus: async () => true,
     setAutoApply: async () => true,
 
+    downloadUpdate: async () => undefined,
+    installUpdate: async () => undefined,
+
     setTheme: async (theme: 'system' | 'light' | 'dark') => {
       fake.calls.setTheme.push(theme)
       current = makeAppState({ ...current, theme: { chosen: theme, resolved: theme === 'system' ? 'dark' : theme } })
@@ -165,6 +168,7 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
       pluginListeners.add(cb)
       return () => pluginListeners.delete(cb)
     },
+    onUpdaterStatus: () => () => {},
 
     pushChatStatus: (status) => chatStatusListeners.forEach((cb) => cb(status)),
     pushThemeChanged: (theme) => themeListeners.forEach((cb) => cb(theme)),

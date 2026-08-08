@@ -50,6 +50,7 @@
 9. Publishing GitHub Actions on `v*` tags with workflow `GITHUB_TOKEN` — ratified: interview 2026-08-08 (decision 5) — rejected: manual local upload — why: reproducible releases without custom secrets.
 10. Packaged-runtime proof = Playwright smoke on the portable exe in CI + manual checklist — ratified: interview 2026-08-08 (decision 7) — rejected: manual only / unit only — why: automates what Phase 3 deferred; checklist covers installer UX.
 11. Manual SemVer bump + hand-written `CHANGELOG.md`; release = tag push — ratified: interview 2026-08-08 (S5) — rejected: changelog tooling — why: no new dependency for a solo-cadence product.
+12. Task 3 (not Task 4) adds the three mechanical stub members to `fake-desktop-api.ts` — origin: plan amendment 2026-08-08 (task-boundary defect; the DesktopApi addition otherwise breaks renderer typecheck under Task 3's green-tree proof duty) — rejected: ship T3 typecheck-red / weaken the contract to optional members — why: keeps every ratified contract intact and hands Task 4 a green base.
 
 ---
 
@@ -166,6 +167,7 @@ Investigation substep (before implementing): confirm current electron-builder ve
 - Modify: `contracts/src/ipc.ts` (types only)
 - Create: `packages/desktop/src/main/updater/updater.ts`, `packages/desktop/src/main/updater/updater.test.ts`
 - Modify: `packages/desktop/src/main/ipc/handlers.ts` (register `updater:download`, `updater:install` following the existing trusted-sender + `Result<T>` pattern), `packages/desktop/src/main/main.ts` (composition root wiring)
+- Modify: `packages/desktop/src/app/testing/fake-desktop-api.ts` (three mechanical stub members ONLY — execution amendment 2026-08-08: the DesktopApi addition otherwise breaks renderer typecheck before Task 4; stubs carry no behavior)
 - Modify: `packages/desktop/package.json` (dependency `electron-updater`)
 
 **Domain skills to apply:** opentimbre-electron-ipc, opentimbre-core-boundary (updater lives in desktop main; core stays Electron-free), opentimbre-testing, opentimbre-code-style
@@ -224,7 +226,7 @@ Errors from `download()`/`install()` surface as `Result<void>` `{ error }` AND a
 - Modify: `packages/desktop/src/preload/preload.cts` (expose the three new members per `DesktopApi`)
 - Modify: `packages/desktop/src/app/desktop.service.ts` (readonly `updaterStatus` signal; `downloadUpdate()`/`installUpdate()`/`dismissUpdate()` actions; subscription registered in `init()` with teardown like the other push channels)
 - Modify: `packages/desktop/src/app/shell/status-bar.ts` (update row: states available/downloading/ready/error; confirm, restart, retry, dismiss actions)
-- Modify: `packages/desktop/src/app/testing/fake-desktop-api.ts` (updater stubs)
+- Modify: `packages/desktop/src/app/testing/fake-desktop-api.ts` (push-status test helper; the three stub members arrive with Task 3's execution amendment)
 - Create/modify: renderer tests covering the four states + dismiss + actions
 - Modify: `packages/i18n/src/en.json`, `packages/i18n/src/pt.json` (keys below)
 
