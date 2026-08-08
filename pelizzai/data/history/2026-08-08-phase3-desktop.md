@@ -1,4 +1,4 @@
-# Phase 3 desktop — delivered block
+# Phase 3 desktop — delivered block — done 2026-08-08
 
 ## Active task
 
@@ -10,8 +10,8 @@
 - base-ref: refs/remotes/origin/main
 - base-sha: 0e1f59378fa49aa4b457781ab3555c9934e35b28
 - validated-head: 5420c49473927e3a2934f3075e33a7910dd9447e
-- delivery-head: <none>
-- confirm: <pending>
+- delivery-head: 23f199693439cd044c071c9d82b8eb9a96103274
+- confirm: base-ref contains validated-head (PR/branch integrated)
 - kickoff: ratified 2026-08-06
 - isolation: branch
 - worktree-path: <none>
@@ -50,3 +50,7 @@
 - next: none — all Phase 3 tasks complete
 - pending: none
 - bugfix ✅ 2026-08-08 (kickoff ratified) — pre-existing gates: windows.ts settingsDir now uses path.win32.join (portable, mirrors macos.ts); core rig-schema.ts minimal type-escape for zodToJsonSchema TS2589 (zod 3 vs zod 4 peer)
+
+## Delivery observation (done)
+
+- 2026-08-08 — done observed: origin/main (49e0dea, merge of PR #2) contains delivery-head 23f1996 and validated-head 5420c49; remote refs/heads/feat/phase3-desktop points at delivery-head; delivery-status corrected from "partial/push blocked" to pr-merged (push and PR happened outside this environment)
