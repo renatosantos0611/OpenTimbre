@@ -1,4 +1,152 @@
-@font-face { font-family: 'Barlow'; src: local('Barlow'); }
-@font-face { font-family: 'Source Sans 3'; src: local('Source Sans 3'); }
-html, body { height: 100%; margin: 0; background: #17151c; }
-body { overflow: hidden; } * { box-sizing: border-box; }
+/*
+ * Global renderer styles: design tokens, bundled fonts, and resets only.
+ * Component-scoped styles own everything else. Themes switch by swapping token
+ * values on a root attribute (`[data-theme]`), never by conditionally
+ * importing stylesheets, so one set of rules serves both themes
+ * (see `opentimbre-angular-ui`).
+ *
+ * The dark theme is the default and lives on `:root`; the light theme is the
+ * same roles with different values. Both are an evolved, faithful translation
+ * of the legacy palette (see `legacy/desktop/renderer/styles.css`). The accent
+ * (`--accent`) stays limited to actions, selection, focus, and an applied rig.
+ */
+
+/* Fontsource bundles the ratified faces offline; the UI never requests a font. */
+@import '@fontsource/barlow/400.css';
+@import '@fontsource/barlow/500.css';
+@import '@fontsource/barlow/600.css';
+@import '@fontsource/source-sans-3/400.css';
+@import '@fontsource/source-sans-3/500.css';
+@import '@fontsource/source-sans-3/600.css';
+
+:root {
+  /* near-black charcoal surfaces, restrained borders, no nested cards */
+  --surface: #121214;
+  --surface-chrome: #171719;
+  --surface-raised: #1b1b1f;
+  --surface-raise: #212026;
+  --border: #2c2b33;
+  --border-strong: #3b3a44;
+
+  --text: #eae8ec;
+  --text-dim: #a4a1ae;
+  --text-faint: #6e6b7a;
+
+  /* legacy violet: actions, selection, focus, applied rig — nowhere decorative */
+  --accent: #8f7cf8;
+  --accent-strong: #a08ffa;
+  --accent-soft: rgba(143, 124, 248, 0.13);
+  --accent-line: rgba(143, 124, 248, 0.42);
+  --accent-ink: #14101f;
+
+  --success: #5fc79a;
+  --success-soft: rgba(95, 199, 154, 0.14);
+  --warning: #e0a94d;
+  --danger: #e0685c;
+  --danger-soft: rgba(224, 104, 92, 0.12);
+
+  --bar: #2e2d35;
+  --shadow: 0 14px 34px -12px rgba(0, 0, 0, 0.8);
+
+  --font-display: 'Barlow', system-ui, sans-serif;
+  --font-ui: 'Source Sans 3', system-ui, sans-serif;
+
+  --r-sm: 7px;
+  --r-md: 10px;
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  /* rose up to white while the shell stays a cream, so panels keep a border */
+  --surface: #f6f4f0;
+  --surface-chrome: #efede8;
+  --surface-raised: #ffffff;
+  --surface-raise: #ffffff;
+  --border: #e3e0da;
+  --border-strong: #c9c5bd;
+
+  --text: #1b1a1e;
+  --text-dim: #56545e;
+  --text-faint: #6f6c78;
+
+  /* darkened so the accent holds 4.5:1+ against the light surfaces */
+  --accent: #6b4de6;
+  --accent-strong: #5a3ad4;
+  --accent-soft: rgba(107, 77, 230, 0.1);
+  --accent-line: rgba(107, 77, 230, 0.36);
+  --accent-ink: #ffffff;
+
+  --success: #1f8f63;
+  --success-soft: rgba(31, 143, 99, 0.12);
+  --warning: #d08c1f;
+  --danger: #c0392b;
+  --danger-soft: rgba(192, 57, 43, 0.09);
+
+  --bar: #d3d0ca;
+  --shadow: 0 14px 30px -14px rgba(28, 26, 20, 0.35);
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* One place decides the focus ring for every interactive element. */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* A word without spaces must not leak past the 360px column. */
+p,
+li,
+label,
+textarea {
+  overflow-wrap: anywhere;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bar);
+  border: 2px solid var(--surface);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

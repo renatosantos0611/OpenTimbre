@@ -1,0 +1,143 @@
+/**
+ * A small in-memory `DesktopApi` for renderer tests and the browser e2e.
+ * Components hold no domain rules and never touch `window.api`
+ * (see `opentimbre-angular-ui`), so the fake is a plain object with signals:
+ * it records calls and lets a test fire a push event. No Electron is faked.
+ */
+import type {
+  AppState,
+  ChatStatus,
+  DesktopApi,
+  Guitar,
+  PluginState,
+  ProviderId,
+  ProviderPreference,
+  ResolvedTheme,
+  Turn,
+} from '@opentimbre/contracts'
+import type { Locale } from '@opentimbre/i18n'
+
+export const DEFAULT_GUITAR: Guitar = {
+  model: 'Default guitar',
+  pickups: 'humbucker',
+  tuning: 'E standard',
+  strings: 6,
+}
+
+export function makeAppState(overrides: Partial<AppState> = {}): AppState {
+  return {
+    locale: 'en',
+    midi: { port: 'Virtual Port', error: null },
+    ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-4o', available: [] },
+    aiError: null,
+    guitar: DEFAULT_GUITAR,
+    alwaysOnTop: true,
+    dimOnUnfocus: false,
+    autoApply: false,
+    theme: { chosen: 'dark', resolved: 'dark' },
+    keys: [],
+    keysError: null,
+    providerPreference: 'auto',
+    forcedProvider: null,
+    keysStorePath: '/tmp/keys.json',
+    version: '0.0.0',
+    ...overrides,
+  }
+}
+
+export type FakeDesktopApi = DesktopApi & {
+  /** Fires the `chat:status` push, as the real main process would. */
+  pushChatStatus(status: ChatStatus): void
+  /** Fires the `window:themeChanged` push. */
+  pushThemeChanged(theme: ResolvedTheme): void
+  /** Fires the `plugin:changed` push. */
+  pushPluginChanged(state: PluginState): void
+  calls: { getState: number; sendChat: string[]; setTheme: string[]; setLocale: string[] }
+}
+
+export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesktopApi {
+  const chatStatusListeners = new Set<(s: ChatStatus) => void>()
+  const themeListeners = new Set<(t: ResolvedTheme) => void>()
+  const pluginListeners = new Set<(s: PluginState) => void>()
+  let current = state
+
+  const fake: FakeDesktopApi = {
+    calls: { getState: 0, sendChat: [], setTheme: [], setLocale: [] },
+
+    getState: async () => {
+      fake.calls.getState += 1
+      return current
+    },
+
+    sendChat: async (text: string) => {
+      fake.calls.sendChat.push(text)
+      const turn: Turn = { text, rig: null, cards: null }
+      return turn
+    },
+
+    newChat: async () => undefined,
+    applyRig: async () => ({ scene: 'scene', amp: 'amp', ccsSent: 0, ms: 0, warnings: [] }),
+    setGuitar: async () => state,
+    setModel: async () => state,
+
+    getPluginState: async () => ({
+      id: 'gojira',
+      name: 'Gojira',
+      installed: false,
+      path: null,
+      running: false,
+      mappingStatus: 'missing',
+    }),
+    openPlugin: async () => plugins(),
+    installMapping: async () => plugins(),
+
+    toggleAlwaysOnTop: async () => true,
+    setDimOnUnfocus: async () => true,
+    setAutoApply: async () => true,
+
+    setTheme: async (theme: 'system' | 'light' | 'dark') => {
+      fake.calls.setTheme.push(theme)
+      current = makeAppState({ ...current, theme: { chosen: theme, resolved: theme === 'system' ? 'dark' : theme } })
+      return current
+    },
+
+    setLocale: async (locale: Locale) => {
+      fake.calls.setLocale.push(locale)
+      current = makeAppState({ ...current, locale })
+      return current
+    },
+
+    saveKey: async () => state,
+    removeKey: async () => state,
+    setProviderPreference: async () => state,
+
+    listConversations: async () => [],
+    openConversation: async () => ({ id: 'c1', title: 'Tone hunt', messages: [], plugin: null, memoryLost: false }),
+    deleteConversation: async () => [],
+
+    onChatStatus: (cb) => {
+      chatStatusListeners.add(cb)
+      return () => chatStatusListeners.delete(cb)
+    },
+    onThemeChanged: (cb) => {
+      themeListeners.add(cb)
+      return () => themeListeners.delete(cb)
+    },
+    onPluginChanged: (cb) => {
+      pluginListeners.add(cb)
+      return () => pluginListeners.delete(cb)
+    },
+
+    pushChatStatus: (status) => chatStatusListeners.forEach((cb) => cb(status)),
+    pushThemeChanged: (theme) => themeListeners.forEach((cb) => cb(theme)),
+    pushPluginChanged: (p) => pluginListeners.forEach((cb) => cb(p)),
+  }
+
+  function plugins(): PluginState {
+    return { id: 'gojira', name: 'Gojira', installed: false, path: null, running: false, mappingStatus: 'missing' }
+  }
+
+  return fake
+}
+
+export type { ProviderId, ProviderPreference }

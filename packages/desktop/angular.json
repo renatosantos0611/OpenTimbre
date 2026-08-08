@@ -18,6 +18,31 @@
             "polyfills": [],
             "assets": [],
             "styles": ["src/styles.css"]
+          },
+          "configurations": {
+            "production": {
+              "optimization": {
+                "styles": {
+                  "inlineCritical": false
+                }
+              }
+            },
+            "development": {
+              "optimization": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "unit-test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "./tsconfig.renderer.json",
+            "runner": "vitest",
+            "include": ["src/**/*.spec.ts"],
+            "watch": false,
+            "isolate": true
           }
         }
       }

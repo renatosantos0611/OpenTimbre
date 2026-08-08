@@ -4,11 +4,20 @@
     "lib": ["ES2023", "DOM"],
     "types": [],
     "noEmit": false,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
     "allowImportingTsExtensions": false
   },
-    "files": ["src/main.ts"],
-    "include": [],
-    "angularCompilerOptions": {
-      "strictTemplates": true
-    }
+  "files": ["src/main.ts"],
+  "include": [
+    "src/global.d.ts",
+    "src/app/**/*.ts",
+    "../i18n/src/index.ts",
+    "../contracts/src/index.ts"
+  ],
+  "exclude": ["../i18n/src/**/*.test.ts", "../contracts/src/**/*.test.ts"],
+  "angularCompilerOptions": {
+    "strictTemplates": true
+  }
 }
