@@ -35,6 +35,9 @@
 - kickoff gate ratified 2026-08-08: exploratory lane, brainstorming + interview-me discovery → spec → plan; route accepted
 - spec approved 2026-08-08 (4fe02f7) — 10 discovery + 5 stress decisions ratified
 - plan drafted 2026-08-08 — 6 tasks; gap found: missing app:// protocol handler → absorbed as Task 1
+- T1 ✅ 5efdfa4 — app:// protocol handler + traversal defenses, 6 new tests, split review approved; plan-fact amendment: renderer base is dist/renderer/browser
+- next: T2 electron-builder config (NSIS per-user + portable, output release/, version 0.1.0)
+- pending: domain skill candidate electron-builder (propose at closeout)
 
 ## History
 

@@ -1,14 +1,19 @@
 {
   "name": "@opentimbre/desktop",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "dist/main/main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renatosantos0611/OpenTimbre.git"
+  },
   "scripts": {
     "build": "npm run build:main && npm run build:preload && npm run build:renderer",
     "build:main": "tsc -p tsconfig.main.json",
     "build:preload": "tsc -p tsconfig.preload.json",
     "build:renderer": "ng build desktop",
+    "dist:win": "npm run build && electron-builder --win",
     "typecheck": "tsc -p tsconfig.main.json && tsc -p tsconfig.renderer.json --noEmit",
     "test": "npm run test:main && npm run test:renderer",
     "test:main": "node --test \"src/main/**/*.test.ts\"",
@@ -22,12 +27,12 @@
     "@angular/compiler": "^22.1.0",
     "@angular/core": "^22.1.0",
     "@angular/platform-browser": "^22.1.0",
+    "@anthropic-ai/sdk": "^0.115.0",
     "@opentimbre/contracts": "*",
     "@opentimbre/core": "*",
     "@opentimbre/platform-node": "*",
-    "@anthropic-ai/sdk": "^0.115.0",
-    "openai": "^7.4.0",
     "electron": "^43.2.0",
+    "openai": "^7.4.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -38,7 +43,48 @@
     "@fontsource/source-sans-3": "^5.3.0",
     "@lucide/angular": "^1.30.0",
     "@playwright/test": "^1.62.1",
+    "electron-builder": "^26.15.3",
     "jsdom": "^26.1.0",
     "vitest": "^4.1.10"
+  },
+  "build": {
+    "appId": "com.opentimbre.desktop",
+    "productName": "OpenTimbre",
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "renatosantos0611",
+      "repo": "OpenTimbre"
+    }
   }
 }
