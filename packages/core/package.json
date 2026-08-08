@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@opentimbre/i18n": "*",
     "@opentimbre/contracts": "*",
     "@anthropic-ai/sdk": "^0.115.0",
     "openai": "^7.4.0",

@@ -10,7 +10,7 @@ export default [
     ignores: ['**/dist/**', '**/node_modules/**', 'legacy/**'],
   },
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts', '**/*.cts'],
     languageOptions: {
       parser: tsParser,
     },

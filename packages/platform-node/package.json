@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@opentimbre/contracts": "*",
     "@opentimbre/core": "*",
     "@julusian/midi": "^3.8.0"
   },

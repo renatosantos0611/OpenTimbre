@@ -35,7 +35,7 @@
  * chat itself, if `createChat` gets ported.
  */
 import OpenAI from 'openai'
-import type { ProviderId } from '@opentimbre/contracts'
+import type { AvailableModel, ProviderId } from '@opentimbre/contracts'
 import type { Validation } from './resolve.ts'
 import type { Call, Response, Session, ToolDef } from './tool-use.ts'
 
@@ -102,8 +102,8 @@ function asInput(output: readonly OutputItem[]): InputItem[] {
   return output as unknown as InputItem[]
 }
 
-export function createSession(client: OpenAIClient, model: string, system: string): Session {
-  const input: InputItem[] = []
+export function createSession(client: OpenAIClient, model: string, system: string, history?: unknown): Session {
+  const input: InputItem[] = Array.isArray(history) ? [...history] as InputItem[] : []
   let pending: InputItem | null = null
 
   return {
@@ -221,7 +221,8 @@ export type OpenAIProvider = {
   model(): string
   hasKey(): boolean
   validate(): Promise<Validation>
-  createSession(system: string): Session
+  createSession(system: string, history?: unknown): Session
+  listModels(): Promise<AvailableModel[]>
 }
 
 /** Binds this provider's session/validation logic to an injected client. */
@@ -233,6 +234,10 @@ export function openaiProvider(client: OpenAIClient): OpenAIProvider {
     model,
     hasKey,
     validate: () => validate(client),
-    createSession: (system) => createSession(client, model(), system),
+    createSession: (system, history) => createSession(client, model(), system, history),
+    listModels: async () => {
+      const page = await client.models.list()
+      return page.data.map((item) => ({ provider: 'openai', providerLabel: 'OpenAI', id: item.id }))
+    },
   }
 }

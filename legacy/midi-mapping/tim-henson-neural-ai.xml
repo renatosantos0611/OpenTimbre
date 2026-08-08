@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Mapa MIDI do Neural DSP Archetype: Tim Henson X, para uso com o futuro
+  PluginSpec em src/plugins/tim-henson.ts.
+
+  Os 79 target="" abaixo estao confirmados, em duas rodadas:
+
+  - Os 69 primeiros vieram de um export real: foram mapeados a mao na janela
+    MIDI Mappings, escolhendo cada parametro pelo nome no dropdown, e salvos
+    com "Save as...".
+  - Os 10 seguintes (CC 92..101 — vozes 3 e 4 do Multivoicer e os Semitones
+    das quatro vozes) foram escritos por analogia ao padrao das vozes 1 e 2
+    (multivoicerVoiceNActive / Interval / Level / Semitones) e conferidos
+    contra o dropdown do plugin. Se algum nao aparecer na janela de MIDI
+    Mappings depois de carregar este arquivo, e sinal de que o nome errou —
+    o plugin descarta em silencio o routing cujo target nao existe.
+
+  Nomes internos != rotulos da GUI. Equivalencia dos amps (mesmo padrao do
+  Gojira, que usa clean/rhythm/lead):
+    acoustic = Roses   (limpo)
+    rhythm   = Cherubs (crunch; tem seletor de canal proprio)
+    lead     = Pink    (alto ganho)
+
+  Achado: os bypasses de secao NAO compartilham os nomes do Gojira/Soldano
+  (pedalsActiveID/fxActive) — aqui sao preFXActive e postFXActive. O comp e
+  "comp*", nao "compressor*" como no Soldano.
+
+  CC 20..114, canal 1 (midiChannel="0", 0-indexed) — o mesmo canal que a app
+  usa (status byte 0xB0). CC 45, 59 e 64 vagos de proposito (64 e sustain
+  pedal por convencao MIDI). data2 e value nao importam para
+  type="cc_absolute" (o plugin recalcula value a partir do CC recebido).
+
+  Selecao de amp: ampType (CC 20) e rhythmChannel (CC 29) sao os dois
+  seletores que precisam do ritual de Fase 0 (npm run probe + amptest) antes
+  do PluginSpec.
+
+  Instalacao: copie este arquivo para
+    %APPDATA%\Neural DSP\Archetype Tim Henson X\MIDI\
+  e carregue pela janela MIDI Mappings (serie X usa subpasta "MIDI", como o
+  Soldano).
+-->
+
+<midi>
+  <routings>
+
+    <!-- ======================== SELETOR DE AMP ============================ -->
+    <!-- GUI: "Amp Type" — Roses / Cherubs / Pink -->
+    <routing type="cc_absolute" target="ampType" midiChannel="0" data1="20" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ================ AMP ACOUSTIC (GUI: Roses, limpo) ================== -->
+    <routing type="cc_absolute" target="acousticGain" midiChannel="0" data1="21" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="acousticBass" midiChannel="0" data1="22" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="acousticMiddle" midiChannel="0" data1="23" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="acousticTreble" midiChannel="0" data1="24" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="acousticPresence" midiChannel="0" data1="25" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="acousticBlend" midiChannel="0" data1="26" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="acousticOutput" midiChannel="0" data1="27" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ================ AMP RHYTHM (GUI: Cherubs, crunch) ================= -->
+    <!-- rhythmChannel: segundo seletor — testar na Fase 0 igual ao ampType -->
+    <routing type="cc_absolute" target="rhythmGain" midiChannel="0" data1="28" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rhythmChannel" midiChannel="0" data1="29" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rhythmBass" midiChannel="0" data1="30" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rhythmMiddle" midiChannel="0" data1="31" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rhythmTreble" midiChannel="0" data1="32" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rhythmPresence" midiChannel="0" data1="33" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rhythmOutput" midiChannel="0" data1="34" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ================ AMP LEAD (GUI: Pink, alto ganho) ================== -->
+    <routing type="cc_absolute" target="leadGain" midiChannel="0" data1="35" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leadBass" midiChannel="0" data1="36" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leadMiddle" midiChannel="0" data1="37" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leadTreble" midiChannel="0" data1="38" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leadPresence" midiChannel="0" data1="39" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leadMaster" midiChannel="0" data1="40" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leadOutput" midiChannel="0" data1="41" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ================ EQ GRAFICO — so os toggles ======================== -->
+    <!-- A app manda OFF em toda cena para o EQ do preset nao poluir o rig;
+         as 30 bandas ficam fora do mapa de proposito -->
+    <routing type="cc_absolute" target="acousticEQActive" midiChannel="0" data1="42" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="rhythmEQActive" midiChannel="0" data1="43" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="leadEQActive" midiChannel="0" data1="44" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ============================ GLOBAL ================================ -->
+    <routing type="cc_absolute" target="gateActive" midiChannel="0" data1="46" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="gateThreshold" midiChannel="0" data1="47" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="doublerActive" midiChannel="0" data1="48" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="doublerSpread" midiChannel="0" data1="49" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ========================== BOOST (pre) ============================= -->
+    <routing type="cc_absolute" target="boostActive" midiChannel="0" data1="50" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="boostGain" midiChannel="0" data1="51" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="boostLevel" midiChannel="0" data1="52" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="boostBass" midiChannel="0" data1="53" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="boostTreble" midiChannel="0" data1="54" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ========================== COMP (pre) ============================== -->
+    <routing type="cc_absolute" target="compActive" midiChannel="0" data1="55" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="compCompression" midiChannel="0" data1="56" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="compLevel" midiChannel="0" data1="57" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="compAttack" midiChannel="0" data1="58" data2="0" value="0.0" enabled="1"/>
+
+    <!-- =========================== OD (pre) =============================== -->
+    <routing type="cc_absolute" target="overdriveActive" midiChannel="0" data1="60" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="overdriveDrive" midiChannel="0" data1="61" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="overdriveTone" midiChannel="0" data1="62" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="overdriveLevel" midiChannel="0" data1="63" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ========================== CHR (pos) =============================== -->
+    <routing type="cc_absolute" target="chorusActive" midiChannel="0" data1="65" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="chorusMix" midiChannel="0" data1="66" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ========================== DLY (pos) =============================== -->
+    <routing type="cc_absolute" target="delayActive" midiChannel="0" data1="70" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="delayMix" midiChannel="0" data1="71" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="delayTime" midiChannel="0" data1="72" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="delayFeedback" midiChannel="0" data1="73" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ========================== RVB (pos) =============================== -->
+    <routing type="cc_absolute" target="reverbActive" midiChannel="0" data1="75" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="reverbMix" midiChannel="0" data1="76" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="reverbDecay" midiChannel="0" data1="77" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="reverbShimmer" midiChannel="0" data1="78" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ======================== MULTIVOICER =============================== -->
+    <!-- Assinatura do plugin: harmonizador polifonico. Root+Mode+Quantize
+         definem a tonalidade; Interval e diatonico quando Quantize esta on.
+         Todos os nomes confirmados de primeira no export. -->
+    <routing type="cc_absolute" target="multivoicerActive" midiChannel="0" data1="80" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerRoot" midiChannel="0" data1="81" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerMode" midiChannel="0" data1="82" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerQuantize" midiChannel="0" data1="83" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice1Active" midiChannel="0" data1="84" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice1Interval" midiChannel="0" data1="85" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice1Level" midiChannel="0" data1="86" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice2Active" midiChannel="0" data1="87" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice2Interval" midiChannel="0" data1="88" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice2Level" midiChannel="0" data1="89" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerWidth" midiChannel="0" data1="90" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerOutput" midiChannel="0" data1="91" data2="0" value="0.0" enabled="1"/>
+
+    <!-- Vozes 3 e 4 
+         Mesmo padrao das vozes 1 e 2 (multivoicerVoiceNActive/Interval/Level).
+         Active e Level entram no schema da IA; Interval fica de fora enquanto
+         nao houver calibracao — ver o comentario do bloco em tim-henson.ts. 
+      -->
+    <routing type="cc_absolute" target="multivoicerVoice3Active" midiChannel="0" data1="92" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice3Interval" midiChannel="0" data1="93" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice3Level" midiChannel="0" data1="94" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice4Active" midiChannel="0" data1="95" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice4Interval" midiChannel="0" data1="96" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice4Level" midiChannel="0" data1="97" data2="0" value="0.0" enabled="1"/>
+
+    <!--  Semitones das 4 vozes
+         Fora do schema da IA por enquanto — estao aqui para resolver a duvida
+         aberta em capabilities.md: com Quantize desligado (que e como a app
+         opera), quem manda no intervalo e o `Interval` diatonico ou o
+         `Semitones` cromatico? Com os dois mapeados, `sweep 93` contra
+         `sweep 100` decide sem uma segunda sessao de mapeamento. -->
+    <routing type="cc_absolute" target="multivoicerVoice1Semitones" midiChannel="0" data1="98" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice2Semitones" midiChannel="0" data1="99" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice3Semitones" midiChannel="0" data1="100" data2="0" value="0.0" enabled="1"/>
+    <routing type="cc_absolute" target="multivoicerVoice4Semitones" midiChannel="0" data1="101" data2="0" value="0.0" enabled="1"/>
+
+    <!-- ================= Bypass de secao (sempre ligado) ================== -->
+    <!-- Nomes proprios do Henson: preFXActive/postFXActive, NAO os
+         pedalsActiveID/fxActive do Gojira/Soldano -->
+    <routing type="cc_absolute" target="preFXActive" midiChannel="0" data1="110" data2="0" value="1.0" enabled="1"/>
+    <routing type="cc_absolute" target="ampActive" midiChannel="0" data1="111" data2="0" value="1.0" enabled="1"/>
+    <routing type="cc_absolute" target="cabActive" midiChannel="0" data1="112" data2="0" value="1.0" enabled="1"/>
+    <routing type="cc_absolute" target="eqActive" midiChannel="0" data1="113" data2="0" value="1.0" enabled="1"/>
+    <routing type="cc_absolute" target="postFXActive" midiChannel="0" data1="114" data2="0" value="1.0" enabled="1"/>
+
+  </routings>
+</midi>

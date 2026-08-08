@@ -1,0 +1,1936 @@
+/*
+ * O layout é pensado para ~420px de largura — coluna única, rótulos curtos e
+ * ações em ícone. Nada aqui deve depender de espaço horizontal; o que ganha
+ * espaço quando a janela cresce está atrás de uma única media query.
+ *
+ * DOIS TEMAS, UM CONJUNTO DE REGRAS. O escuro é o default e mora no `:root`;
+ * o claro é só a troca dos mesmos tokens em `[data-tema="claro"]`, que o main
+ * escreve no `<html>`. Nenhuma regra abaixo pode trazer cor literal — se um
+ * `#hex` aparecer fora dos dois blocos de token, ele fica errado num dos temas
+ * e ninguém percebe até alguém abrir o outro.
+ *
+ * A justificativa do escuro fixo era que a janela mora encostada num plugin de
+ * áudio, e plugin de áudio é escuro em qualquer SO. O que ela esquecia é que a
+ * janela também é lida longe do plugin, de dia, escrevendo o pedido.
+ *
+ * O tema não segue `prefers-color-scheme` aqui: quem resolve `sistema` é o
+ * `nativeTheme` no main, porque ele precisa pintar junto o fundo da janela e os
+ * botões nativos da barra de título, que o CSS não alcança.
+ */
+
+:root {
+  --shell: #121214;
+  --chrome: #171719;
+  --panel: #1b1b1f;
+  --raise: #212026;
+  --raise-2: #26252c;
+  --line: #2c2b33;
+  --line-forte: #3b3a44;
+  --ink: #eae8ec;
+  --dim: #a4a1ae;
+  --dim-2: #6e6b7a;
+
+  /*
+   * O acento é nomeado pelo papel, não pela cor. Ele já foi âmbar e hoje é
+   * roxo; um token chamado `--amber` obrigava a renomear 39 usos para trocar de
+   * cor, que é exatamente o trabalho que um token deveria evitar.
+   *
+   * Regra de uso: o roxo aparece em **uma** ação por tela — aplicar e enviar.
+   * Nunca em texto corrido, nunca em borda decorativa.
+   */
+  --acento: #8f7cf8;
+  --acento-forte: #a08ffa;
+  --acento-soft: rgba(143, 124, 248, 0.13);
+  --acento-line: rgba(143, 124, 248, 0.42);
+  --acento-fundo: #2a2340;
+  --acento-tinta: #14101f;
+
+  /*
+   * Âmbar é estado de atenção, e só: "o plugin não está aberto" e os LEDs dos
+   * pedais. Verde é confirmação transitória, nunca estado permanente.
+   *
+   * `-texto` e `-tinta` não são a mesma coisa e trocá-los é o erro clássico:
+   * `-texto` é a cor da letra **sobre a superfície tingida**, `-tinta` é a cor
+   * da letra **por cima da cor cheia** de um botão. No claro elas chegam a ser
+   * opostas.
+   */
+  --ambar: #e0a94d;
+  --ambar-forte: #edbb63;
+  --ambar-fundo: #241d10;
+  --ambar-line: rgba(224, 169, 77, 0.32);
+  --ambar-texto: #f0d5a4;
+  --ambar-tinta: #241d10;
+  --ok: #5fc79a;
+  --ok-soft: rgba(95, 199, 154, 0.14);
+  --ok-tinta: #0f1f18;
+  --erro: #e0685c;
+  --erro-soft: rgba(224, 104, 92, 0.12);
+  --erro-line: rgba(224, 104, 92, 0.28);
+
+  /* Cromo: o que não é superfície nem texto. */
+  --barra: #2e2d35;
+  --sombra: 0 14px 34px -12px rgba(0, 0, 0, 0.8);
+
+  /*
+   * Duas famílias com papéis rígidos. A condensada é só para valor de parâmetro
+   * e label de seção: os números do preset precisam parecer serigrafados num
+   * painel, não digitados num chat.
+   *
+   * Nenhuma fonte é carregada da rede — a CSP da página não libera `font-src`,
+   * e embarcar arquivo por causa de uma linha de números não se paga. A
+   * Bahnschrift vem com o Windows 10/11 e é uma grotesca de eixo variável, então
+   * `font-stretch` de fato condensa; a Inter entra se o usuário já a tiver.
+   */
+  --ui: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --faceplate: "Barlow Condensed", "Bahnschrift", "Segoe UI", system-ui, sans-serif;
+
+  --r-sm: 7px;
+  --r-md: 10px;
+  --r-lg: 14px;
+
+  color-scheme: dark;
+}
+
+/*
+ * O tema claro.
+ *
+ * Não é o escuro invertido: as superfícies sobem para o branco enquanto o
+ * fundo fica um creme (`--shell`), e não o contrário — um cartão branco sobre
+ * branco não teria borda que o segurasse. O roxo escurece de #8f7cf8 para
+ * #6b4de6 porque o acento do escuro, sobre branco, cai para 3:1 e some no
+ * texto; nesta luminância ele fica em 6.2:1 e o branco por cima dele também.
+ *
+ * Âmbar é o que mais sofre no claro: #e0a94d sobre creme é ilegível em 12px.
+ * Por isso o LED continua âmbar (é forma, não texto) e a letra vai para
+ * `--ambar-texto`, quase marrom.
+ */
+:root[data-tema="claro"] {
+  --shell: #f6f4f0;
+  --chrome: #efede8;
+  --panel: #ffffff;
+  --raise: #ffffff;
+  --raise-2: #eceae6;
+  --line: #e3e0da;
+  --line-forte: #c9c5bd;
+  --ink: #1b1a1e;
+  --dim: #56545e;
+  --dim-2: #6f6c78;
+
+  --acento: #6b4de6;
+  --acento-forte: #5a3ad4;
+  --acento-soft: rgba(107, 77, 230, 0.1);
+  --acento-line: rgba(107, 77, 230, 0.36);
+  --acento-fundo: #efeafd;
+  --acento-tinta: #ffffff;
+
+  --ambar: #d08c1f;
+  --ambar-forte: #b4770f;
+  --ambar-fundo: #fdf4e3;
+  --ambar-line: rgba(180, 119, 15, 0.3);
+  --ambar-texto: #7a4e07;
+  --ambar-tinta: #2a1e08;
+  --ok: #1f8f63;
+  --ok-soft: rgba(31, 143, 99, 0.12);
+  --ok-tinta: #ffffff;
+  --erro: #c0392b;
+  --erro-soft: rgba(192, 57, 43, 0.09);
+  --erro-line: rgba(192, 57, 43, 0.26);
+
+  --barra: #d3d0ca;
+  --sombra: 0 14px 30px -14px rgba(28, 26, 20, 0.35);
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--shell);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+.sprite {
+  display: none;
+}
+
+/* Todo ícone é traço, herda a cor do texto e nunca encolhe. */
+.ic {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim-2);
+}
+
+/*
+ * Palavra sem espaço — um nome de preset, uma URL colada no pedido — não pode
+ * furar a coluna. Quebrar feio é melhor do que vazar pela direita, porque o que
+ * vaza numa janela sem rolagem horizontal simplesmente não existe.
+ */
+.bolha,
+.prosa,
+.porque,
+.cartao-titulo,
+.cartao-resumo,
+.grupo-meta,
+.erro,
+.aviso,
+.carimbo {
+  overflow-wrap: anywhere;
+}
+
+/* Um só lugar decide o anel de foco de tudo que é interativo. */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--barra);
+  border: 2px solid var(--shell);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--line-forte);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ------------------------------------------------------------ titlebar */
+
+/*
+ * A janela é arrastada por esta barra; os botões dentro dela não arrastam.
+ * O nome e o ícone da app não vivem mais aqui — ver o comentário no HTML.
+ */
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  height: 40px;
+  flex: none;
+  -webkit-app-region: drag;
+}
+.titlebar .icon {
+  -webkit-app-region: no-drag;
+}
+
+/* -------------------------------------------------------------- menu */
+
+.menu {
+  position: absolute;
+  top: 38px;
+  left: 8px;
+  z-index: 20;
+  min-width: 190px;
+  background: var(--raise);
+  border: 1px solid var(--line-forte);
+  border-radius: var(--r-md);
+  padding: 5px;
+  box-shadow: var(--sombra);
+}
+.menu[hidden] {
+  display: none;
+}
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+.menu-item:hover {
+  background: var(--raise-2);
+}
+.menu-item .ic {
+  width: 15px;
+  height: 15px;
+  color: var(--dim-2);
+}
+
+/* --------------------------------------------------------- statusbar */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 10px;
+  flex: none;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--dim);
+  white-space: nowrap;
+  min-width: 0;
+}
+.stat b {
+  color: var(--ink);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dim-2);
+  flex: none;
+}
+/* Verde/vermelho é semântico e fica de fora da paleta de acento de propósito:
+   o ponto precisa ser lido de relance, sem competir com o acento. */
+.dot.ok {
+  background: var(--ok);
+  box-shadow: 0 0 0 3px var(--ok-soft);
+}
+.dot.erro {
+  background: var(--erro);
+  box-shadow: 0 0 0 3px var(--erro-soft);
+}
+
+.pill {
+  font-family: var(--faceplate);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-stretch: condensed;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--acento);
+  background: var(--acento-soft);
+  border: 1px solid var(--acento-line);
+  border-radius: 999px;
+  padding: 1px 9px;
+  flex: none;
+}
+.pill[hidden] {
+  display: none;
+}
+
+.spacer {
+  margin-left: auto;
+}
+
+.icon {
+  font: inherit;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  flex: none;
+  padding: 0;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.icon:hover {
+  color: var(--ink);
+  background: var(--raise);
+}
+.icon[aria-selected="true"] {
+  color: var(--acento);
+  background: var(--acento-soft);
+}
+
+/* ---------------------------------------------------------------- corpo */
+
+/*
+ * `min-width: 0` aqui e em toda a cadeia abaixo não é firula: um item de flex
+ * nasce com `min-width: auto`, o que o proíbe de encolher abaixo do próprio
+ * min-content. Bastava um `white-space: nowrap` lá no fundo (o rodapé do
+ * cartão) para o `.pane` inteiro medir 467px dentro de uma janela de 360 e
+ * derramar tudo pela direita — inclusive na largura padrão de 420.
+ *
+ * A regra que vale para o resto do arquivo: **quem é item de flex e contém
+ * texto precisa poder chegar a zero.** Quem trunca decide depois, no elemento
+ * de texto, com ellipsis ou quebra.
+ */
+.body {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+}
+
+.pane {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.pane[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------- barra do plugin */
+
+/*
+ * O botão principal do cartão exporta para fora da app. Sem indicador de
+ * destino o clique falha em silêncio e o usuário culpa o OpenTimbre — é por
+ * isso que esta barra fica presa acima da rolagem em vez de rolar junto.
+ */
+.plugin-bar {
+  flex: none;
+  margin: 0 12px 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.plugin-bar[hidden] {
+  display: none;
+}
+.plugin-bar.atencao {
+  background: var(--ambar-fundo);
+  border-color: var(--ambar-line);
+}
+.plugin-bar.erro {
+  background: var(--erro-soft);
+  border-color: var(--erro-line);
+}
+
+.plugin-linha {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  font-size: 12.5px;
+}
+.plugin-linha[hidden] {
+  display: none;
+}
+
+.plugin-texto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--dim);
+}
+.plugin-bar.atencao .plugin-texto {
+  color: var(--ambar-texto);
+}
+
+/* O único glow permitido na tela é o destes LEDs. */
+.led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dim-2);
+  flex: none;
+}
+.led.ligado {
+  background: var(--ok);
+  box-shadow: 0 0 0 3px var(--ok-soft);
+}
+.led.atencao {
+  background: var(--ambar);
+  box-shadow: 0 0 6px var(--ambar-line);
+}
+.led.erro {
+  background: var(--erro);
+  box-shadow: 0 0 0 3px var(--erro-soft);
+}
+
+.plugin-acao {
+  margin-left: auto;
+  flex: none;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ambar-tinta);
+  background: var(--ambar);
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 13px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.plugin-acao:hover {
+  background: var(--ambar-forte);
+}
+.plugin-acao:disabled {
+  background: var(--raise-2);
+  color: var(--dim-2);
+  cursor: default;
+}
+.plugin-acao.discreta {
+  color: var(--acento-tinta);
+  background: var(--acento);
+}
+.plugin-acao.discreta:hover {
+  background: var(--acento-forte);
+}
+
+.plugin-linha.alerta {
+  border-top: 1px solid var(--line);
+  background: var(--acento-soft);
+}
+.plugin-linha.alerta .plugin-texto {
+  color: var(--acento);
+}
+
+.stream {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 12px;
+  display: flex;
+  flex-direction: column;
+}
+.stream-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  max-width: 720px;
+  margin: 0 auto;
+}
+/* Bloco de turno e lista de cartões: itens de flex em coluna, mesma regra. */
+.da-ia,
+.cartoes,
+.cartao {
+  min-width: 0;
+}
+
+/* --------------------------------------------------------- estado vazio */
+
+.convite {
+  margin: auto;
+  padding: 20px 8px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.convite[hidden] {
+  display: none;
+}
+
+.convite-icone {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  color: var(--acento);
+  background: var(--raise);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  margin-bottom: 4px;
+}
+.convite-icone .ic {
+  width: 24px;
+  height: 24px;
+}
+
+.convite h1 {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.convite p {
+  font-size: 13px;
+  color: var(--dim);
+  margin: 0;
+  max-width: 34ch;
+  text-wrap: balance;
+}
+
+.sugestoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.sugestao {
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--dim);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 13px;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.sugestao:hover {
+  color: var(--ink);
+  border-color: var(--line-forte);
+  background: var(--raise);
+}
+
+/* ----------------------------------------------------------- mensagens */
+
+.de-usuario {
+  align-self: flex-end;
+  max-width: 86%;
+}
+.de-usuario .bolha {
+  background: var(--raise-2);
+  border-radius: var(--r-lg) var(--r-lg) 4px var(--r-lg);
+  padding: 9px 13px;
+  font-size: 13.5px;
+  user-select: text;
+  white-space: pre-wrap;
+}
+
+.da-ia {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.prosa {
+  font-size: 13.5px;
+  margin: 0;
+  user-select: text;
+  white-space: pre-wrap;
+}
+
+.erro {
+  font-size: 13px;
+  color: var(--erro);
+  background: var(--erro-soft);
+  border: 1px solid var(--erro-line);
+  border-radius: var(--r-sm);
+  padding: 9px 11px;
+  margin: 0;
+  user-select: text;
+}
+
+/* --------------------------------------------------------- cartão de cena */
+
+.cartoes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Cabeçalho do grupo: de que se trata, quantas cenas e a abordagem. */
+.grupo-cena {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 9px;
+  padding: 0 2px 2px;
+}
+
+.tag {
+  font-family: var(--faceplate);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-stretch: condensed;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--acento);
+  background: var(--acento-fundo);
+  border-radius: 5px;
+  padding: 2px 7px;
+}
+
+.grupo-meta {
+  font-size: 12px;
+  color: var(--dim-2);
+  min-width: 0;
+}
+
+.cartao {
+  background: var(--raise);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.cartao:hover {
+  border-color: var(--line-forte);
+}
+.cartao.aplicado {
+  border-color: var(--acento-line);
+}
+
+/* ---- faixa 1: identidade, ação e os valores. Sempre visível. */
+
+.cartao-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 10px;
+  padding: 12px 13px 8px;
+}
+
+/*
+ * Base 0, não `auto`. Com `auto` o bloco de título media pelo max-content, e
+ * numa janela estreita ele tomava a linha inteira — empurrando a seta de
+ * expandir para uma faixa só dela, que é uma linha de cartão gasta sem
+ * mostrar nada. Com base 0 os dois dividem a mesma linha e o texto quebra.
+ */
+.cartao-id {
+  flex: 1 1 0;
+  min-width: 0;
+  order: 1;
+}
+
+.cartao-titulo {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.cartao-resumo {
+  font-size: 13px;
+  color: var(--dim);
+  margin: 2px 0 0;
+  text-wrap: pretty;
+}
+
+/*
+ * O botão nunca se esgota, e nunca vira badge estático de "enviado": alternar
+ * entre base e solo dezenas de vezes é o uso normal, não a exceção. Quem
+ * responde "eu já carreguei este?" é o carimbo de horário logo abaixo.
+ */
+.aplicar {
+  order: 3;
+  flex: 1 1 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--acento-tinta);
+  background: var(--acento);
+  border: 0;
+  border-radius: var(--r-sm);
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.12s ease;
+}
+.aplicar:hover:not(:disabled) {
+  background: var(--acento-forte);
+}
+.aplicar:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.aplicar:disabled {
+  color: var(--dim-2);
+  background: var(--raise-2);
+  cursor: default;
+}
+.aplicar.feito {
+  color: var(--ok-tinta);
+  background: var(--ok);
+}
+.aplicar .ic {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2;
+}
+
+.expandir {
+  order: 2;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  color: var(--dim-2);
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.expandir:hover {
+  color: var(--ink);
+  background: var(--raise-2);
+}
+.expandir .ic {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.15s ease;
+}
+.cartao.aberto .expandir .ic {
+  transform: rotate(180deg);
+}
+
+/*
+ * A linha de faceplate. Só o que o botão carrega no plugin entra aqui —
+ * captador e técnica moram no rodapé, do outro lado da régua.
+ */
+.faceplate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 13px;
+  padding: 0 13px 11px;
+  font-family: var(--faceplate);
+  font-stretch: condensed;
+  font-variant-numeric: tabular-nums;
+}
+.fv {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.fv b {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim-2);
+}
+.fv i {
+  font-size: 13.5px;
+  font-weight: 600;
+  font-style: normal;
+  color: var(--ink);
+}
+
+.carimbo {
+  font-size: 12px;
+  color: var(--dim-2);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+  padding: 0 13px 10px;
+}
+.carimbo[hidden] {
+  display: none;
+}
+
+/* ---- faixa 2: como o timbre foi montado. Colapsável, fechada por padrão. */
+
+.cartao-corpo {
+  border-top: 1px solid var(--line);
+  padding: 11px 13px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  user-select: text;
+}
+.cartao-corpo[hidden] {
+  display: none;
+}
+
+.pedais {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pedal {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 5px 10px;
+  font-size: 12.5px;
+  color: var(--dim);
+}
+/* Âmbar aqui é o LED do pedal, o outro uso reservado da cor. */
+.pedal .led {
+  background: var(--ambar);
+  box-shadow: 0 0 5px var(--ambar-line);
+}
+.pedal b {
+  font-family: var(--faceplate);
+  font-stretch: condensed;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  color: var(--ink);
+}
+.pedal i {
+  font-style: normal;
+}
+
+.porque {
+  font-size: 13px;
+  color: var(--dim);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+/* ---- faixa 3: o que a mão faz. Sempre visível. */
+
+.cartao-pe {
+  border-top: 1px solid var(--line);
+  padding: 9px 13px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/*
+ * Era esta a linha que empurrava a janela inteira: o `span` de dentro é
+ * `nowrap`, e sem poder encolher a técnica de mão direita ("Toque mais perto do
+ * braço, ataque suave e redondo…") virava a largura mínima do app. Agora ela
+ * corta com reticências, que é o comportamento certo — o rodapé é o que se lê
+ * tocando, e meia frase legível vale mais do que a frase inteira fora da tela.
+ */
+.pe-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--dim);
+  min-width: 0;
+}
+.pe-item span {
+  min-width: 0;
+}
+.pe-item .ic {
+  width: 15px;
+  height: 15px;
+  color: var(--dim-2);
+  stroke-width: 1.5;
+}
+.pe-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aviso {
+  font-size: 12px;
+  /* `--ambar` puro sobre a superfície tingida dá 2.5:1 no tema claro — em 12px
+     isso não se lê. Texto sobre tinta é sempre `-texto`. */
+  color: var(--ambar-texto);
+  background: var(--ambar-fundo);
+  border-top: 1px solid var(--line);
+  padding: 8px 13px;
+  margin: 0;
+}
+
+/*
+ * Acima de 520px o botão volta para a mesma linha do título — abaixo disso ele
+ * ficaria espremido entre o texto e a seta, e um botão que exporta para fora da
+ * app não pode ser difícil de acertar.
+ */
+@media (min-width: 520px) {
+  .aplicar {
+    order: 2;
+    flex: none;
+  }
+  .expandir {
+    order: 3;
+  }
+}
+
+/* -------------------------------------------------------------- status */
+
+.trabalhando {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  align-self: flex-start;
+  font-size: 12.5px;
+  color: var(--dim);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px 6px 11px;
+}
+
+.giro {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--line-forte);
+  border-top-color: var(--acento);
+  animation: girar 0.75s linear infinite;
+  flex: none;
+}
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .giro {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------ composer */
+
+.composer {
+  flex: none;
+  padding: 10px 12px 12px;
+}
+/*
+ * Duas faixas dentro do MESMO balão — o texto em cima, os controles (modo +
+ * enviar) embaixo, com uma régua entre as duas. Como o Claude Code separa a
+ * área de digitação da barra de comandos, mas sem virar duas caixas distintas:
+ * é um hairline dentro de um único contorno, não dois balões empilhados.
+ *
+ * O `gap: 0` aqui de propósito: quem abre espaço não é este gap, é o
+ * `padding-top` de `.composer-acoes`, do mesmo jeito que `.cartao-corpo` e
+ * `.cartao-pe` já fazem — a linha encosta no fim do conteúdo anterior, e o
+ * respiro vem depois dela, não antes.
+ */
+.composer-inner {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 11px 12px 9px 14px;
+  display: flex;
+  flex-direction: column;
+  max-width: 720px;
+  margin: 0 auto;
+  transition: border-color 0.12s ease;
+}
+.composer-inner:focus-within {
+  border-color: var(--line-forte);
+}
+
+#entrada {
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  outline: none;
+  resize: none;
+  /*
+   * `rows="1"` no HTML só decide o valor inicial do atributo `rows`, que o
+   * navegador usa para calcular a altura intrínseca — e essa conta ignora
+   * `line-height`. Numa janela estreita o placeholder ("Descreva o timbre, ou
+   * peça um ajuste — "menos grave no riff"") quebra em duas linhas, e sem
+   * `min-height` a segunda ficava cortada pela borda de baixo antes mesmo do
+   * guitarrista digitar a primeira letra. Duas linhas reais (2 × line-height)
+   * é o que garante isso não acontecer em nenhuma largura — `ajustarAltura()`
+   * cresce a partir daqui, nunca encolhe abaixo. O padding vertical próprio
+   * saiu: agora quem molda o respiro é o `.composer-inner`, por igual nas
+   * quatro bordas do balão.
+   */
+  min-height: calc(2 * 13.5px * 1.45);
+  max-height: 150px;
+  user-select: text;
+}
+#entrada::placeholder {
+  color: var(--dim-2);
+}
+
+/*
+ * A faixa de controles, sempre na própria linha, abaixo do texto. Sem régua:
+ * o respiro vem só do `padding-top`, igual ao `gap: 0` do `.composer-inner` —
+ * a faixa encosta no fim do texto, sem linha separando as duas.
+ * `justify-content: flex-end` agrupa modo+enviar no lado direito; o select de
+ * modelo (primeiro filho) usa `margin-right: auto` para ir para a esquerda
+ * sem precisar de `space-between` no container — ver o aviso em `.modo-menu`
+ * sobre por que essa combinação é a que não vaza o menu para fora da janela.
+ */
+.composer-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 9px;
+}
+
+/*
+ * Modelo de IA — mesmo pill de `.modo-auto`, mas abre um painel em vez de um
+ * `<select>`: com as duas chaves válidas a lista mistura GPT e Claude, tem
+ * busca e agrupa por faixa de custo, e nenhum `<select>` nativo desenha isso.
+ * `min-width: 0` deixa encolher abaixo do texto mais longo quando a janela
+ * aperta; `margin-right: auto` empurra modo+enviar para a direita (ver o
+ * comentário em `.composer-acoes`).
+ */
+.modelo-wrap {
+  position: relative;
+  min-width: 0;
+  margin-right: auto;
+}
+
+.modelo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dim);
+  background: var(--raise-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  height: 32px;
+  max-width: 168px;
+  min-width: 0;
+  padding: 0 10px;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.modelo-btn:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--raise);
+  border-color: var(--line-forte);
+}
+.modelo-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.modelo-btn #modelo-rotulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.modelo-btn .chev {
+  width: 11px;
+  height: 11px;
+  margin-left: -2px;
+  color: var(--dim-2);
+  flex: none;
+  /* Aponta pra cima, mesma direção em que o painel abre. */
+  transform: rotate(180deg);
+}
+
+/*
+ * O painel. Abre para cima como o `.modo-menu` (o composer mora na base da
+ * janela), mas ancorado à ESQUERDA (`left: 0`): é o lado em que este botão
+ * mora dentro de `.composer-acoes` (empurrado por `margin-right: auto`).
+ * Ancorar à direita aqui abriria o painel para fora da janela pela direita —
+ * o mesmo tipo de bug documentado em `.modo-menu`, só que no lado oposto.
+ */
+.modelo-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  max-height: 340px;
+  background: var(--raise);
+  border: 1px solid var(--line-forte);
+  border-radius: var(--r-md);
+  padding: 5px;
+  box-shadow: var(--sombra);
+  display: flex;
+  flex-direction: column;
+}
+.modelo-menu[hidden] {
+  display: none;
+}
+
+.modelo-busca {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  margin: 2px 2px 5px;
+  padding: 7px 9px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+.modelo-busca .ic {
+  width: 14px;
+  height: 14px;
+  color: var(--dim-2);
+  flex: none;
+}
+.modelo-busca input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+.modelo-busca input::placeholder {
+  color: var(--dim-2);
+}
+
+.modelo-lista {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.modelo-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 7px 9px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.modelo-item:hover {
+  background: var(--raise-2);
+}
+.modelo-item span {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.modelo-item b {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.modelo-item em {
+  font-size: 11.5px;
+  font-style: normal;
+  color: var(--dim-2);
+  flex: none;
+}
+/* Marca de seleção — espaço sempre reservado, visível só no item ativo, para
+   o texto não pular de posição conforme o modelo escolhido muda de linha. */
+.modelo-marca {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--acento);
+  visibility: hidden;
+}
+.modelo-item[aria-checked='true'] .modelo-marca {
+  visibility: visible;
+}
+.modelo-item[aria-checked='true'] b {
+  color: var(--acento);
+}
+
+.modelo-vazio {
+  padding: 14px 9px;
+  font-size: 12.5px;
+  color: var(--dim-2);
+  text-align: center;
+}
+
+/*
+ * Modo de aplicação — o equivalente do seletor Auto/Edit/Plan do Claude Code:
+ * um botão que abre um menu, não um toggle de clique único. `.modo-wrap` é o
+ * âncora de posicionamento do menu; o roxo do estado ligado é o mesmo
+ * tratamento que `.icon[aria-selected="true"]` já dá à aba ativa da sidebar —
+ * indicador de estado, não uma segunda ação primária disputando com o enviar.
+ */
+.modo-wrap {
+  position: relative;
+}
+
+.modo-auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dim);
+  background: var(--raise-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  height: 32px;
+  padding: 0 10px;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.modo-auto:hover {
+  color: var(--ink);
+  background: var(--raise);
+  border-color: var(--line-forte);
+}
+/* `.ligado` é o modo Auto ativo — colocado pelo JS, não `aria-pressed`: este
+   botão abre um menu (`aria-haspopup`), não alterna um valor sozinho. */
+.modo-auto.ligado {
+  color: var(--acento);
+  background: var(--acento-soft);
+  border-color: var(--acento-line);
+}
+.modo-auto .ic {
+  width: 14px;
+  height: 14px;
+}
+.modo-auto .chev {
+  width: 11px;
+  height: 11px;
+  margin-left: -1px;
+  color: var(--dim-2);
+  /* Aponta pra cima: é a mesma direção em que o menu abre. */
+  transform: rotate(180deg);
+}
+
+/*
+ * O menu em si. Abre para cima (`bottom: 100%`) porque o composer mora na
+ * base da janela — para baixo ele sairia da tela. Ancorado à DIREITA porque é
+ * onde o botão de modo fica agora, colado no enviar pelo `flex-end` de
+ * `.composer-acoes` — os dois do mesmo lado.
+ *
+ * Atenção se o modo voltar a ficar longe do enviar (como ficou por uma volta
+ * deste arquivo, com `justify-content: space-between`): `right: 0` com o
+ * botão na ponta esquerda da faixa abre o menu para fora da janela, e
+ * `scrollWidth` não denuncia — ele só mede transbordo à direita. Ver o
+ * histórico deste arquivo se essa combinação voltar a acontecer.
+ *
+ * `max-width` com `100vw` continua de qualquer forma, como cinto e suspensório
+ * contra a largura mínima da janela.
+ */
+.modo-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: 272px;
+  max-width: calc(100vw - 24px);
+  background: var(--raise);
+  border: 1px solid var(--line-forte);
+  border-radius: var(--r-md);
+  padding: 5px;
+  box-shadow: var(--sombra);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.modo-menu[hidden] {
+  display: none;
+}
+
+.modo-opcao {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 9px 10px;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.modo-opcao:hover {
+  background: var(--raise-2);
+}
+.modo-opcao .ic {
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  color: var(--dim-2);
+  flex: none;
+}
+.modo-opcao b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.modo-opcao em {
+  display: block;
+  font-size: 12px;
+  font-style: normal;
+  color: var(--dim-2);
+  margin-top: 2px;
+  text-wrap: pretty;
+}
+/* O modo ativo do menu — mesmo tratamento de acento que `.modo-auto.ligado`. */
+.modo-opcao[aria-pressed="true"] {
+  background: var(--acento-soft);
+  border-color: var(--acento-line);
+}
+.modo-opcao[aria-pressed="true"] b,
+.modo-opcao[aria-pressed="true"] .ic {
+  color: var(--acento);
+}
+
+/*
+ * Abaixo de 400px o rótulo do botão soma e sobra ícone + seta — o mesmo
+ * tratamento que `#dica-destino` e `.stat b` já recebem: esconder o que é
+ * dispensável em vez de espremer o texto ou empurrar o textarea para menos
+ * espaço do que precisa. As descrições completas continuam no menu, que abre
+ * do mesmo jeito em qualquer largura.
+ */
+@media (max-width: 400px) {
+  .modo-auto {
+    padding: 0;
+    width: 32px;
+    justify-content: center;
+  }
+  .modo-auto span {
+    display: none;
+  }
+  .modo-auto .chev {
+    display: none;
+  }
+  .modelo-btn {
+    max-width: 84px;
+  }
+}
+
+.composer-dica {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 720px;
+  margin: 7px auto 0;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--dim-2);
+}
+.composer-dica span {
+  min-width: 0;
+}
+.composer-dica span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.send {
+  flex: none;
+  color: var(--acento-tinta);
+  background: var(--acento);
+  border: 0;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.12s ease, transform 0.12s ease;
+}
+.send:hover:not(:disabled) {
+  background: var(--acento-forte);
+}
+.send:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.send:disabled {
+  background: var(--raise-2);
+  color: var(--dim-2);
+  cursor: default;
+}
+.send .ic {
+  width: 16px;
+  stroke-width: 2.1;
+}
+
+/* ------------------------------------------------- painéis secundários */
+
+.sec-topo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px 12px;
+  flex: none;
+}
+.sec-topo h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.sec-corpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.grupo {
+  font-family: var(--faceplate);
+  font-stretch: condensed;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim-2);
+  margin: 6px 0 -6px;
+}
+.sec-corpo > .grupo:first-child {
+  margin-top: 0;
+}
+
+.sub {
+  font-size: 13px;
+  color: var(--dim);
+  margin: 0;
+}
+
+.vazio {
+  color: var(--dim-2);
+  font-size: 13px;
+  text-align: center;
+  padding: 30px 20px;
+}
+
+/* Preferência persistente: rótulo, explicação do efeito e a caixa à esquerda. */
+.opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  cursor: pointer;
+}
+.opcao input {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin: 2px 0 0;
+  accent-color: var(--acento);
+  cursor: pointer;
+}
+.opcao b {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.opcao em {
+  display: block;
+  font-size: 12.5px;
+  font-style: normal;
+  color: var(--dim-2);
+}
+
+/* ---------------------------------------------------------------- sobre */
+
+.sobre {
+  align-items: center;
+  text-align: center;
+  gap: 0;
+  padding-top: 26px;
+}
+
+.sobre-icone {
+  width: 96px;
+  height: 96px;
+  border-radius: 20px;
+}
+
+.sobre-nome {
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  margin: 20px 0 0;
+}
+.sobre-nome i {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--dim);
+}
+
+.sobre-versao {
+  font-size: 13px;
+  color: var(--dim-2);
+  font-variant-numeric: tabular-nums;
+  margin: 8px 0 0;
+}
+
+.sobre-linha {
+  font-size: 13px;
+  color: var(--dim);
+  margin: 22px 0 0;
+  max-width: 34ch;
+  text-wrap: balance;
+}
+
+/* ------------------------------------------------------------ conversas */
+
+.conversa {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.conversa-abrir {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: background 0.12s ease;
+}
+.conversa-abrir:hover {
+  background: var(--raise);
+}
+.conversa.atual .conversa-abrir {
+  border-color: var(--acento-line);
+  background: var(--acento-fundo);
+}
+
+.conversa-titulo {
+  font-size: 13.5px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.conversa.atual .conversa-titulo {
+  color: var(--acento);
+}
+
+.conversa-meta {
+  font-size: 12px;
+  color: var(--dim-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.conversa-apagar {
+  flex: none;
+  color: var(--dim-2);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  width: 34px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.conversa-apagar:hover {
+  color: var(--erro);
+  border-color: var(--erro-line);
+}
+
+/* --------------------------------------------------------------- form */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control {
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  width: 100%;
+  user-select: text;
+}
+.control:focus {
+  outline: none;
+  border-color: var(--acento-line);
+}
+select.control {
+  cursor: pointer;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.save {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--acento-tinta);
+  background: var(--acento);
+  border: 0;
+  border-radius: var(--r-sm);
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.save:hover:not(:disabled) {
+  background: var(--acento-forte);
+}
+.save:disabled {
+  color: var(--dim-2);
+  background: var(--raise-2);
+  cursor: default;
+}
+
+/* Ação secundária destrutiva: sem preenchimento, e o vermelho só no hover. */
+.ghost {
+  flex: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid var(--line-forte);
+  border-radius: var(--r-sm);
+  padding: 8px 13px;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.ghost:hover:not(:disabled) {
+  color: var(--erro);
+  border-color: var(--erro-line);
+}
+.ghost:disabled {
+  color: var(--dim-2);
+  cursor: default;
+}
+
+.note {
+  font-size: 12px;
+  color: var(--dim);
+  border-left: 2px solid var(--acento-line);
+  padding-left: 11px;
+  margin: 0;
+}
+.note[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ tema */
+
+/*
+ * Três opções mutuamente exclusivas cabem num segmentado e não num select: são
+ * poucas, e ver as três de uma vez é o que deixa claro que `Sistema` existe.
+ */
+.segmentado {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+.segmentado button {
+  flex: 1;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--dim);
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-sm);
+  padding: 7px 0;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.segmentado button:hover[aria-checked="false"] {
+  color: var(--ink);
+  background: var(--raise-2);
+}
+.segmentado button[aria-checked="true"] {
+  color: var(--acento-tinta);
+  background: var(--acento);
+}
+
+/* ------------------------------------------------------------ chaves de IA */
+
+.chaves {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.chave {
+  background: var(--raise);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 11px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chave-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chave-topo b {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+/* Qual das duas chaves está de fato atendendo — a pergunta que a tela responde. */
+.selo {
+  font-family: var(--faceplate);
+  font-stretch: condensed;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 1px 8px;
+  color: var(--dim-2);
+  background: var(--raise-2);
+}
+.selo.app {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+.selo.ambiente {
+  color: var(--ambar-texto);
+  background: var(--ambar-fundo);
+}
+
+.chave-dica {
+  font-size: 12px;
+  color: var(--dim-2);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+.chave-acoes {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.chave-acoes .control {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  font-size: 13px;
+  /* A chave é longa e sem espaço; sem isto o cursor "salta" ao colar. */
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+.chave-acoes .save {
+  align-self: auto;
+  padding: 8px 15px;
+}
+
+/* ------------------------------------------------- janela no mínimo (360px) */
+
+/*
+ * O que sai primeiro quando o espaço aperta, e por quê.
+ *
+ * A regra é a mesma da spec: esconder informação é aceitável, cortar não é.
+ * Então o corte começa pelo que está **duplicado** em outro lugar da tela —
+ * ninguém perde nada — e só depois encosta em respiro.
+ */
+@media (max-width: 400px) {
+  /* Repete, palavra por palavra, o que a barra do plugin diz logo acima. */
+  #dica-destino {
+    display: none;
+  }
+
+  /*
+   * O nome da porta MIDI cabia em um caractere ("V" de VoiceRig), que não
+   * informa nada e ainda ocupa espaço. O ponto colorido sozinho já carrega o
+   * estado, e o `title` continua contando a história inteira em quem passa o
+   * mouse.
+   */
+  .stat b {
+    display: none;
+  }
+
+  /* Menos respiro lateral: 8px ainda separa o cartão da borda. */
+  .stream,
+  .composer {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .plugin-bar {
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+  .sec-corpo,
+  .sec-topo {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+  /* A bolha do usuário pode ir mais longe: 86% deixava um vão inútil. */
+  .de-usuario {
+    max-width: 94%;
+  }
+
+  /* Dois campos lado a lado viram um por linha antes de ficarem ilegíveis. */
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
