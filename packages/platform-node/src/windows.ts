@@ -168,7 +168,14 @@ export function createWindowsPlatformInfo(
       }
     },
     settingsDir(appInfo: AppInfo) {
-      return path.join(process.env['APPDATA'] ?? '', appInfo.settings)
+      // `path.win32.join` (not the platform-default `node:path` export) is used
+      // deliberately: this module's paths are always Windows paths, regardless
+      // of which OS actually runs the code computing them (e.g. the suite
+      // running on a macOS/Linux dev machine). Using the default export would
+      // silently emit `/`-joined paths when tested off-Windows, proving nothing
+      // about the real Windows shape — the same reasoning `macos.ts` applies
+      // with `path.posix.join`.
+      return path.win32.join(process.env['APPDATA'] ?? '', appInfo.settings)
     },
   }
 }

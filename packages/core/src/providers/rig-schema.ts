@@ -193,12 +193,17 @@ function build(plugin: PluginSpec): Built {
 
   const json = (s: z.ZodTypeAny): Record<string, unknown> => {
     // `zodToJsonSchema`'s return type pattern-matches recursively over the
-    // full `ZodTypeAny` union; handed the real (still-generic) schema type,
-    // that recursion exceeds TS's instantiation depth limit (TS2589) on a
-    // plugin's full parameter set. The `any` here is a compile-time-only
-    // escape from that — the runtime call and this function's own return
-    // type are unaffected.
-    const out = zodToJsonSchema(s as unknown as z.ZodTypeAny, { target: 'jsonSchema7', $refStrategy: 'none' }) as Record<string, unknown>
+    // full `ZodTypeAny` union. `zod-to-json-schema` resolves zod 4 as its peer
+    // (the SDKs pull it) while core imports zod 3, so handed a real schema its
+    // recursion exceeds TS's instantiation depth limit (TS2589). Casting the
+    // function reference to a plain signature keeps the return type concrete
+    // so TS never recurses — the runtime call and this function's return type
+    // are unaffected.
+    const toJson = zodToJsonSchema as unknown as (
+      schema: z.ZodTypeAny,
+      options?: Parameters<typeof zodToJsonSchema>[1],
+    ) => Record<string, unknown>
+    const out = toJson(s, { target: 'jsonSchema7', $refStrategy: 'none' })
     delete out['$schema']
     return out
   }

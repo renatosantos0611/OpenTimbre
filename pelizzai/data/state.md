@@ -50,6 +50,7 @@
 - Task 6 ✅ 2026-08-08 — PluginManager (catalog resolve, status polling emits only changed state, window-lifetime start/stop) + SceneApplier (rig apply, planScene CCs, unmapped-amp/manual warnings, contained MIDI failures); 12 new tests pass 25/25, typecheck+lint clean, split review approved
 - next: execute Task 7 with TDD, split review, focused proof, and a granular commit
 - pending: Tasks 7-10
+- bugfix ✅ 2026-08-08 (kickoff ratified) — pre-existing gates: windows.ts settingsDir now uses path.win32.join (portable, mirrors macos.ts); core rig-schema.ts minimal type-escape for zodToJsonSchema TS2589 (zod 3 vs zod 4 peer)
 
 ## History
 
