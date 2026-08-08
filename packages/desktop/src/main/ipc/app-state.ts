@@ -16,9 +16,9 @@ import type { DesktopStore } from '../storage/desktop-store.ts'
 
 const PROVIDER_LABELS: Record<ProviderId, string> = { openai: 'OpenAI', anthropic: 'Anthropic' }
 
-/** Resolves `system` to a concrete theme for the screen to paint. */
-export function resolveTheme(chosen: Theme): ResolvedTheme {
-  if (chosen === 'system') return 'dark'
+/** Resolves `system` to the OS theme so the screen paints what the OS shows. */
+export function resolveTheme(chosen: Theme, systemDark = false): ResolvedTheme {
+  if (chosen === 'system') return systemDark ? 'dark' : 'light'
   return chosen
 }
 
@@ -35,6 +35,7 @@ export type AppStateDeps = {
   getGuitar: () => Guitar
   getLocale: () => Locale
   ai: AiState | null
+  systemDark: boolean
   version: string
 }
 
@@ -54,7 +55,7 @@ export function buildAppState(deps: AppStateDeps): AppState {
     alwaysOnTop: store.getBool('always_on_top'),
     dimOnUnfocus: store.getBool('dim_on_unfocus'),
     autoApply: store.getBool('auto_apply'),
-    theme: { chosen, resolved: resolveTheme(chosen) },
+    theme: { chosen, resolved: resolveTheme(chosen, deps.systemDark) },
     keys: deps.listKeys(),
     keysError: null,
     providerPreference: (store.get('provider_preference') as ProviderPreference) || 'auto',

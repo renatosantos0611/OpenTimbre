@@ -29,6 +29,8 @@ type Deps = {
   getAi: () => AiState | null
   getGuitar: () => import('@opentimbre/contracts').Guitar
   getLocale: () => import('@opentimbre/i18n').Locale
+  systemDark: boolean
+  setAlwaysOnTop: (onTop: boolean) => void
   version: string
 }
 
@@ -39,6 +41,7 @@ function appState(deps: Deps): import('@opentimbre/contracts').AppState {
     getGuitar: deps.getGuitar,
     getLocale: deps.getLocale,
     ai: deps.getAi(),
+    systemDark: deps.systemDark,
     version: deps.version,
   })
 }
@@ -56,8 +59,10 @@ export function registerIpcHandlers(deps: Deps): void {
   // ── State / config ───────────────────────────────────────
 
   ipcMain.handle('app:state', (event) => {
-    trusted(event)
-    return appState(deps)
+    try {
+      trusted(event)
+      return appState(deps)
+    } catch (e) { return failure(String(e)) }
   })
 
   ipcMain.handle('config:guitar', (event, guitar) => {
@@ -91,30 +96,17 @@ export function registerIpcHandlers(deps: Deps): void {
       trusted(event)
       const next = !deps.store.getBool('always_on_top')
       deps.store.setBool('always_on_top', next)
-      return appState(deps)
+      deps.setAlwaysOnTop(next)
+      return next
     } catch (e) { return failure(String(e)) }
   })
 
   ipcMain.handle('window:dimOnUnfocus', (event, value) => {
-    try { trusted(event); deps.store.setBool('dim_on_unfocus', validatePayload('window:dimOnUnfocus', value) as boolean); return appState(deps) } catch (e) { return failure(String(e)) }
+    try { trusted(event); const v = validatePayload('window:dimOnUnfocus', value) as boolean; deps.store.setBool('dim_on_unfocus', v); return v } catch (e) { return failure(String(e)) }
   })
 
   ipcMain.handle('window:autoApply', (event, value) => {
-    try { trusted(event); deps.store.setBool('auto_apply', validatePayload('window:autoApply', value) as boolean); return appState(deps) } catch (e) { return failure(String(e)) }
-  })
-
-  // ── Window bounds ────────────────────────────────────────
-
-  ipcMain.handle('window:setBounds', (event, bounds) => {
-    try {
-      trusted(event)
-      const b = bounds as Record<string, unknown>
-      if ('x' in b && typeof b.x === 'number') deps.store.setNumber('bounds_x', b.x)
-      if ('y' in b && typeof b.y === 'number') deps.store.setNumber('bounds_y', b.y)
-      if ('width' in b && typeof b.width === 'number') deps.store.setNumber('width', Number(b.width))
-      if ('height' in b && typeof b.height === 'number') deps.store.setNumber('height', Number(b.height))
-      return appState(deps)
-    } catch (e) { return failure(String(e)) }
+    try { trusted(event); const v = validatePayload('window:autoApply', value) as boolean; deps.store.setBool('auto_apply', v); return v } catch (e) { return failure(String(e)) }
   })
 
   // ── Keys ─────────────────────────────────────────────────

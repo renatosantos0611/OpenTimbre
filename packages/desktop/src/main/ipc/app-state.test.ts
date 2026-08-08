@@ -6,10 +6,11 @@ import { buildAppState, resolveTheme } from './app-state.ts'
 const DEFAULT_GUITAR = { model: 'Tele', pickups: 'humbucker' as const, tuning: 'E standard', strings: 6 }
 const KEY = { provider: 'openai' as const, label: 'OpenAI', env: 'OPENAI_API_KEY', source: 'app' as const, hint: 'sk-…f3a', updatedAt: 'now', protected: true, readable: true }
 
-test('resolveTheme maps system to a concrete value', () => {
+test('resolveTheme maps system to the OS theme', () => {
   assert.equal(resolveTheme('dark'), 'dark')
   assert.equal(resolveTheme('light'), 'light')
-  assert.equal(resolveTheme('system'), 'dark')
+  assert.equal(resolveTheme('system', true), 'dark')
+  assert.equal(resolveTheme('system', false), 'light')
 })
 
 test('buildAppState returns the contract camelCase shape', () => {
@@ -20,6 +21,7 @@ test('buildAppState returns the contract camelCase shape', () => {
     getGuitar: () => DEFAULT_GUITAR,
     getLocale: () => 'en',
     ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-4o', available: [] },
+    systemDark: true,
     version: '3.0-dev',
   })
 
@@ -48,6 +50,7 @@ test('a persisted preference and model flow into AppState', () => {
     getGuitar: () => DEFAULT_GUITAR,
     getLocale: () => 'pt',
     ai: { provider: 'anthropic', label: 'Anthropic', model: 'claude-opus', available: [] },
+    systemDark: true,
     version: 'x',
   })
   assert.equal(state.providerPreference, 'anthropic')

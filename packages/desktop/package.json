@@ -10,6 +10,7 @@
     "build:preload": "tsc -p tsconfig.preload.json",
     "build:renderer": "ng build desktop",
     "typecheck": "tsc -p tsconfig.main.json && tsc -p tsconfig.renderer.json --noEmit",
+    "test": "npm run test:main && npm run test:renderer",
     "test:main": "node --test \"src/main/**/*.test.ts\"",
     "test:renderer": "ng run desktop:unit-test",
     "test:e2e": "playwright test",

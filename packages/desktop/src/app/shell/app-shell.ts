@@ -83,7 +83,7 @@ import { SettingsPane } from './panes/settings-pane'
         transition: opacity 120ms ease;
       }
       .shell[data-dimmed='true'] {
-        opacity: 0.55;
+        opacity: 0.72;
       }
       .central {
         display: flex;

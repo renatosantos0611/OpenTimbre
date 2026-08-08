@@ -111,6 +111,25 @@ test('RigChat exposes one tool per catalog plugin and uses the selected tool', a
   assert.deepEqual(fake.tools[0]?.map((tool) => tool.name), CATALOG.map((spec) => `apply_rig_${spec.id}`))
 })
 
+test('RigChat derives a card per scene into the turn', async () => {
+  const selected = CATALOG.find((spec) => spec.id === 'petrucci')!
+  const { plugin, ...args } = rig(selected.id)
+  const fake = provider([{ text: 'Here is the rig.', call: { id: '1', name: `apply_rig_${selected.id}`, args }, raw: {}, usage: { input: 1, output: 1 }, stopReason: 'tool_use' }])
+  const chat = createRigChat({ providers: [fake], locale: 'en', guitar: GUITAR })
+
+  const turn = await chat.send('Make a Petrucci tone')
+
+  assert.ok(turn.rig, 'the model returned a rig')
+  assert.equal(turn.rig!.plugin, plugin)
+  assert.ok(turn.cards, 'cards are derived for the rig')
+  assert.equal(Object.keys(turn.cards!).length, Object.keys(turn.rig!.scenes).length)
+  // A card is a non-empty SceneCard: at least one faceplate value or pedal.
+  for (const card of Object.values(turn.cards!)) {
+    assert.equal(typeof card.values, 'object')
+    assert.equal(typeof card.pedals, 'object')
+  }
+})
+
 test('RigChat accepts a text-only model answer without inventing a rig', async () => {
   const fake = provider([response(null, 'Which song should I target?')])
   const chat = createRigChat({ providers: [fake], locale: 'en', guitar: GUITAR })

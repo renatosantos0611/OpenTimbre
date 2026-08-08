@@ -242,4 +242,3 @@ export type DesktopApi = {
   onThemeChanged(callback: (theme: ResolvedTheme) => void): () => void
   onPluginChanged(callback: (state: PluginState) => void): () => void
 }
-

@@ -34,6 +34,8 @@ export type ChatControllerOptions = {
   getProviders: () => readonly RigChatProvider[]
   getGuitar: () => Guitar
   getLocale: () => Locale
+  /** When true and the model returns a single-scene rig, apply it at once. */
+  autoApply?: () => boolean
   applier: SceneApplier
   send: (channel: string, payload: unknown) => void
   clock?: ChatClock
@@ -131,6 +133,11 @@ export function createChatController(options: ChatControllerOptions): ChatContro
       )
       persist(a, a.chat.export())
       applier.setRig(turn.rig)
+      // Auto-apply: when enabled and the model returned exactly one scene, the
+      // guitarist asked for that tone alone, so load it without a button click.
+      if (turn.rig && options.autoApply?.() && Object.keys(turn.rig.scenes).length === 1) {
+        void applier.apply(Object.keys(turn.rig.scenes)[0]!)
+      }
       return turn
     } catch {
       emit(null)

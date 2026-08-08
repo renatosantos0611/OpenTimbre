@@ -1,5 +1,5 @@
 /** Electron entry point - wires store, IPC handlers, plugin host, and security lockdown. */
-import { app, BrowserWindow, protocol, safeStorage } from 'electron'
+import { app, BrowserWindow, protocol, safeStorage, nativeTheme } from 'electron'
 import path from 'node:path'
 import os from 'node:os'
 import { spawn } from 'node:child_process'
@@ -140,11 +140,16 @@ app.whenReady().then(() => {
     getProviders: wireProviders,
     getGuitar,
     getLocale: () => store.get('locale') as Locale,
+    autoApply: () => store.getBool('auto_apply'),
     applier,
     send,
   })
 
   const modelCache: AvailableModel[] = []
+  let win: BrowserWindow | null = null
+  const setAlwaysOnTop = (onTop: boolean): void => {
+    win?.setAlwaysOnTop(onTop)
+  }
   registerIpcHandlers({
     store,
     plugins,
@@ -153,6 +158,8 @@ app.whenReady().then(() => {
     send,
     getLocale: () => store.get('locale') as Locale,
     getGuitar,
+    setAlwaysOnTop,
+    systemDark: nativeTheme.shouldUseDarkColors,
     version: app.getVersion() || '3.0-dev',
     getAi: () => {
       const modelId = store.get('model_id')
@@ -171,9 +178,26 @@ app.whenReady().then(() => {
   void listModels(wireProviders()).then((models) => modelCache.push(...models)).catch(() => undefined)
 
   function openWindow(): void {
-    const window = createMainWindow()
+    win = createMainWindow({
+      alwaysOnTop: store.getBool('always_on_top'),
+      bounds: {
+        x: store.getNumber('bounds_x'),
+        y: store.getNumber('bounds_y'),
+        width: store.getNumber('width'),
+        height: store.getNumber('height'),
+      },
+      onBoundsChanged(b) {
+        store.setNumber('bounds_x', b.x)
+        store.setNumber('bounds_y', b.y)
+        store.setNumber('width', b.width)
+        store.setNumber('height', b.height)
+      },
+    })
     plugins.start()
-    window.on('closed', () => plugins.stop())
+    win.on('closed', () => {
+      win = null
+      plugins.stop()
+    })
   }
 
   openWindow()

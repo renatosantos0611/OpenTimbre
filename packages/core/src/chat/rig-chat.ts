@@ -2,10 +2,11 @@
  * Catalog-driven chat session. It hides provider-native history and lets the
  * model choose the plugin by calling exactly one tool per catalog entry.
  */
-import type { AvailableModel, Guitar, ProviderId, Rig, Turn } from '@opentimbre/contracts'
+import type { AvailableModel, Cards, Guitar, ProviderId, Rig, Turn } from '@opentimbre/contracts'
 import { loadSystemPrompt } from '../rig-builder.ts'
 import { CATALOG } from '../plugins/catalog.ts'
 import type { PluginSpec } from '../plugins/types.ts'
+import { displayScene } from '../scenes/display-scene.ts'
 import { rigJsonSchema, toolName, validateRig } from '../providers/rig-schema.ts'
 import { execute, issuesToText, type Phase, type Session, type ToolDef } from '../providers/tool-use.ts'
 import type { Locale } from '../i18n/index.ts'
@@ -39,6 +40,17 @@ export type RigChat = {
   readonly memoryLost: boolean
   send(text: string): Promise<Turn>
   export(): RigChatSnapshot
+}
+
+/** The card per scene, keyed the same as `Rig.scenes`. */
+function cardsOf(rig: Rig): Cards {
+  const spec = CATALOG.find((c) => c.id === rig.plugin)
+  if (!spec) return {}
+  const cards: Cards = {}
+  for (const [name, scene] of Object.entries(rig.scenes)) {
+    cards[name] = displayScene(spec, scene.params, rig.amp)
+  }
+  return cards
 }
 
 function toolsForCatalog(): ToolDef[] {
@@ -107,7 +119,7 @@ export function createRigChat(options: RigChatOptions): RigChat {
 
       return result === null
         ? { text: lastText, rig: null, cards: null }
-        : { text: lastText, rig: result, cards: null }
+        : { text: lastText, rig: result, cards: cardsOf(result) }
     },
     export(): RigChatSnapshot {
       return { provider: provider!.id, model: provider!.model(), history: session.history() }

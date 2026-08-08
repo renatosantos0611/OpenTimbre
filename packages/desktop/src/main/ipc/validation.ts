@@ -24,7 +24,7 @@ const schemas = {
   'window:dimOnUnfocus': z.boolean(),
   'window:autoApply': z.boolean(),
   'keys:remove': z.enum(['anthropic', 'openai']),
-  'keys:save': z.tuple([z.enum(['anthropic', 'openai']), z.string().min(1)]),
+  'keys:save': z.tuple([z.enum(['anthropic', 'openai']), z.string().min(1).max(4000)]),
   'ai:model': z.tuple([z.enum(['anthropic', 'openai']), z.string().min(1).max(200)]),
   'ai:providerPreference': z.enum(['auto', 'anthropic', 'openai']),
   'config:guitar': guitarSchema,
