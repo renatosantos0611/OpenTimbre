@@ -5,7 +5,9 @@
 import { z } from 'zod'
 
 const schemas = {
-  'chat:send': z.string().trim().min(1),
+  'chat:send': z.string().trim().min(1).max(4000),
+  'conversations:open': z.string().trim().min(1),
+  'conversations:delete': z.string().trim().min(1),
   'rig:apply': z.string().trim().min(1),
   'plugin:state': z.string().trim().min(1),
   'plugin:open': z.string().trim().min(1),

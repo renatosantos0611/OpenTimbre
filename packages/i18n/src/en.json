@@ -9,5 +9,8 @@
   "keys.source.app": "saved in the app",
   "keys.source.environment": "from the environment",
   "keys.source.none": "not set",
+  "chat.error.send": "The AI couldn't answer. Check your connection and API key, then try again.",
+  "chat.error.noProvider": "No AI provider is configured. Add an API key in Settings.",
+  "conversation.error.notFound": "That conversation is gone.",
   "error.generic": "Something went wrong."
 }

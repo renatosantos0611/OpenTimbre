@@ -23,6 +23,9 @@
 /** Two attempts at most: one retry is a patch, two is the model not knowing. */
 const MAX_ATTEMPTS = 2
 
+/** The call phase, for a host that wants to surface a status pill. */
+export type Phase = 'querying' | 'validating' | 'correcting'
+
 export type Issue = { readonly path: PropertyKey[]; readonly message: string }
 
 /** A tool call already normalized, whether it came from Anthropic or OpenAI. */
@@ -119,6 +122,8 @@ export type Execution<T> = {
    */
   readonly onNoCall?: (text: string) => T
   readonly trace?: Trace
+  /** Called as the call advances, so a host can show a status pill. */
+  readonly onPhase?: (phase: Phase) => void
 }
 
 /** Formats the issues to hand back to the model on the retry. */
@@ -155,12 +160,14 @@ export const CONFIRMATION =
 export async function execute<T>(exec: Execution<T>): Promise<T> {
   const { session, request, tools, force, validate, onNoCall } = exec
   const trace = exec.trace ?? NOOP_TRACE
+  const onPhase = exec.onPhase
 
   const mark = session.mark()
   session.ask(request)
 
   try {
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      onPhase?.('querying')
       const response = await session.respond(tools, force)
       trace.response(response.raw, { usage: response.usage, stopReason: response.stopReason })
 
@@ -172,6 +179,7 @@ export async function execute<T>(exec: Execution<T>): Promise<T> {
         )
       }
 
+      onPhase?.('validating')
       trace.output(response.call.args)
       const verdict = validate(response.call, response.text)
       trace.validation(verdict.ok, verdict.ok ? undefined : verdict.issues)
@@ -184,6 +192,7 @@ export async function execute<T>(exec: Execution<T>): Promise<T> {
       if (attempt === MAX_ATTEMPTS) throw issuesToError(verdict.issues)
 
       trace.retry(verdict.feedback)
+      onPhase?.('correcting')
       session.correct(response.call, verdict.feedback)
     }
 

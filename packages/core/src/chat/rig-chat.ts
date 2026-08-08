@@ -7,7 +7,7 @@ import { loadSystemPrompt } from '../rig-builder.ts'
 import { CATALOG } from '../plugins/catalog.ts'
 import type { PluginSpec } from '../plugins/types.ts'
 import { rigJsonSchema, toolName, validateRig } from '../providers/rig-schema.ts'
-import { execute, issuesToText, type Session, type ToolDef } from '../providers/tool-use.ts'
+import { execute, issuesToText, type Phase, type Session, type ToolDef } from '../providers/tool-use.ts'
 import type { Locale } from '../i18n/index.ts'
 
 export type RigChatSnapshot = {
@@ -29,6 +29,8 @@ export type RigChatOptions = {
   readonly locale: Locale
   readonly guitar: Guitar
   readonly resume?: RigChatSnapshot
+  /** Called as the call advances, so a host can show a status pill. */
+  readonly onPhase?: (phase: Phase) => void
 }
 
 export type RigChat = {
@@ -100,6 +102,7 @@ export function createRigChat(options: RigChatOptions): RigChat {
             ? { ok: true, value: verdict.value }
             : { ok: false, issues: verdict.issues, feedback: issuesToText(verdict.issues) }
         },
+        onPhase: options.onPhase,
       })
 
       return result === null

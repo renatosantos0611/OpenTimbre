@@ -1,13 +1,14 @@
 /**
  * Registers all IPC handlers for the desktop renderer. Settings and keys
  * delegate to the injected store; plugin and rig operations delegate to the
- * injected PluginManager and SceneApplier. Chat/conversation operations return
- * placeholder results until Task 7 implements their backend.
+ * injected PluginManager and SceneApplier; chat/conversation operations
+ * delegate to the injected ChatController.
  */
 import { ipcMain } from 'electron'
 import type { DesktopStore } from '../storage/desktop-store.ts'
 import type { PluginManager } from '../plugins/plugin-manager.ts'
 import type { SceneApplier } from '../rig/scene-applier.ts'
+import type { ChatController } from '../chat/chat-controller.ts'
 import { validatePayload } from './validation.ts'
 
 export type KeyCountFn = () => number
@@ -16,6 +17,7 @@ type Deps = {
   store: DesktopStore
   plugins: PluginManager
   applier: SceneApplier
+  chat: ChatController
   send: (channel: string, payload: unknown) => void
 }
 
@@ -44,11 +46,6 @@ function ok(state: Record<string, unknown>) {
 
 function err(message: string) {
   return { ok: false, data: null, status: message }
-}
-
-// Deferred operation — returns a structured error explaining absence.
-function noop(_deps: Deps, msg?: string) {
-  return err(msg ?? 'Not implemented yet — comes in a later task.')
 }
 
 /** Wires up every IPC channel that the preload API calls via invoke. */
@@ -124,13 +121,33 @@ export function registerIpcHandlers(deps: Deps): void {
     try { return ok(appState(deps)) } catch (e) { return err(String(e)) }
   })
 
-  // ── Chat & conversation (stubbed — Task 6) ───────────────
+  // ── Chat & conversation ───────────────────────────────────
 
-  ipcMain.handle('chat:send', async () => noop(deps, 'Chat backend pending.'))
-  ipcMain.handle('chat:new', async () => noop(deps, 'Chat new pending.'))
-  ipcMain.handle('conversations:list', async () => noop(deps, 'Conversations list pending.'))
-  ipcMain.handle('conversations:open', async () => noop(deps, 'Conversation open pending.'))
-  ipcMain.handle('conversations:delete', async () => noop(deps, 'Conversation delete pending.'))
+  ipcMain.handle('chat:send', async (_event, payload) => {
+    try {
+      return await deps.chat.send(validatePayload('chat:send', payload) as string)
+    } catch (e) { return { error: String(e) } }
+  })
+  ipcMain.handle('chat:new', async () => {
+    try {
+      return await deps.chat.newChat()
+    } catch (e) { return { error: String(e) } }
+  })
+  ipcMain.handle('conversations:list', async () => {
+    try {
+      return await deps.chat.list()
+    } catch (e) { return { error: String(e) } }
+  })
+  ipcMain.handle('conversations:open', async (_event, payload) => {
+    try {
+      return await deps.chat.open(validatePayload('conversations:open', payload) as string)
+    } catch (e) { return { error: String(e) } }
+  })
+  ipcMain.handle('conversations:delete', async (_event, payload) => {
+    try {
+      return await deps.chat.delete(validatePayload('conversations:delete', payload) as string)
+    } catch (e) { return { error: String(e) } }
+  })
 
   // ── Rig operations ────────────────────────────────────────
 

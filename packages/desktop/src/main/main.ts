@@ -4,11 +4,16 @@ import path from 'node:path'
 import os from 'node:os'
 import { spawn } from 'node:child_process'
 import { access, copyFile, mkdir, readFile } from 'node:fs/promises'
+import type { Guitar } from '@opentimbre/contracts'
+import type { Locale } from '@opentimbre/i18n'
+import type { RigChatProvider } from '@opentimbre/core/src/chat/rig-chat.ts'
 import { createMainWindow } from './window.ts'
 import { initStore, getStore } from './storage/desktop-store.ts'
 import { registerIpcHandlers } from './ipc/handlers.ts'
 import { createPluginManager } from './plugins/plugin-manager.ts'
 import { createSceneApplier } from './rig/scene-applier.ts'
+import { createChatController } from './chat/chat-controller.ts'
+import { createConversationRepository } from './chat/conversation-repository.ts'
 import type { PluginFileSystem } from '@opentimbre/platform-node/src/plugin-host.ts'
 import { createWindowsPluginHost, createMacosPluginHost } from '@opentimbre/platform-node/src/plugin-host.ts'
 import { windowsTransport, windowsPlatformInfo } from '@opentimbre/platform-node/src/windows.ts'
@@ -58,6 +63,26 @@ function launchProcess(executable: string): Promise<void> {
   })
 }
 
+/**
+ * The provider set, read lazily so a key saved later applies without a restart.
+ * Real provider clients need an API key from the key store, which isn't wired
+ * into this composition root yet (this task's `keys:save` is a stub and
+ * `main.ts` never calls the key store's `configure`), so no provider is
+ * configured here; the chat backend returns a localized "no provider" error
+ * until that wiring lands. Tests inject a fake provider through this seam.
+ */
+function getProviders(): readonly RigChatProvider[] {
+  return []
+}
+
+/** The full guitar object the AI prompt needs; the store only persists a preset
+ *  id, so a default is used until that guitar wiring lands. */
+const DEFAULT_GUITAR: Guitar = { model: 'Default guitar', pickups: 'humbucker', tuning: 'E standard', strings: 6 }
+
+function getGuitar(): Guitar {
+  return DEFAULT_GUITAR
+}
+
 app.whenReady().then(() => {
   const dataDir = resolveDataDir()
   initStore(path.join(dataDir, 'settings.db'))
@@ -82,7 +107,17 @@ app.whenReady().then(() => {
     BrowserWindow.getAllWindows()[0]?.webContents.send(channel, payload)
   }
 
-  registerIpcHandlers({ store: getStore(), plugins, applier, send })
+  const store = getStore()
+  const chat = createChatController({
+    repo: createConversationRepository(store.connection),
+    getProviders,
+    getGuitar,
+    getLocale: () => store.get('locale') as Locale,
+    applier,
+    send,
+  })
+
+  registerIpcHandlers({ store, plugins, applier, chat, send })
 
   function openWindow(): void {
     const window = createMainWindow()

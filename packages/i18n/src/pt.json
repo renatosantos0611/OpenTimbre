@@ -9,5 +9,8 @@
   "keys.source.app": "salva no aplicativo",
   "keys.source.environment": "vinda do ambiente",
   "keys.source.none": "não definida",
+  "chat.error.send": "A IA não conseguiu responder. Verifique a conexão e a chave de API e tente novamente.",
+  "chat.error.noProvider": "Nenhum provedor de IA configurado. Adicione uma chave de API em Configurações.",
+  "conversation.error.notFound": "Essa conversa não existe mais.",
   "error.generic": "Algo deu errado."
 }

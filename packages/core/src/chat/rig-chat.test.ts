@@ -122,6 +122,45 @@ test('RigChat accepts a text-only model answer without inventing a rig', async (
   })
 })
 
+test('RigChat reports the call phase so a host can show a status pill', async () => {
+  const selected = CATALOG.find((spec) => spec.id === 'petrucci')!
+  const { plugin, ...args } = rig(selected.id)
+  const phases: string[] = []
+  const chat = createRigChat({
+    providers: [provider([response({ id: '1', name: `apply_rig_${selected.id}`, args }, 'Here it is.')])],
+    locale: 'en',
+    guitar: GUITAR,
+    onPhase: (phase) => phases.push(phase),
+  })
+
+  await chat.send('Make a Petrucci tone')
+
+  assert.equal(plugin, 'petrucci')
+  assert.deepEqual(phases, ['querying', 'validating'])
+})
+
+test('RigChat reports a correcting phase between two validations', async () => {
+  const selected = CATALOG.find((spec) => spec.id === 'gojira')!
+  const { plugin, ...args } = rig(selected.id)
+  const phases: string[] = []
+  const chat = createRigChat({
+    providers: [
+      provider([
+        response({ id: 'bad', name: `apply_rig_${selected.id}`, args: { invalid: true } }, 'Try again.'),
+        response({ id: 'good', name: `apply_rig_${selected.id}`, args }, 'Fixed.'),
+      ]),
+    ],
+    locale: 'en',
+    guitar: GUITAR,
+    onPhase: (phase) => phases.push(phase),
+  })
+
+  await chat.send('Make a Gojira tone')
+
+  assert.equal(plugin, 'gojira')
+  assert.deepEqual(phases, ['querying', 'validating', 'correcting', 'querying', 'validating'])
+})
+
 test('RigChat keeps the successful response text after one validation correction', async () => {
   const selected = CATALOG.find((spec) => spec.id === 'gojira')!
   const { plugin, ...args } = rig(selected.id)

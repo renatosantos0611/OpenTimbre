@@ -48,8 +48,9 @@
 - Task 4 ✅ 2026-08-07 — secure 420x700 shell (min 360x520), typed DesktopApi, Zod payload validation, sender/nav/permission lockdown, ESLint coverage for .cts; 6 tests pass, build clean, zero lint warnings
 - Task 5 ✅ 2026-08-07 — SQLite settings store with versioned migrations, IPC handler registry (settings/config/keys stubs + deferred chat/rig/plugin/conversation), main.ts integration; 13 tests pass, build+lint clean
 - Task 6 ✅ 2026-08-08 — PluginManager (catalog resolve, status polling emits only changed state, window-lifetime start/stop) + SceneApplier (rig apply, planScene CCs, unmapped-amp/manual warnings, contained MIDI failures); 12 new tests pass 25/25, typecheck+lint clean, split review approved
-- next: execute Task 7 with TDD, split review, focused proof, and a granular commit
-- pending: Tasks 7-10
+- Task 7 ✅ 2026-08-08 — ChatController + ConversationRepository (one-transaction per turn, opaque provider history, memoryLost on incompatible history, delete-open clears rig) + real chat/conversation IPC handlers + status events + onPhase core hook; 15 new main tests (40/40) + 2 core tests (214/214), check+lint clean, split review approved (spec fix: chat:send .max(4000) per interview)
+- next: execute Task 8 with TDD, split review, visual proof, and a granular commit
+- pending: Tasks 8-10
 - bugfix ✅ 2026-08-08 (kickoff ratified) — pre-existing gates: windows.ts settingsDir now uses path.win32.join (portable, mirrors macos.ts); core rig-schema.ts minimal type-escape for zodToJsonSchema TS2589 (zod 3 vs zod 4 peer)
 
 ## History

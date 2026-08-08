@@ -29,6 +29,12 @@ export class DesktopStore {
     this.db.exec('PRAGMA user_version = 1')
   }
 
+  /** Shares the connection so the conversation repository adds its tables
+   *  to the same database file and the same `user_version` migration. */
+  get connection(): DatabaseSync {
+    return this.db
+  }
+
   /** Returns the schema migration version applied at startup. */
   migrationVersion(): number {
     const row = this.db.prepare('PRAGMA user_version').get() as { user_version: number } | undefined
