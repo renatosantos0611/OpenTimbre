@@ -47,8 +47,9 @@
 - Task 3 ✅ 2026-08-06 — injected cross-platform PluginHost, launch/mapping lifecycle, Windows/macOS factories, and real catalog boundary checks; 29 tests pass
 - Task 4 ✅ 2026-08-07 — secure 420x700 shell (min 360x520), typed DesktopApi, Zod payload validation, sender/nav/permission lockdown, ESLint coverage for .cts; 6 tests pass, build clean, zero lint warnings
 - Task 5 ✅ 2026-08-07 — SQLite settings store with versioned migrations, IPC handler registry (settings/config/keys stubs + deferred chat/rig/plugin/conversation), main.ts integration; 13 tests pass, build+lint clean
-- next: execute Task 6 with TDD, split review, focused proof, and a granular commit
-- pending: Tasks 6-10
+- Task 6 ✅ 2026-08-08 — PluginManager (catalog resolve, status polling emits only changed state, window-lifetime start/stop) + SceneApplier (rig apply, planScene CCs, unmapped-amp/manual warnings, contained MIDI failures); 12 new tests pass 25/25, typecheck+lint clean, split review approved
+- next: execute Task 7 with TDD, split review, focused proof, and a granular commit
+- pending: Tasks 7-10
 
 ## History
 
@@ -57,4 +58,4 @@
 - 2026-08-06 rebuild-phase1-foundation — done — local delivery accepted; 125 tests passed → data/history/2026-08-05-rebuild-phase1-foundation.md
 - 2026-08-06 rebuild-phase2-plugins — done 2026-08-06 — PR #1 merged into origin/main at 0e1f593 → data/history/2026-08-06-rebuild-phase2-plugins.md
 
-_Last updated: 2026-08-07_
+_Last updated: 2026-08-08_

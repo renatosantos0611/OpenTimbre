@@ -1,0 +1,125 @@
+import assert from 'node:assert/strict'
+import { test } from 'node:test'
+import type { AppliedScene, Rig } from '@opentimbre/contracts'
+import type { MidiTransport } from '@opentimbre/core/src/ports/midi-transport.ts'
+import { gojiraSpec } from '@opentimbre/core/src/plugins/gojira.ts'
+import { planScene } from '@opentimbre/core/src/scenes/plan-scene.ts'
+import { createSceneApplier, type SceneApplierClock } from './scene-applier.ts'
+
+/** Records every send and lets the test force connect() to fail. */
+function fakeTransport(connectError: string | null = null) {
+  const sends: Array<[number, number]> = []
+  const count = { value: 0 }
+  const transport: MidiTransport = {
+    async connect() {
+      count.value++
+      if (connectError) return { error: connectError }
+      return { send: (cc, value) => sends.push([cc, value]) }
+    },
+  }
+  return { transport, sends, connectCount: count }
+}
+
+/** A fake clock: the test advances time and the applier reads the current value. */
+function fakeClock() {
+  let now = 0
+  const clock: SceneApplierClock = () => now
+  return { clock, advance: (ms: number) => (now += ms) }
+}
+
+function rig(amp = 'CLN', plugin = 'gojira'): Rig {
+  return {
+    plugin,
+    song: 'song',
+    artist: 'artist',
+    amp,
+    note: '',
+    scenes: {
+      Verse: {
+        title: 'Verse',
+        summary: 's',
+        explanation: 'e',
+        guitar: { pickupPosition: 'bridge', volume: 8, tone: 6, technique: 'pick' },
+        params: { gain: 6, bass: 4, mid: 5, treble: 6, output: 7, wowOn: true, wowMix: 5 },
+      },
+    },
+  }
+}
+
+test('applies a scene: sends exactly the planned CCs and reports counts and time', async () => {
+  const { clock, advance } = fakeClock()
+  const sends: Array<[number, number]> = []
+  // Each send advances the fake clock, so the applier's elapsed `ms` is measurable.
+  const transport: MidiTransport = {
+    connect: async () => ({ send: (cc, value) => { sends.push([cc, value]); advance(1) } }),
+  }
+  const applier = createSceneApplier({ transport, clock })
+  applier.setRig(rig())
+
+  const result = (await applier.apply('Verse')) as AppliedScene
+
+  const expected = planScene(gojiraSpec, rig().scenes.Verse.params, 'CLN')
+  assert.deepEqual(sends, expected.map((c) => [c.cc, c.value]))
+  assert.equal(result.scene, 'Verse')
+  assert.equal(result.amp, 'CLN')
+  assert.equal(result.ccsSent, expected.length)
+  assert.equal(result.ms, expected.length, 'elapsed ms reflects the sending time')
+  assert.ok(result.warnings.some((w) => /select the CLN amp/.test(w)), 'manual strategy surfaces its instruction')
+})
+
+test('an unmapped amp falls back to a mapped one and surfaces the warning', async () => {
+  const { transport } = fakeTransport()
+  const applier = createSceneApplier({ transport, clock: fakeClock().clock })
+  const r = rig('UNMAPPED')
+  applier.setRig(r)
+
+  const result = (await applier.apply('Verse')) as AppliedScene
+
+  assert.equal(result.amp, 'CLN', 'falls back to the first mapped amp')
+  assert.ok(result.warnings.some((w) => /no mapped knobs/.test(w)), 'resolveAmp warning surfaces')
+})
+
+test('a missing scene is a contained failure', async () => {
+  const { transport, sends } = fakeTransport()
+  const applier = createSceneApplier({ transport, clock: fakeClock().clock })
+  applier.setRig(rig())
+
+  const result = await applier.apply('NoSuchScene')
+
+  assert.ok('error' in result)
+  assert.equal(sends.length, 0, 'nothing is sent for a missing scene')
+})
+
+test('no rig loaded is a contained failure', async () => {
+  const { transport, sends } = fakeTransport()
+  const applier = createSceneApplier({ transport, clock: fakeClock().clock })
+
+  const result = await applier.apply('Verse')
+
+  assert.ok('error' in result)
+  assert.equal(sends.length, 0)
+})
+
+test('an unknown plugin in the rig is a contained failure', async () => {
+  const { transport, sends } = fakeTransport()
+  const applier = createSceneApplier({ transport, clock: fakeClock().clock })
+  applier.setRig(rig('CLN', 'not-a-plugin'))
+
+  const result = await applier.apply('Verse')
+
+  assert.ok('error' in result)
+  assert.equal(sends.length, 0)
+})
+
+test('a disconnected MIDI port fails the apply and sends nothing', async () => {
+  const { transport, sends, connectCount } = fakeTransport('Port not found. Create it in loopMIDI.')
+  const applier = createSceneApplier({ transport, clock: fakeClock().clock })
+  applier.setRig(rig())
+
+  const result = await applier.apply('Verse')
+
+  assert.ok('error' in result)
+  assert.match((result as { error: string }).error, /Port not found/)
+  assert.equal(sends.length, 0, 'a failed connect sends no CCs')
+  assert.equal(connectCount.value, 1, 'connect is attempted once')
+})

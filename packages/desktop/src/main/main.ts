@@ -1,10 +1,18 @@
-/** Electron entry point - wires store, IPC handlers, and security lockdown. */
+/** Electron entry point - wires store, IPC handlers, plugin host, and security lockdown. */
 import { app, BrowserWindow, protocol } from 'electron'
 import path from 'node:path'
 import os from 'node:os'
+import { spawn } from 'node:child_process'
+import { access, copyFile, mkdir, readFile } from 'node:fs/promises'
 import { createMainWindow } from './window.ts'
 import { initStore, getStore } from './storage/desktop-store.ts'
 import { registerIpcHandlers } from './ipc/handlers.ts'
+import { createPluginManager } from './plugins/plugin-manager.ts'
+import { createSceneApplier } from './rig/scene-applier.ts'
+import type { PluginFileSystem } from '@opentimbre/platform-node/src/plugin-host.ts'
+import { createWindowsPluginHost, createMacosPluginHost } from '@opentimbre/platform-node/src/plugin-host.ts'
+import { windowsTransport, windowsPlatformInfo } from '@opentimbre/platform-node/src/windows.ts'
+import { macosTransport, macosPlatformInfo } from '@opentimbre/platform-node/src/macos.ts'
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true } },
@@ -21,15 +29,70 @@ function resolveDataDir(): string {
   )
 }
 
+/** The real `PluginFileSystem`: node:fs over the live disk. */
+const pluginFileSystem: PluginFileSystem = {
+  exists: async (file) => {
+    try {
+      await access(file)
+      return true
+    } catch {
+      return false
+    }
+  },
+  read: (file) => readFile(file, 'utf8'),
+  mkdir: async (dir) => {
+    await mkdir(dir, { recursive: true })
+  },
+  copy: (source, target) => copyFile(source, target),
+}
+
+/** Launches a plugin executable detached from the app, so it outlives the shell. */
+function launchProcess(executable: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(executable, [], { detached: true, stdio: 'ignore' })
+    child.on('error', reject)
+    child.once('spawn', () => {
+      child.unref()
+      resolve()
+    })
+  })
+}
+
 app.whenReady().then(() => {
   const dataDir = resolveDataDir()
   initStore(path.join(dataDir, 'settings.db'))
 
-  registerIpcHandlers({ store: getStore() })
+  // The OS branch is confined to this composition root — the shared modules
+  // never read `process.platform` (see `opentimbre-cross-platform`). Windows
+  // finds a loopMIDI port; everything else (macOS, and POSIX dev shells)
+  // creates an owned virtual port, which RtMidi supports everywhere but
+  // Windows.
+  const transport = process.platform === 'win32' ? windowsTransport : macosTransport
+  const platformInfo = process.platform === 'win32' ? windowsPlatformInfo : macosPlatformInfo
+  const createHost = process.platform === 'win32' ? createWindowsPluginHost : createMacosPluginHost
 
-  createMainWindow()
+  const host = createHost(platformInfo, pluginFileSystem, launchProcess)
+  const plugins = createPluginManager({
+    host,
+    mappingDir: path.resolve(process.cwd(), 'midi-mapping'),
+  })
+  const applier = createSceneApplier({ transport })
+
+  const send = (channel: string, payload: unknown) => {
+    BrowserWindow.getAllWindows()[0]?.webContents.send(channel, payload)
+  }
+
+  registerIpcHandlers({ store: getStore(), plugins, applier, send })
+
+  function openWindow(): void {
+    const window = createMainWindow()
+    plugins.start()
+    window.on('closed', () => plugins.stop())
+  }
+
+  openWindow()
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow()
+    if (BrowserWindow.getAllWindows().length === 0) openWindow()
   })
 })
 

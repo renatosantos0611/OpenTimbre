@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 const schemas = {
   'chat:send': z.string().trim().min(1),
+  'rig:apply': z.string().trim().min(1),
   'plugin:state': z.string().trim().min(1),
   'plugin:open': z.string().trim().min(1),
   'plugin:installMapping': z.string().trim().min(1),

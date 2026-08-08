@@ -1,15 +1,22 @@
 /**
  * Registers all IPC handlers for the desktop renderer. Settings and keys
- * delegate to the injected store; chat/rig/plugin/conversation operations
- * return placeholder results until Tasks 6–7 implement their backends.
+ * delegate to the injected store; plugin and rig operations delegate to the
+ * injected PluginManager and SceneApplier. Chat/conversation operations return
+ * placeholder results until Task 7 implements their backend.
  */
 import { ipcMain } from 'electron'
 import type { DesktopStore } from '../storage/desktop-store.ts'
+import type { PluginManager } from '../plugins/plugin-manager.ts'
+import type { SceneApplier } from '../rig/scene-applier.ts'
+import { validatePayload } from './validation.ts'
 
 export type KeyCountFn = () => number
 
 type Deps = {
   store: DesktopStore
+  plugins: PluginManager
+  applier: SceneApplier
+  send: (channel: string, payload: unknown) => void
 }
 
 function appState(deps: Deps): Record<string, unknown> {
@@ -125,15 +132,34 @@ export function registerIpcHandlers(deps: Deps): void {
   ipcMain.handle('conversations:open', async () => noop(deps, 'Conversation open pending.'))
   ipcMain.handle('conversations:delete', async () => noop(deps, 'Conversation delete pending.'))
 
-  // ── Rig operations (stubbed — Task 6) ────────────────────
+  // ── Rig operations ────────────────────────────────────────
 
-  ipcMain.handle('rig:apply', async () => noop(deps, 'Rig apply pending.'))
+  ipcMain.handle('rig:apply', async (_event, scene) => {
+    try {
+      return deps.applier.apply(validatePayload('rig:apply', scene) as string)
+    } catch (e) { return { error: String(e) } }
+  })
 
-  // ── Plugin operations (stubbed — Task 6) ─────────────────
+  // ── Plugin operations ─────────────────────────────────────
 
-  ipcMain.handle('plugin:state', async (_event, id: string) => ok({ id, status: 'unknown' }))
-  ipcMain.handle('plugin:open', async () => noop(deps, 'Plugin launch pending.'))
-  ipcMain.handle('plugin:installMapping', async () => noop(deps, 'Plugin mapping install pending.'))
+  ipcMain.handle('plugin:state', async (_event, id) => {
+    try {
+      return deps.plugins.getState(validatePayload('plugin:state', id) as string)
+    } catch (e) { return { error: String(e) } }
+  })
+  ipcMain.handle('plugin:open', async (_event, id) => {
+    try {
+      return deps.plugins.open(validatePayload('plugin:open', id) as string)
+    } catch (e) { return { error: String(e) } }
+  })
+  ipcMain.handle('plugin:installMapping', async (_event, id) => {
+    try {
+      return deps.plugins.installMapping(validatePayload('plugin:installMapping', id) as string)
+    } catch (e) { return { error: String(e) } }
+  })
+
+  // Push the changed plugin state to the renderer whenever the poller sees it move.
+  deps.plugins.onChanged((state) => deps.send('plugin:changed', state))
 
   // ── AI preference ────────────────────────────────────────
 

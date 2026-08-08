@@ -19,6 +19,8 @@
     "@angular/core": "^22.1.0",
     "@angular/platform-browser": "^22.1.0",
     "@opentimbre/contracts": "*",
+    "@opentimbre/core": "*",
+    "@opentimbre/platform-node": "*",
     "electron": "^43.2.0",
     "zod": "^3.25.76"
   },
