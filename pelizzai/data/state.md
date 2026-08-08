@@ -32,6 +32,8 @@
 ## Progress
 
 - kickoff gate ratified 2026-08-08: exploratory lane, brainstorming + interview-me discovery → spec → plan; route accepted
+- spec approved 2026-08-08 (4fe02f7) — 10 discovery + 5 stress decisions ratified
+- plan drafted 2026-08-08 — 6 tasks; gap found: missing app:// protocol handler → absorbed as Task 1
 
 ## History
 
