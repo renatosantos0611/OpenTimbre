@@ -90,6 +90,9 @@ async function stubBridge(page: Page): Promise<void> {
         }
         return () => undefined
       },
+      downloadUpdate: async () => undefined,
+      installUpdate: async () => undefined,
+      onUpdaterStatus: () => () => undefined,
     }
   })
 }

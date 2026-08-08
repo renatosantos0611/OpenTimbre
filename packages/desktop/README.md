@@ -47,7 +47,46 @@ been exercised on real hardware, and plugins whose descriptors have no
 verified macOS candidate return an explicit "not confirmed" failure rather
 than guessing. Use on Windows for the verified experience.
 
-## Scope
+## Build
 
-Packaging, installers, code signing, and auto-update are **not** part of this
-phase (they are Phase 4). The app runs from source.
+```sh
+npm run build -w @opentimbre/desktop    # main/preload/renderer into dist/
+npm run dist:win -w @opentimbre/desktop # build + electron-builder --win
+```
+
+`dist:win` writes the NSIS installer, the portable exe, and the update
+metadata (`latest.yml` plus blockmap) into `packages/desktop/release/`
+(git-ignored). Windows targets only in this phase.
+
+## Install (Windows)
+
+The builds are unsigned; code signing is not part of this phase.
+
+1. Download the installer from the tag's GitHub Release.
+2. Windows SmartScreen warns about an unrecognized app: click **More info**,
+   then **Run anyway**.
+3. The installer runs per-user without UAC elevation and offers a directory
+   choice.
+4. Launch OpenTimbre from the created shortcut.
+
+## Updates
+
+The installed app checks for updates at startup only. When a newer release
+exists, a status-bar banner shows the version; the user confirms the
+download (progress shown) and then confirms the restart that applies it.
+There is no silent installation. The portable build and development runs
+receive no update checks. See `docs/release-checklist.md` for manual
+release validation.
+
+## Release
+
+1. Bump `version` in `packages/desktop/package.json` (SemVer).
+2. Add the entry to `CHANGELOG.md` (root).
+3. Commit.
+4. `git tag vX.Y.Z && git push origin vX.Y.Z`.
+
+The tag runs `.github/workflows/release.yml`: lint, typecheck, tests,
+desktop build, renderer e2e, packaging, a Playwright smoke against the
+packaged portable exe (`test:packaged`), then publication of the artifacts
+and `latest.yml` to the tag's GitHub Release. Downgrades are unsupported;
+rolling back means publishing a newer tag.

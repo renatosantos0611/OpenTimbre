@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { ChatStatus, DesktopApi, PluginState, ResolvedTheme } from '@opentimbre/contracts'
+import type { ChatStatus, DesktopApi, PluginState, ResolvedTheme, UpdaterStatus } from '@opentimbre/contracts'
 
 const api: DesktopApi = {
   getState: () => ipcRenderer.invoke('app:state'),
@@ -25,6 +25,9 @@ const api: DesktopApi = {
   onChatStatus: (callback: (status: ChatStatus) => void) => subscribe('chat:status', callback),
   onThemeChanged: (callback: (theme: ResolvedTheme) => void) => subscribe('window:themeChanged', callback),
   onPluginChanged: (callback: (state: PluginState) => void) => subscribe('plugin:changed', callback),
+  downloadUpdate: () => ipcRenderer.invoke('updater:download'),
+  installUpdate: () => ipcRenderer.invoke('updater:install'),
+  onUpdaterStatus: (callback: (status: UpdaterStatus) => void) => subscribe('updater:status', callback),
 }
 
 function subscribe<T>(channel: string, callback: (value: T) => void): () => void {

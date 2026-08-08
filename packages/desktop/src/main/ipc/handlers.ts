@@ -17,6 +17,7 @@ import type { DesktopStore } from '../storage/desktop-store.ts'
 import type { PluginManager } from '../plugins/plugin-manager.ts'
 import type { SceneApplier } from '../rig/scene-applier.ts'
 import type { ChatController } from '../chat/chat-controller.ts'
+import type { Updater } from '../updater/updater.ts'
 import { buildAppState, type AiState } from './app-state.ts'
 import { validatePayload } from './validation.ts'
 
@@ -25,6 +26,7 @@ type Deps = {
   plugins: PluginManager
   applier: SceneApplier
   chat: ChatController
+  updater: Updater
   send: (channel: string, payload: unknown) => void
   getAi: () => AiState | null
   getGuitar: () => import('@opentimbre/contracts').Guitar
@@ -203,5 +205,25 @@ export function registerIpcHandlers(deps: Deps): void {
 
   ipcMain.handle('ai:providerPreference', (event, pref) => {
     try { trusted(event); deps.store.set('provider_preference', validatePayload('ai:providerPreference', pref) as string); return appState(deps) } catch (e) { return failure(String(e)) }
+  })
+
+  // ── Updater ──────────────────────────────────────────────
+  // Void payloads — no Zod schema, mirrors `app:state`. The confirm/install
+  // decisions belong to the renderer; main only executes them for trusted
+  // senders and streams progress back as `updater:status` events.
+
+  ipcMain.handle('updater:download', async (event) => {
+    try {
+      trusted(event)
+      await deps.updater.download()
+      return {}
+    } catch (e) { return failure(e instanceof Error ? e.message : String(e)) }
+  })
+  ipcMain.handle('updater:install', async (event) => {
+    try {
+      trusted(event)
+      deps.updater.install()
+      return {}
+    } catch (e) { return failure(e instanceof Error ? e.message : String(e)) }
   })
 }

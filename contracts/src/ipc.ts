@@ -173,6 +173,17 @@ export type Result<T> = T | Failure
 /** Call phase, for the status pill. `null` clears the pill. */
 export type ChatStatus = 'querying' | 'validating' | 'correcting' | null
 
+/**
+ * One update lifecycle state at a time, pushed main -> renderer as
+ * `updater:status`. `error` carries a short displayable message only —
+ * never paths, stack traces, or credentials.
+ */
+export type UpdaterStatus =
+  | { state: 'available'; version: string }
+  | { state: 'downloading'; percent: number }
+  | { state: 'ready' }
+  | { state: 'error'; message: string }
+
 // --------------------------------------------------------------- channel map
 
 /**
@@ -202,6 +213,9 @@ export type IpcChannels = {
   'conversations:list': { payload: void; result: Result<Summary[]> }
   'conversations:open': { payload: string; result: Result<OpenConversation> }
   'conversations:delete': { payload: string; result: Result<Summary[]> }
+  /** Void payloads — no Zod schema, mirrors `app:state`. */
+  'updater:download': { payload: void; result: Result<void> }
+  'updater:install': { payload: void; result: Result<void> }
 }
 
 /**
@@ -215,6 +229,7 @@ export type IpcEvents = {
   'chat:status': ChatStatus
   'window:themeChanged': ResolvedTheme
   'plugin:changed': PluginState
+  'updater:status': UpdaterStatus
 }
 
 export type DesktopApi = {
@@ -241,4 +256,7 @@ export type DesktopApi = {
   onChatStatus(callback: (status: ChatStatus) => void): () => void
   onThemeChanged(callback: (theme: ResolvedTheme) => void): () => void
   onPluginChanged(callback: (state: PluginState) => void): () => void
+  downloadUpdate(): Promise<Result<void>>
+  installUpdate(): Promise<Result<void>>
+  onUpdaterStatus(callback: (status: UpdaterStatus) => void): () => void
 }

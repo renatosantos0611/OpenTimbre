@@ -2,6 +2,7 @@
 import { app, BrowserWindow, protocol, safeStorage, nativeTheme } from 'electron'
 import path from 'node:path'
 import os from 'node:os'
+import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
 import { access, copyFile, mkdir, readFile } from 'node:fs/promises'
 import Anthropic from '@anthropic-ai/sdk'
@@ -14,6 +15,7 @@ import { openaiProvider } from '@opentimbre/core/src/providers/openai.ts'
 import { anthropicProvider } from '@opentimbre/core/src/providers/anthropic.ts'
 import { configure as configureKeys } from '@opentimbre/core/src/secrets/key-store.ts'
 import { createMainWindow } from './window.ts'
+import { registerRendererProtocol } from './renderer-protocol.ts'
 import { initStore, getStore } from './storage/desktop-store.ts'
 import { createSafeStorageVault } from './storage/vault.ts'
 import { registerIpcHandlers } from './ipc/handlers.ts'
@@ -21,6 +23,7 @@ import { createPluginManager } from './plugins/plugin-manager.ts'
 import { createSceneApplier } from './rig/scene-applier.ts'
 import { createChatController } from './chat/chat-controller.ts'
 import { createConversationRepository } from './chat/conversation-repository.ts'
+import { createUpdater, createElectronUpdaterRuntime, inertUpdaterRuntime } from './updater/updater.ts'
 import type { PluginFileSystem } from '@opentimbre/platform-node/src/plugin-host.ts'
 import { createWindowsPluginHost, createMacosPluginHost } from '@opentimbre/platform-node/src/plugin-host.ts'
 import { windowsTransport, windowsPlatformInfo } from '@opentimbre/platform-node/src/windows.ts'
@@ -134,6 +137,14 @@ app.whenReady().then(() => {
     BrowserWindow.getAllWindows()[0]?.webContents.send(channel, payload)
   }
 
+  // Only a packaged NSIS install can self-update: dev runs and the portable
+  // exe get the inert runtime, so no update code ever runs in them. The
+  // runtime choice stays in this composition root, like the other
+  // platform branches (see `opentimbre-cross-platform`).
+  const updaterRuntime =
+    app.isPackaged && !('PORTABLE_EXECUTABLE_DIR' in process.env) ? createElectronUpdaterRuntime() : inertUpdaterRuntime()
+  const updater = createUpdater({ runtime: updaterRuntime, send })
+
   const store = getStore()
   const chat = createChatController({
     repo: createConversationRepository(store.connection),
@@ -155,6 +166,7 @@ app.whenReady().then(() => {
     plugins,
     applier,
     chat,
+    updater,
     send,
     getLocale: () => store.get('locale') as Locale,
     getGuitar,
@@ -183,6 +195,12 @@ app.whenReady().then(() => {
     if (store.get('theme') === 'system') send('window:themeChanged', nativeTheme.shouldUseDarkColors ? 'dark' : 'light')
   })
 
+  // Angular's application builder emits the browsable bundle under
+  // dist/renderer/browser/, next to dist/main — the same layout in dev and
+  // inside the packaged asar, which fs reads transparently.
+  const rendererDir = fileURLToPath(new URL('../renderer/browser', import.meta.url))
+  registerRendererProtocol(rendererDir)
+
   function openWindow(): void {
     win = createMainWindow({
       alwaysOnTop: store.getBool('always_on_top'),
@@ -207,6 +225,9 @@ app.whenReady().then(() => {
   }
 
   openWindow()
+  // Startup-only feed check (ratified): after the window is open so an
+  // available update can reach the banner immediately; failures stay silent.
+  updaterRuntime.checkForUpdates()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) openWindow()
   })
