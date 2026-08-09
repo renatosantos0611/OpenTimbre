@@ -109,8 +109,11 @@ function getGuitar(): Guitar {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   const dataDir = resolveDataDir()
+  // The data directory must exist before SQLite can create the database file —
+  // a fresh machine has no %APPDATA%\OpenTimbre.
+  await mkdir(dataDir, { recursive: true })
   initStore(path.join(dataDir, 'settings.db'))
   configureKeys({
     file: path.join(dataDir, 'settings.db'),
