@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -102,6 +102,17 @@
   key-parity test green, 77/77 renderer tests, e2e `update.spec.ts`/`shell.spec.ts` green except one
   pre-existing, unrelated `2px` vs `3px` focus-outline-width assertion (not touched by this change,
   looks like a display-scaling artifact of this sandbox, not a regression).
+- quick-fix (post-delivery): user supplied two reference screenshots of the composer bottom bar
+  (model picker bottom-left, Manual/Auto picker + send bottom-right, hint line centered below; the
+  Manual/Auto popup with pencil/zap icons and pt-BR descriptions) and asked to match that layout.
+  Verified via a throwaway Playwright screenshot (script + PNGs not committed) rendered against the
+  real built bundle at 678x864, pt locale — the layout, icons, popup copy, and positioning already
+  matched pixel-for-pixel; the one real gap found was `ModelMenu.activeLabel()` showing the raw
+  lowercase model id ("gpt-5.6-terra") instead of the formatted label ("GPT-5.6 Terra") whenever the
+  model catalog search missed (e.g. before `listModels()` resolves) — it re-derived the label instead
+  of using `ai.modelLabel` (added earlier this session for the same top-status-bar parity). Fixed to
+  read `ai.modelLabel` directly — done at 0bb8e84; typecheck clean, 77/77 renderer tests green,
+  re-screenshotted to confirm the composer button now matches the reference exactly.
 - false alarm, resolved: `npm run desktop` appeared to crash before any window opened —
   `TypeError: Cannot read properties of undefined (reading 'registerSchemesAsPrivileged')` — when
   launched from the agent's own sandboxed shell (no display attached). The user confirmed
