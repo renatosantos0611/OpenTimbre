@@ -134,7 +134,7 @@ for (const viewport of VIEWPORTS) {
     await openShell(page)
 
     // Empty state first.
-    await expect(page.locator('ot-chat-pane')).toContainText('Describe a tone to begin.')
+    await expect(page.locator('ot-chat-pane')).toContainText('Build your tone')
 
     // Send a turn: user bubble + AI prose + rig card.
     await page.locator('ot-composer textarea').fill('make it heavy')

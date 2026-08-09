@@ -99,7 +99,7 @@ describe('AppShell', () => {
     const { el, fixture } = render()
     await flush()
     fixture.detectChanges()
-    expect(el.querySelector('ot-chat-pane')?.textContent).toContain('Describe a tone to begin.')
+    expect(el.querySelector('ot-chat-pane')?.textContent).toContain('Build your tone')
   })
 
   it('shows a degraded state when loading fails', async () => {

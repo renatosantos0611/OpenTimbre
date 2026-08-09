@@ -8,7 +8,6 @@ import {
   Component,
   computed,
   inject,
-  signal,
 } from '@angular/core'
 import { LucidePlus, LucideSend } from '@lucide/angular'
 import { DesktopService } from '../desktop.service'
@@ -120,7 +119,7 @@ export class Composer {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
 
-  readonly draft = signal('')
+  readonly draft = this.desktop.draft
   /** Disabled while empty or while a provider call is in flight. */
   readonly canSend = computed(() => this.draft().trim().length > 0 && !this.desktop.busy())
 

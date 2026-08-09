@@ -79,7 +79,7 @@ async function openShell(page: Page): Promise<void> {
   await page.goto('/')
   await expect(page.locator('ot-app-shell')).toBeVisible()
   // The bridge resolves getState, so the chat pane leaves its loading state.
-  await expect(page.locator('ot-chat-pane')).toContainText('Describe a tone to begin.')
+  await expect(page.locator('ot-chat-pane')).toContainText('Build your tone')
 }
 
 /** WCAG contrast ratio (1..21) of foreground vs painted background for an element. */
@@ -149,7 +149,7 @@ for (const viewport of VIEWPORTS) {
   // Pane switching keeps the chat pane mounted and returns to it.
   await page.getByRole('button', { name: 'Back to the conversation' }).click()
   await expect(page.locator('ot-chat-pane')).toBeVisible()
-  await expect(page.locator('ot-chat-pane')).toContainText('Describe a tone to begin.')
+  await expect(page.locator('ot-chat-pane')).toContainText('Build your tone')
 
   // Dimmed state: enable dim-on-unfocus, then blur the window.
   await page.getByRole('button', { name: 'Settings' }).click()

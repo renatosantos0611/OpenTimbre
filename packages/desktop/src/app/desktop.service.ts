@@ -88,6 +88,8 @@ export class DesktopService {
   readonly transcript = signal<MessageWithCards[]>([])
   /** True while a provider call is in flight, so the composer stops duplicate sends. */
   readonly busy = signal(false)
+  /** The composer draft, shared so the chat empty-state chips can fill it. */
+  readonly draft = signal('')
 
   /** Loads AppState and subscribes to push channels. Call once at startup. */
   load(): void {

@@ -133,6 +133,6 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
     newBtn.dispatchEvent(new Event('click'))
     await flush()
     fixture.detectChanges()
-    expect(el.querySelector('ot-chat-pane')?.textContent).toContain('Describe a tone to begin.')
+    expect(el.querySelector('ot-chat-pane')?.textContent).toContain('Build your tone')
   })
 })
