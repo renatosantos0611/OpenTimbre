@@ -22,7 +22,7 @@ import { _electron, expect, test, type ElectronApplication } from '@playwright/t
  * packaged without the PORTABLE_EXECUTABLE_DIR marker, so the real updater
  * runs its startup check; an unreachable feed must stay silent and never
  * block the boot. Only runnable where the Windows artifacts exist —
- * `.github/workflows/release.yml` step 7.
+ * `.github/workflows/release.yml` step 8.
  */
 
 const RELEASE_DIR = fileURLToPath(new URL('../release/', import.meta.url))
