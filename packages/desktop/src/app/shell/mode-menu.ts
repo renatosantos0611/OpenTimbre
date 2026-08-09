@@ -86,6 +86,8 @@ import { I18nService } from '../i18n.service'
       .label {
         flex: 1;
         min-width: 0;
+        /* A <button>'s UA default is text-align: center; override it. */
+        text-align: left;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;

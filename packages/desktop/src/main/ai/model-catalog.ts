@@ -11,16 +11,23 @@ import type { ModelInfo, ProviderId } from '@opentimbre/contracts'
 import type { RigChatProvider } from '@opentimbre/core/src/chat/rig-chat.ts'
 
 /**
- * `"gpt-5.6-sol"` → `"GPT-5.6 Sol"`. Only the `gpt-*` family gets this
- * treatment — the Anthropic id is already its display name (`claude-opus-5`).
+ * `"gpt-5.6-sol"` → `"GPT-5.6 Sol"`, `"claude-sonnet-4-5"` → `"Claude Sonnet
+ * 4.5"`. Anthropic's trailing `-N-N` (or already-dotted `N.N`) is its point
+ * release — same shape `modelTier` parses. An id that doesn't match its
+ * provider's shape passes through unchanged.
  */
 export function modelLabel(provider: ProviderId, id: string): string {
-  if (provider !== 'openai') return id
-  const match = /^gpt-(\d+(?:\.\d+)?)(?:-([a-z0-9]+))?$/i.exec(id)
+  if (provider === 'openai') {
+    const match = /^gpt-(\d+(?:\.\d+)?)(?:-([a-z0-9]+))?$/i.exec(id)
+    if (!match) return id
+    const [, version, codename] = match
+    const suffix = codename ? ` ${codename.charAt(0).toUpperCase()}${codename.slice(1)}` : ''
+    return `GPT-${version}${suffix}`
+  }
+  const match = /^claude-([a-z]+)-(\d+(?:[-.]\d+)?)$/i.exec(id)
   if (!match) return id
-  const [, version, codename] = match
-  const suffix = codename ? ` ${codename.charAt(0).toUpperCase()}${codename.slice(1)}` : ''
-  return `GPT-${version}${suffix}`
+  const [, family, version] = match
+  return `Claude ${family.charAt(0).toUpperCase()}${family.slice(1)} ${version.replace('-', '.')}`
 }
 
 /**

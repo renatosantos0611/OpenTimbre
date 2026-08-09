@@ -24,11 +24,15 @@ function provider(
   }
 }
 
-test('modelLabel prettifies the gpt codename family and passes Anthropic through', () => {
+test('modelLabel prettifies both the gpt codename family and the claude family+version', () => {
   assert.equal(modelLabel('openai', 'gpt-5.6-sol'), 'GPT-5.6 Sol')
   assert.equal(modelLabel('openai', 'gpt-5.6'), 'GPT-5.6')
   assert.equal(modelLabel('openai', 'gpt-4o'), 'gpt-4o')
-  assert.equal(modelLabel('anthropic', 'claude-opus-5'), 'claude-opus-5')
+  assert.equal(modelLabel('anthropic', 'claude-opus-5'), 'Claude Opus 5')
+  assert.equal(modelLabel('anthropic', 'claude-sonnet-4-5'), 'Claude Sonnet 4.5')
+  assert.equal(modelLabel('anthropic', 'claude-sonnet-4.5'), 'Claude Sonnet 4.5')
+  assert.equal(modelLabel('anthropic', 'claude-haiku-3-5'), 'Claude Haiku 3.5')
+  assert.equal(modelLabel('anthropic', 'weird'), 'weird')
 })
 
 test('modelTier derives a cost bucket from the id', () => {
