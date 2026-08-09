@@ -101,7 +101,7 @@ async function openSettings(page: Page): Promise<void> {
   await stubBridge(page)
   await page.goto('/')
   await expect(page.locator('ot-app-shell')).toBeVisible()
-  await page.getByRole('tab', { name: 'Settings' }).click()
+  await page.getByRole('button', { name: 'Settings' }).click()
   await expect(page.locator('ot-settings-pane')).toBeVisible()
 }
 
@@ -146,7 +146,7 @@ test('settings: forced provider disables AI controls', async ({ page }) => {
   })
   await page.goto('/')
   await expect(page.locator('ot-app-shell')).toBeVisible()
-  await page.getByRole('tab', { name: 'Settings' }).click()
+  await page.getByRole('button', { name: 'Settings' }).click()
   await expect(page.locator('ot-ai-settings .seg-btn').first()).toBeDisabled()
   await expect(page.locator('ot-ai-settings')).toContainText('AI_PROVIDER')
 })

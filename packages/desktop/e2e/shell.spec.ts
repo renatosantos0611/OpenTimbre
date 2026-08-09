@@ -126,7 +126,7 @@ for (const viewport of VIEWPORTS) {
   await expect(page.locator('ot-status-bar')).toBeVisible()
   await expect(page.locator('ot-plugin-bar')).toBeVisible()
   await expect(page.locator('ot-composer')).toBeVisible()
-  await expect(page.locator('.pane-tabs button')).toHaveCount(3)
+  await expect(page.locator('.pane-tabs')).toHaveCount(0)
 
   // No horizontal overflow at the minimum column.
   const overflow = await page.evaluate(
@@ -140,19 +140,19 @@ for (const viewport of VIEWPORTS) {
   expect(darkContrast).toBeGreaterThanOrEqual(4.5)
 
   // Switch to the light theme and confirm it renders with contrast.
-  await page.getByRole('tab', { name: 'Settings' }).click()
+  await page.getByRole('button', { name: 'Settings' }).click()
   await page.getByRole('button', { name: 'Light' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   const lightContrast = await contrastOf(page, 'ot-chat-pane')
   expect(lightContrast).toBeGreaterThanOrEqual(4.5)
 
   // Pane switching keeps the chat pane mounted and returns to it.
-  await page.getByRole('tab', { name: 'Chat' }).click()
+  await page.getByRole('button', { name: 'Back to the conversation' }).click()
   await expect(page.locator('ot-chat-pane')).toBeVisible()
   await expect(page.locator('ot-chat-pane')).toContainText('Describe a tone to begin.')
 
   // Dimmed state: enable dim-on-unfocus, then blur the window.
-  await page.getByRole('tab', { name: 'Settings' }).click()
+  await page.getByRole('button', { name: 'Settings' }).click()
   await page.getByLabel('Dim when unfocused').check()
   await page.evaluate(() => window.dispatchEvent(new Event('blur')))
   await expect(page.locator('.shell')).toHaveAttribute('data-dimmed', 'true')

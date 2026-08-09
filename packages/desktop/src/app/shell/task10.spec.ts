@@ -24,8 +24,8 @@ describe('Task 10 settings and plugin bar', () => {
   }
 
   function openSettings(el: HTMLElement, fixture: import('@angular/core/testing').ComponentFixture<AppShell>): void {
-    const tabs = el.querySelectorAll<HTMLButtonElement>('.pane-tabs button')
-    tabs[2].dispatchEvent(new Event('click'))
+    const actions = el.querySelectorAll<HTMLButtonElement>('ot-status-bar .actions .icon')
+    actions[2].dispatchEvent(new Event('click'))
     fixture.detectChanges()
   }
 

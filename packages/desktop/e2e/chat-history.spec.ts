@@ -170,17 +170,17 @@ for (const viewport of VIEWPORTS) {
     await expect(page.locator('ot-chat-pane')).toContainText("The AI couldn't answer.")
 
     // History: open a conversation with memory loss.
-    await page.getByRole('tab', { name: 'History' }).click()
+    await page.getByRole('button', { name: 'Previous conversations' }).click()
     await expect(page.locator('ot-history-pane')).toContainText('Tone hunt')
     await page.locator('ot-history-pane .row').nth(1).click()
     await expect(page.locator('ot-chat-pane')).toContainText('Try this.')
     await expect(page.locator('ot-chat-pane')).toContainText('history couldn')
-    // The chat pane is still mounted under the history tab, so switch back.
-    await page.getByRole('tab', { name: 'Chat' }).click()
+    // The chat pane is still mounted under the history pane, so switch back.
+    await page.getByRole('button', { name: 'Back to the conversation' }).click()
     await expect(page.locator('ot-chat-pane')).toContainText('Try this.')
 
     // Delete uses an accessible confirmation.
-    await page.getByRole('tab', { name: 'History' }).click()
+    await page.getByRole('button', { name: 'Previous conversations' }).click()
     await page.locator('ot-history-pane .del').first().click()
     await expect(page.locator('ot-history-pane')).toContainText('Delete this conversation?')
     await page.locator('ot-history-pane .danger').click()

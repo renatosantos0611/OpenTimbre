@@ -9,6 +9,7 @@ import {
   Component,
   computed,
   inject,
+  output,
 } from '@angular/core'
 import type { Locale } from '@opentimbre/i18n'
 import type { Theme } from '@opentimbre/contracts'
@@ -16,16 +17,16 @@ import { DesktopService } from '../../desktop.service'
 import { I18nService } from '../../i18n.service'
 import { GuitarForm } from './guitar-form'
 import { AiSettings } from './ai-settings'
+import { PaneHeader } from '../pane-header'
 
 @Component({
   selector: 'ot-settings-pane',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [GuitarForm, AiSettings],
+  imports: [GuitarForm, AiSettings, PaneHeader],
   template: `
+    <ot-pane-header [title]="i18n.t('settings.title')" (back)="back.emit()" />
     <div class="scroll">
-      <p class="label">{{ i18n.t('settings.title') }}</p>
-
       <ot-guitar-form />
 
       <ot-ai-settings />
@@ -106,15 +107,6 @@ import { AiSettings } from './ai-settings'
         overflow-y: auto;
         padding: 12px;
       }
-      .label {
-        font-family: var(--font-display);
-        font-weight: 500;
-        font-size: 9.5px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--text-faint);
-        margin: 0 0 10px;
-      }
       .group {
         border: 0;
         padding: 0;
@@ -166,6 +158,7 @@ import { AiSettings } from './ai-settings'
 export class SettingsPane {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
+  readonly back = output<void>()
 
   readonly themes: Theme[] = ['system', 'light', 'dark']
   readonly locales: Locale[] = ['en', 'pt']

@@ -179,7 +179,7 @@ test('update banner: readable contrast in both themes', async ({ page }) => {
   const darkAction = await contrastOf(page, 'ot-status-bar .update .confirm')
   expect(darkAction).toBeGreaterThanOrEqual(4.5)
 
-  await page.getByRole('tab', { name: 'Settings' }).click()
+  await page.getByRole('button', { name: 'Settings' }).click()
   await page.getByRole('button', { name: 'Light' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   const lightText = await contrastOf(page, 'ot-status-bar .update .value')

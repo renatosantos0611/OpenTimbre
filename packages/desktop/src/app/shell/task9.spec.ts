@@ -105,9 +105,9 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
     const { el, fixture } = render()
     await flush()
     fixture.detectChanges()
-    // Navigate to the history pane.
-    const tabs = el.querySelectorAll<HTMLButtonElement>('.pane-tabs button')
-    tabs[1].dispatchEvent(new Event('click'))
+    // Navigate to the history pane via the status-bar action.
+    const actions = el.querySelectorAll<HTMLButtonElement>('ot-status-bar .actions .icon')
+    actions[0].dispatchEvent(new Event('click'))
     fixture.detectChanges()
     const del = el.querySelector<HTMLButtonElement>('ot-history-pane .del')!
     del.dispatchEvent(new Event('click'))

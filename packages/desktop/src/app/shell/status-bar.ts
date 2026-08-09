@@ -1,11 +1,12 @@
 /**
  * Operational status row: MIDI port, active AI model, the transient chat
- * status pill, and the update banner (confirm -> progress -> restart), which
- * is one extra right-aligned row driven by the `updater:status` push. Reads
- * `DesktopService` signals only (see `opentimbre-angular-ui`).
+ * status pill, the update banner (confirm -> progress -> restart), which is
+ * one extra right-aligned row driven by the `updater:status` push, and the
+ * three chrome actions (history, new conversation, settings). Reads
+ * `DesktopService` signals and emits intent (see `opentimbre-angular-ui`).
  */
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
-import { LucideLoaderCircle } from '@lucide/angular'
+import { ChangeDetectionStrategy, Component, computed, inject, output } from '@angular/core'
+import { LucideHistory, LucideLoaderCircle, LucidePlus, LucideSettings } from '@lucide/angular'
 import { ChatStatus, UpdaterStatus } from '@opentimbre/contracts'
 import { DesktopService } from '../desktop.service'
 import { I18nService } from '../i18n.service'
@@ -14,7 +15,7 @@ import { I18nService } from '../i18n.service'
   selector: 'ot-status-bar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucideLoaderCircle],
+  imports: [LucideLoaderCircle, LucideHistory, LucidePlus, LucideSettings],
   template: `
     <div class="row">
       <span class="label">{{ i18n.t('shell.status.midi') }}</span>
@@ -79,6 +80,35 @@ import { I18nService } from '../i18n.service'
         }
       </div>
     }
+    <div class="row actions">
+      <button
+        class="icon"
+        type="button"
+        [attr.aria-label]="i18n.t('shell.status.history')"
+        [attr.title]="i18n.t('shell.status.history')"
+        (click)="openHistory.emit()"
+      >
+        <svg lucideHistory [size]="15"></svg>
+      </button>
+      <button
+        class="icon"
+        type="button"
+        [attr.aria-label]="i18n.t('shell.status.newChat')"
+        [attr.title]="i18n.t('shell.status.newChat')"
+        (click)="newChat.emit()"
+      >
+        <svg lucidePlus [size]="15"></svg>
+      </button>
+      <button
+        class="icon"
+        type="button"
+        [attr.aria-label]="i18n.t('shell.status.settings')"
+        [attr.title]="i18n.t('shell.status.settings')"
+        (click)="openSettings.emit()"
+      >
+        <svg lucideSettings [size]="15"></svg>
+      </button>
+    </div>
   `,
   styles: [
     `
@@ -132,7 +162,6 @@ import { I18nService } from '../i18n.service'
         background: var(--danger);
       }
       .pill-row {
-        margin-left: auto;
         color: var(--accent);
       }
       .pill {
@@ -140,7 +169,6 @@ import { I18nService } from '../i18n.service'
         white-space: nowrap;
       }
       .update {
-        margin-left: auto;
         min-width: 0;
         overflow: hidden;
       }
@@ -177,12 +205,38 @@ import { I18nService } from '../i18n.service'
       .update .action.dismiss:hover {
         color: var(--text-dim);
       }
+      .actions {
+        margin-left: auto;
+        gap: 2px;
+      }
+      .icon {
+        -webkit-app-region: no-drag;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        padding: 0;
+        border: 0;
+        border-radius: var(--r-sm);
+        background: transparent;
+        color: var(--text-dim);
+        cursor: pointer;
+      }
+      .icon:hover {
+        background: var(--surface-raise);
+        color: var(--text);
+      }
     `,
   ],
 })
 export class StatusBar {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
+
+  readonly openHistory = output<void>()
+  readonly newChat = output<void>()
+  readonly openSettings = output<void>()
 
   readonly port = computed(() => this.desktop.midi().port)
   readonly midiError = computed(() => this.desktop.midi().error)
