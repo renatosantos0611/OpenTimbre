@@ -95,6 +95,8 @@ export class DesktopService {
   readonly busy = signal(false)
   /** The composer draft, shared so the chat empty-state chips can fill it. */
   readonly draft = signal('')
+  /** The amp of the last applied scene, shown in the status-bar pill (empty until one is applied). */
+  readonly appliedAmp = signal('')
 
   /** Loads AppState and subscribes to push channels. Call once at startup. */
   load(): void {
@@ -166,7 +168,9 @@ export class DesktopService {
 
   async applyRig(scene: string): Promise<AppliedScene | undefined> {
     const result = await this.api.applyRig(scene)
-    return 'error' in result ? undefined : result
+    if ('error' in result) return undefined
+    this.appliedAmp.set(result.amp)
+    return result
   }
 
   async setTheme(theme: Theme): Promise<void> {

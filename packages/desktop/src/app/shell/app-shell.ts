@@ -109,6 +109,7 @@ export class AppShell implements OnInit {
   readonly dimmed = computed(() => this.desktop.dimOnUnfocus() && !this.focused())
 
   /**
+   * The theme tokens hang off `:root[data-theme]`, so the resolved theme is
    * written to the document element, not the component host. An `effect` keeps
    * it in step with the resolved theme (including the `window:themeChanged`
    * push). The effect is created in the constructor and passed to

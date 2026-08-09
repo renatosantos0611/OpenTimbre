@@ -39,6 +39,9 @@ import { I18nService } from '../i18n.service'
         }
       </span>
     </div>
+    @if (desktop.appliedAmp()) {
+      <span class="amp-pill">{{ desktop.appliedAmp() }}</span>
+    }
     @if (chatStatusLabel()) {
       <div class="row pill-row">
         <svg lucideLoaderCircle [size]="14"></svg>
@@ -208,6 +211,19 @@ import { I18nService } from '../i18n.service'
       .actions {
         margin-left: auto;
         gap: 2px;
+      }
+      .amp-pill {
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
       }
       .icon {
         -webkit-app-region: no-drag;

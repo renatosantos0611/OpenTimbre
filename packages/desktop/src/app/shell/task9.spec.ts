@@ -74,6 +74,17 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
     expect(pane.textContent).toContain('why it works')
   })
 
+  it('shows the applied amp in the status-bar pill', async () => {
+    const { el, fixture } = render()
+    await flush()
+    expect(el.querySelector('.amp-pill')).toBeNull()
+    await TestBed.inject(DesktopService).applyRig('base')
+    fixture.detectChanges()
+    const pill = el.querySelector<HTMLElement>('.amp-pill')
+    expect(pill).toBeTruthy()
+    expect(pill?.textContent).toContain('Rust')
+  })
+
   it('shows an error row when the provider call fails', async () => {
     const { el, fixture } = render()
     fake.sendChat = async () => ({ error: 'The AI couldn\'t answer.' })

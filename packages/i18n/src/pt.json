@@ -34,7 +34,7 @@
   "shell.update.dismiss": "Dispensar",
   "shell.plugin.title": "Plugins",
   "shell.plugin.empty": "Nenhum plugin ainda",
-  "shell.composer.placeholder": "Descreva um tom…",
+  "shell.composer.placeholder": "Descreva o timbre, ou peça um ajuste — \"menos grave no riff\"",
   "shell.composer.send": "Enviar",
   "chat.mode.title": "Modo de aplicação",
   "chat.mode.manual": "Manual",

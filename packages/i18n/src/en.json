@@ -34,7 +34,7 @@
   "shell.update.dismiss": "Dismiss",
   "shell.plugin.title": "Plugins",
   "shell.plugin.empty": "No plugins yet",
-  "shell.composer.placeholder": "Describe a tone…",
+  "shell.composer.placeholder": "Describe the tone, or ask for an adjustment — \"less bass on the riff\"",
   "shell.composer.send": "Send",
   "chat.mode.title": "Application mode",
   "chat.mode.manual": "Manual",
