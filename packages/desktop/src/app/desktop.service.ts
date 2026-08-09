@@ -276,6 +276,11 @@ export class DesktopService {
     }
     this.keysError.set(null)
     this.applyState(result)
+    // A newly valid key can unlock that provider's whole model catalog —
+    // refresh so the composer's picker offers it without waiting for the
+    // component to remount (see `opentimbre-secrets`: the key itself never
+    // enters this response, only the fact that saving it succeeded).
+    void this.listModels()
   }
 
   async removeKey(provider: string): Promise<void> {
@@ -286,6 +291,7 @@ export class DesktopService {
     }
     this.keysError.set(null)
     this.applyState(result)
+    void this.listModels()
   }
 
   async setProviderPreference(preference: ProviderPreference): Promise<void> {
