@@ -35,6 +35,7 @@ type Deps = {
   systemDark: boolean
   setAlwaysOnTop: (onTop: boolean) => void
   version: string
+  listModels: () => Promise<import('@opentimbre/contracts').ModelInfo[]>
 }
 
 function appState(deps: Deps): import('@opentimbre/contracts').AppState {
@@ -206,6 +207,15 @@ export function registerIpcHandlers(deps: Deps): void {
 
   ipcMain.handle('ai:providerPreference', (event, pref) => {
     try { trusted(event); deps.store.set('provider_preference', validatePayload('ai:providerPreference', pref) as string); return appState(deps) } catch (e) { return failure(String(e)) }
+  })
+
+  // Void payload — sender check only. The key is read inside main and used
+  // only as a request header; the returned list never carries it.
+  ipcMain.handle('ai:listModels', async (event) => {
+    try {
+      trusted(event)
+      return await deps.listModels()
+    } catch (e) { return failure(String(e)) }
   })
 
   // ── Updater ──────────────────────────────────────────────

@@ -47,6 +47,7 @@
 - T4 ✅ 2026-08-09 — About pane mounted (menu re-enabled), version + tagline from catalog; 57 renderer + 14 e2e tests
 - T5 ✅ 2026-08-09 — chat empty state: invite block with icon/heading/paragraph/chips; chips fill the composer draft (moved to DesktopService); 60 renderer + 14 e2e tests
 - T6 ✅ 2026-08-09 — composer restructured (textarea/actions/hint), Manual/Auto mode menu bound to autoApply; 63 renderer + 14 e2e tests
+- T7 ✅ 2026-08-09 — `ai:listModels` channel: model-catalog with label/tier rules (tier decision ratified), allSettled degradation, no key leaks; 73 main tests, typecheck
 - open gaps: none blocking; residuals listed in the plan under `## Exposed material gaps`
 
 ## History

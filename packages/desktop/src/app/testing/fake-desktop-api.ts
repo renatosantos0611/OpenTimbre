@@ -108,6 +108,7 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
       fake.calls.setModel.push([provider, id])
       return state
     },
+    listModels: async () => [],
 
     getPluginState: async (id: string) => {
       fake.calls.getPluginState.push(id)

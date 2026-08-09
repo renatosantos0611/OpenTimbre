@@ -138,6 +138,12 @@ export type KeyInfo = {
 /** A model available from *any* provider with a valid key, not just the active one. */
 export type AvailableModel = { provider: ProviderId; providerLabel: string; id: string }
 
+/** Coarse cost bucket derived from the model id — neither provider returns pricing. */
+export type ModelTier = 'low' | 'mid' | 'high'
+
+/** One entry in the model picker, with a display label and a cost tier. */
+export type ModelInfo = { provider: ProviderId; id: string; label: string; tier: ModelTier }
+
 export type AppState = {
   locale: Locale
   midi: { port: string | null; error: string | null }
@@ -198,6 +204,7 @@ export type IpcChannels = {
   'rig:apply': { payload: string; result: Result<AppliedScene> }
   'config:guitar': { payload: Guitar; result: Result<AppState> }
   'ai:model': { payload: [provider: ProviderId, id: string]; result: Result<AppState> }
+  'ai:listModels': { payload: void; result: Result<ModelInfo[]> }
   'plugin:state': { payload: string; result: Result<PluginState> }
   'plugin:open': { payload: string; result: Result<PluginState> }
   'plugin:installMapping': { payload: string; result: Result<PluginState> }
@@ -239,6 +246,7 @@ export type DesktopApi = {
   applyRig(scene: string): Promise<Result<AppliedScene>>
   setGuitar(guitar: Guitar): Promise<Result<AppState>>
   setModel(provider: ProviderId, id: string): Promise<Result<AppState>>
+  listModels(): Promise<Result<ModelInfo[]>>
   getPluginState(id: string): Promise<Result<PluginState>>
   openPlugin(id: string): Promise<Result<PluginState>>
   installMapping(id: string): Promise<Result<PluginState>>

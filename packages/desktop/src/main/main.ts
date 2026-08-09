@@ -25,6 +25,7 @@ import { createSceneApplier } from './rig/scene-applier.ts'
 import { createChatController } from './chat/chat-controller.ts'
 import { createConversationRepository } from './chat/conversation-repository.ts'
 import { createUpdater, createElectronUpdaterRuntime, inertUpdaterRuntime } from './updater/updater.ts'
+import { listAvailableModels } from './ai/model-catalog.ts'
 import type { PluginFileSystem } from '@opentimbre/platform-node/src/plugin-host.ts'
 import { createWindowsPluginHost, createMacosPluginHost } from '@opentimbre/platform-node/src/plugin-host.ts'
 import { windowsTransport, windowsPlatformInfo } from '@opentimbre/platform-node/src/windows.ts'
@@ -179,6 +180,7 @@ app.whenReady().then(async () => {
     setAlwaysOnTop,
     systemDark: nativeTheme.shouldUseDarkColors,
     version: app.getVersion() || '3.0-dev',
+    listModels: () => listAvailableModels(wireProviders()),
     getAi: () => {
       const modelId = store.get('model_id')
       const providerId = (store.get('provider_id') as ProviderId) || 'openai'

@@ -8,6 +8,7 @@ const api: DesktopApi = {
   applyRig: (scene) => ipcRenderer.invoke('rig:apply', scene),
   setGuitar: (guitar) => ipcRenderer.invoke('config:guitar', guitar),
   setModel: (provider, id) => ipcRenderer.invoke('ai:model', [provider, id]),
+  listModels: () => ipcRenderer.invoke('ai:listModels'),
   getPluginState: (id) => ipcRenderer.invoke('plugin:state', id),
   openPlugin: (id) => ipcRenderer.invoke('plugin:open', id),
   installMapping: (id) => ipcRenderer.invoke('plugin:installMapping', id),
