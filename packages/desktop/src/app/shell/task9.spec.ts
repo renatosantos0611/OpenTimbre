@@ -122,15 +122,15 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
     expect(fake.calls.deleteConversation).toEqual(['c1'])
   })
 
-  it('starts a new chat from the composer', async () => {
+  it('starts a new chat from the status bar', async () => {
     const { el, fixture } = render()
     await flush()
     await TestBed.inject(DesktopService).sendChat('hello')
     fixture.detectChanges()
     expect(el.querySelector('ot-chat-pane')?.textContent).toContain('hello')
-    const newBtn = el.querySelector<HTMLButtonElement>('ot-composer .new')!
+    const newBtn = el.querySelectorAll<HTMLButtonElement>('ot-status-bar .actions .icon')
     expect(newBtn).toBeTruthy()
-    newBtn.dispatchEvent(new Event('click'))
+    newBtn[1].dispatchEvent(new Event('click'))
     await flush()
     fixture.detectChanges()
     expect(el.querySelector('ot-chat-pane')?.textContent).toContain('Build your tone')

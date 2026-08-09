@@ -158,4 +158,13 @@ test('plugin bar renders all catalog plugins with actions', async ({ page }) => 
   await expect(page.locator('ot-app-shell')).toBeVisible()
   await expect(page.locator('ot-plugin-bar .plugin')).toHaveCount(4)
   await expect(page.locator('ot-plugin-bar')).toContainText('gojira')
+
+  // The Manual/Auto mode in the composer and the Settings checkbox share one
+  // state: choosing Auto in the composer flips the Settings checkbox.
+  await expect(page.locator('ot-mode-menu .mode-btn')).toContainText('Manual')
+  await page.locator('ot-mode-menu .mode-btn').click()
+  await page.locator('ot-mode-menu .option').nth(1).click()
+  await expect(page.locator('ot-mode-menu .mode-btn')).toContainText('Auto')
+  await page.getByRole('button', { name: 'Settings' }).click()
+  await expect(page.getByLabel('Apply rig automatically')).toBeChecked()
 })

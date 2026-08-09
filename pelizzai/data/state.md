@@ -46,6 +46,7 @@
 - T3 ✅ 2026-08-09 — legacy chrome: hamburger+menu titlebar, status-bar icon actions, tab strip removed, PaneHeader back buttons; 54 renderer + 14 e2e tests, live boot green
 - T4 ✅ 2026-08-09 — About pane mounted (menu re-enabled), version + tagline from catalog; 57 renderer + 14 e2e tests
 - T5 ✅ 2026-08-09 — chat empty state: invite block with icon/heading/paragraph/chips; chips fill the composer draft (moved to DesktopService); 60 renderer + 14 e2e tests
+- T6 ✅ 2026-08-09 — composer restructured (textarea/actions/hint), Manual/Auto mode menu bound to autoApply; 63 renderer + 14 e2e tests
 - open gaps: none blocking; residuals listed in the plan under `## Exposed material gaps`
 
 ## History
