@@ -302,14 +302,16 @@ steps:
  1. checkout + setup-node (node 22, npm cache)
  2. npm ci
  3. npm run lint && npm run typecheck && npm run test
- 4. npx playwright install chromium && npm run test:e2e -w @opentimbre/desktop
- 5. npm run build -w @opentimbre/desktop
+ 4. npm run build -w @opentimbre/desktop
+ 5. npx playwright install chromium && npm run test:e2e -w @opentimbre/desktop
  6. npx electron-builder --win --publish never     (from packages/desktop)
  7. npm run test:packaged -w @opentimbre/desktop   (launches the portable exe)
  8. env GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} → npx electron-builder --win --publish always
 ```
 
 Step 8 re-runs the build+publish; acceptable duplication for a release job. If a single-pass alternative exists without re-packaging (prebuilt publish), the executor may use it — cite the docs consulted.
+
+Execution amendment 2026-08-08: build precedes the renderer e2e (steps 4–5 swapped) — a fresh-checkout e2e serves `dist/renderer/browser`, which only exists after the Angular build; the original order was unverifiable.
 
 Packaged smoke spec contract: `_electron.launch({ executablePath: <path to the portable exe under packages/desktop/release> })`; assert first window resolves, the document reaches a stable painted shell (e.g. the app name / status bar text from the i18n catalog is visible), then `app.close()`. No MIDI, no provider keys, no network calls beyond the update check (which must stay silent when the feed is unreachable). Glob the executable path instead of hardcoding the version (`OpenTimbre-*-portable.exe` → note portable artifact naming may be `OpenTimbre Portable <ver>.exe`; resolve via glob and assert exactly one match).
 
