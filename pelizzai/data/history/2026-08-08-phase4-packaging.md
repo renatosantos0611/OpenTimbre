@@ -50,3 +50,7 @@
 ## Reseal 2 (electron version pin)
 
 - 2026-08-08 — second dry-run failed at "Package NSIS + portable": electron-builder requires an exact electron version (range unresolvable for binary download). Fix 59f0de6 pins electron 43.3.0 (exact resolved version; lockfile integrity unchanged; suite green; focused delta review APPROVED). Seal reissued at 59f0de6.
+
+## Reseal 3 (final — CI loop closure)
+
+- 2026-08-09 — dry-run loop: (a) electron moved to devDependencies (29ecc14); (b) pinned exact 43.3.0 (59f0de6); (c) smoke retargeted to win-unpacked (592a71a, ratified); (d) main/preload bundled with esbuild — Node cannot strip .ts under node_modules in asar (4dd245b, ratified); (e) data dir mkdir before initStore (d3dc4b4). Temporary boot diagnostics added then removed (afd6a1d → 9d4a719). Final pipeline GREEN end-to-end: checks → build → renderer e2e → NSIS+portable packaging → packaged smoke → publish. Draft release v0.1.0 and tag v0.1.0-ci-test deleted afterwards. Feed-error silence + injectable updater loader unit-tested (62 main tests). Cumulative delta review APPROVED. Seal reissued at 1ebccaf.
