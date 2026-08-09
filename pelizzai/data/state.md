@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -64,6 +64,15 @@
   work: main-process window opacity for dim-on-unfocus, saved API keys loaded into `process.env` on
   boot, immediate first plugin poll on start — done at 72d419d; typecheck clean (all workspaces),
   81/81 main-process tests, 77/77 renderer tests, 29/29 platform-node tests, 11/11 CLI tests green
+- quick-fix (post-delivery): default window size changed from 420x700 to the requested 678x864 —
+  updated both the `BrowserWindow` constructor default in `window.ts` and the persisted-bounds
+  `DEFAULTS` in `desktop-store.ts` (a fresh install/reset has no stored bounds yet, so both must
+  agree); dropped two now-stale exact-pixel references in unrelated doc comments (`mode-menu.ts`,
+  `titlebar.ts`) that named the old default — done at ae7504d; typecheck clean, 81/81 main-process
+  tests, 77/77 renderer tests green. Noted but NOT fixed (pre-existing, out of scope): `window.ts`'s
+  `BrowserWindow` call never reads `opts.bounds.width`/`height` — only `x`/`y` — so a
+  guitarist-resized window snaps back to the default width/height on relaunch even though the size
+  is persisted to the store; worth a follow-up if that's unwanted behavior.
 - false alarm, resolved: `npm run desktop` appeared to crash before any window opened —
   `TypeError: Cannot read properties of undefined (reading 'registerSchemesAsPrivileged')` — when
   launched from the agent's own sandboxed shell (no display attached). The user confirmed
