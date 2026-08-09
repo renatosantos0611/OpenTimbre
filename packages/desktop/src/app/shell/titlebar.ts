@@ -87,8 +87,8 @@ import { I18nService } from '../i18n.service'
         padding: 4px;
         border: 1px solid var(--border);
         border-radius: var(--r-sm);
-        background: var(--surface-popover);
-        box-shadow: var(--shadow-pop);
+        background: var(--surface-raised);
+        box-shadow: var(--shadow);
         -webkit-app-region: no-drag;
       }
       .menu-item {

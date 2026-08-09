@@ -117,8 +117,8 @@ import { I18nService } from '../i18n.service'
         flex-direction: column;
         border: 1px solid var(--border);
         border-radius: var(--r-sm);
-        background: var(--surface-popover);
-        box-shadow: var(--shadow-pop);
+        background: var(--surface-raised);
+        box-shadow: var(--shadow);
         z-index: 30;
         overflow: hidden;
       }
