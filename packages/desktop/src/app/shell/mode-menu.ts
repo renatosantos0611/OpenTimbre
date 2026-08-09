@@ -25,12 +25,12 @@ import { I18nService } from '../i18n.service'
         (click)="toggle($event)"
       >
         @if (autoApply()) {
-          <svg lucideZap [size]="14"></svg>
+          <svg class="mode-icon" lucideZap [size]="14"></svg>
         } @else {
-          <svg lucidePencil [size]="14"></svg>
+          <svg class="mode-icon" lucidePencil [size]="14"></svg>
         }
-        <span>{{ label() }}</span>
-        <svg lucideChevronUp [size]="14"></svg>
+        <span class="label">{{ label() }}</span>
+        <svg class="chev" lucideChevronUp [size]="14"></svg>
       </button>
 
       @if (open()) {
@@ -64,6 +64,7 @@ import { I18nService } from '../i18n.service'
         align-items: center;
         gap: 6px;
         height: 36px;
+        width: 112px;
         padding: 0 10px;
         border: 1px solid var(--border);
         border-radius: var(--r-sm);
@@ -78,6 +79,19 @@ import { I18nService } from '../i18n.service'
       .mode-btn[aria-expanded='true'] {
         border-color: var(--accent-line);
         color: var(--text);
+      }
+      .mode-icon {
+        flex: none;
+      }
+      .label {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .chev {
+        flex: none;
       }
       .menu {
         position: absolute;

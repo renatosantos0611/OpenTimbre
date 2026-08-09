@@ -28,7 +28,7 @@ import { I18nService } from '../i18n.service'
         (click)="toggle($event)"
       >
         <span class="label">{{ activeLabel() }}</span>
-        <svg lucideChevronUp [size]="14"></svg>
+        <svg class="chev" lucideChevronUp [size]="14"></svg>
       </button>
 
       @if (open()) {
@@ -103,9 +103,14 @@ import { I18nService } from '../i18n.service'
         color: var(--text);
       }
       .label {
+        flex: 1;
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+      .chev {
+        flex: none;
       }
       .panel {
         position: absolute;
