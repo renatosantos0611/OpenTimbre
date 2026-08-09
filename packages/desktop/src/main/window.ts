@@ -37,6 +37,10 @@ export function createMainWindow(opts: {
     y: opts.bounds.y,
     show: false,
     alwaysOnTop: opts.alwaysOnTop,
+    // Reuses the renderer's own icon asset (`public/icon.png`, copied into
+    // `dist/renderer/browser/` by the Angular build and shown in the About
+    // pane) instead of shipping a second copy just for the taskbar icon.
+    icon: fileURLToPath(new URL('../renderer/browser/icon.png', import.meta.url)),
     titleBarStyle: 'hidden',
     titleBarOverlay: { ...opts.overlay, height: TITLE_BAR_HEIGHT },
     webPreferences: {

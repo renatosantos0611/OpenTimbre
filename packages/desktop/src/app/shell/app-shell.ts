@@ -93,6 +93,12 @@ import { AboutPane } from './panes/about-pane'
         position: absolute;
         inset: 0;
         display: none;
+        /* column, not the flex default (row): every pane's host sets its own
+           height: 100% and relies on the cross axis to stretch its WIDTH to
+           fill the window — a row container only auto-stretches height, so a
+           centered pane like About was hugging its own content width instead
+           of the full column. */
+        flex-direction: column;
       }
       .pane.is-active {
         display: flex;

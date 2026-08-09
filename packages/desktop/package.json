@@ -53,6 +53,7 @@
   "build": {
     "appId": "com.opentimbre.desktop",
     "productName": "OpenTimbre",
+    "icon": "build/icon.png",
     "files": [
       "dist/**/*",
       "package.json"

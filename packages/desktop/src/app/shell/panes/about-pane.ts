@@ -4,7 +4,6 @@
  * touches `window.api` (see `opentimbre-angular-ui`).
  */
 import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core'
-import { LucideGuitar } from '@lucide/angular'
 import { DesktopService } from '../../desktop.service'
 import { I18nService } from '../../i18n.service'
 import { PaneHeader } from '../pane-header'
@@ -13,13 +12,11 @@ import { PaneHeader } from '../pane-header'
   selector: 'ot-about-pane',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucideGuitar, PaneHeader],
+  imports: [PaneHeader],
   template: `
     <ot-pane-header [title]="i18n.t('shell.menu.about')" (back)="back.emit()" />
     <div class="body">
-      <div class="icon">
-        <svg lucideGuitar [size]="40"></svg>
-      </div>
+      <img class="icon" src="icon.png" alt="" />
       <h1 class="name">{{ i18n.t('shell.appName') }} <i>{{ i18n.t('about.platform') }}</i></h1>
       <p class="version">{{ i18n.t('shell.status.version', { version: desktop.version() }) }}</p>
       <p class="tagline">{{ i18n.t('about.tagline') }}</p>
@@ -44,14 +41,10 @@ import { PaneHeader } from '../pane-header'
         text-align: center;
       }
       .icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
         width: 64px;
         height: 64px;
         border-radius: var(--r-md);
-        background: var(--accent-soft);
-        color: var(--accent-strong);
+        object-fit: contain;
       }
       .name {
         margin: 0;
