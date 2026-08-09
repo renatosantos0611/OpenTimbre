@@ -10,7 +10,8 @@
 - base-ref: refs/remotes/origin/main
 - base-sha: 49e0dea76cf8ba42ec44db016aabc5fc20ac7b85
 - validated-head: e46ff22c0214e2459781f6fc8d58a2e672858519
-- delivery-head: <none>
+- delivery-head: f0cbf0d4c0a9f321ec1bc5013ba42d72f4610541
+- delivery-status: pr-open — https://github.com/renatosantos0611/OpenTimbre/pull/3
 - confirm: base-ref contains validated-head (PR/branch integrated)
 - kickoff: ratified 2026-08-08
 - isolation: branch
@@ -41,3 +42,7 @@
 - OWASP overlay 2026-08-08: APPROVED, zero findings; unsigned feed risk recorded as ratified in spec
 - final validation 2026-08-08: full suite 373 unit + 14 e2e green, lint clean; final blind spec review APPROVED (all 7 criteria); destination ratified: publish + PR
 - pending: domain skill candidate electron-builder (propose at closeout)
+
+## Reseal (packaging fix)
+
+- 2026-08-08 — CI dry-run (tag v0.1.0-ci-test) failed at "Package NSIS + portable": electron-builder requires electron in devDependencies. Fix 29ecc14 (manifest move only; electron-updater stays runtime; suite green; focused delta review APPROVED). Seal invalidated at e46ff22 and reissued at 29ecc14.
