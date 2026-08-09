@@ -41,6 +41,7 @@ async function stubBridge(page: Page): Promise<void> {
       applyRig: async () => ({ scene: 's', amp: 'a', ccsSent: 0, ms: 0, warnings: [] }),
       setGuitar: async () => state,
       setModel: async () => state,
+      listModels: async () => [],
       getPluginState: async () => ({ id: 'gojira', name: 'Gojira', installed: false, path: null, running: false, mappingStatus: 'missing' }),
       openPlugin: async () => ({ id: 'gojira', name: 'Gojira', installed: false, path: null, running: false, mappingStatus: 'missing' }),
       installMapping: async () => ({ id: 'gojira', name: 'Gojira', installed: false, path: null, running: false, mappingStatus: 'missing' }),

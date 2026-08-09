@@ -43,6 +43,7 @@ async function stubBridge(page: Page): Promise<void> {
         state = { ...state, ai: { ...(state.ai as object), model: id } }
         return state
       },
+      listModels: async () => [],
       getPluginState: async (id: string) => ({ id, name: id, installed: true, path: '/x', running: false, mappingStatus: 'ok' }),
       openPlugin: async (id: string) => ({ id, name: id, installed: true, path: '/x', running: true, mappingStatus: 'ok' }),
       installMapping: async (id: string) => ({ id, name: id, installed: true, path: '/x', running: false, mappingStatus: 'ok' }),

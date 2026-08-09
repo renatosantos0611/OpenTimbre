@@ -19,6 +19,7 @@ import type {
   Guitar,
   KeyInfo,
   MessageWithCards,
+  ModelInfo,
   OpenConversation,
   PluginState,
   ProviderId,
@@ -73,6 +74,10 @@ export class DesktopService {
   readonly providerPreference = signal<ProviderPreference>('auto')
   readonly forcedProvider = signal<string | null>(null)
   readonly pluginIds = signal<string[]>([])
+  /** Models available from every provider with a key, for the composer picker. */
+  readonly models = signal<ModelInfo[]>([])
+  /** Set when `ai:listModels` failed, so the picker can show a degraded state. */
+  readonly modelsError = signal<string | null>(null)
 
   readonly chatStatus = signal<ChatStatus>(null)
   readonly conversations = signal<Summary[]>([])
@@ -245,6 +250,18 @@ export class DesktopService {
 
   async setModel(provider: string, id: string): Promise<void> {
     this.applyResult(await this.api.setModel(provider as ProviderId, id))
+  }
+
+  /** Loads every provider's models into the `models` signal; a failure degrades gracefully. */
+  async listModels(): Promise<void> {
+    const result = await this.api.listModels()
+    if ('error' in result) {
+      this.modelsError.set(result.error)
+      this.models.set([])
+      return
+    }
+    this.modelsError.set(null)
+    this.models.set(result)
   }
 
   async saveKey(provider: string, key: string): Promise<void> {

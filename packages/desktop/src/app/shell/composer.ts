@@ -14,12 +14,13 @@ import { LucideSend } from '@lucide/angular'
 import { DesktopService } from '../desktop.service'
 import { I18nService } from '../i18n.service'
 import { ModeMenu } from './mode-menu'
+import { ModelMenu } from './model-menu'
 
 @Component({
   selector: 'ot-composer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucideSend, ModeMenu],
+  imports: [LucideSend, ModeMenu, ModelMenu],
   template: `
     <div class="composer">
       <textarea
@@ -33,7 +34,7 @@ import { ModeMenu } from './mode-menu'
       ></textarea>
 
       <div class="actions">
-        <div class="model-slot" aria-hidden="true"></div>
+        <ot-model-menu />
         <ot-mode-menu />
         <button
           class="send"
@@ -85,11 +86,6 @@ import { ModeMenu } from './mode-menu'
         align-items: center;
         justify-content: flex-end;
         gap: 8px;
-      }
-      .model-slot {
-        margin-right: auto;
-        width: 32px;
-        height: 32px;
       }
       .send {
         display: inline-flex;
