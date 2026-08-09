@@ -1,7 +1,7 @@
 import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { _electron, expect, test } from '@playwright/test'
+import { _electron, expect, test, type ElectronApplication } from '@playwright/test'
 
 /**
  * Packaged-runtime smoke: launches the portable exe produced by
@@ -40,18 +40,69 @@ function findPortableExe(): string {
   return join(RELEASE_DIR, portable[0])
 }
 
-test('packaged portable app boots and paints the shell', async () => {
-  const executablePath = findPortableExe()
-  const app = await _electron.launch({ executablePath, timeout: 60_000 })
+/** Caps a promise so diagnostics and teardown can never hang the unwind. */
+function raceTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise.catch(() => fallback),
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms).unref()),
+  ])
+}
+
+/**
+ * Failure-only diagnostics: how far the boot got (launch, windows, painted
+ * title, captured renderer output). Must never throw or mask the failure.
+ */
+async function diagnose(app: ElectronApplication | null, captured: string[]): Promise<void> {
   try {
+    if (!app) {
+      console.log('[packaged-smoke] app did not launch')
+      return
+    }
+    const windows = app.windows()
+    console.log(`[packaged-smoke] app launched; open windows: ${windows.length}`)
+    const window = windows[0]
+    if (window) {
+      const title = await raceTimeout(window.evaluate(() => document.title), 2000, '<title unavailable>')
+      console.log(`[packaged-smoke] document.title: ${title}`)
+    }
+    if (captured.length > 0) {
+      console.log(`[packaged-smoke] captured renderer output: ${captured.join(' | ')}`)
+    }
+  } catch {
+    // diagnostics must never mask the original failure
+  }
+}
+
+test('packaged portable app boots and paints the shell', async () => {
+  const captured: string[] = []
+  let app: ElectronApplication | null = null
+  try {
+    const executablePath = findPortableExe()
+    // CI Windows sessions have no reliable GPU, and a GPU-init hang was the
+    // observed failure mode; --disable-gpu avoids it and --no-sandbox is the
+    // standard CI-Electron companion. The oracle (the shell paints) is
+    // unchanged; local runs keep a clean, arg-free launch.
+    const args = process.env.CI ? ['--disable-gpu', '--no-sandbox'] : []
+    app = await _electron.launch({ executablePath, args, timeout: 120_000 })
     const window = await app.firstWindow()
+    window.on('console', (message) => {
+      if (captured.length < 5) captured.push(`console[${message.type()}] ${message.text()}`)
+    })
+    window.on('pageerror', (error) => {
+      if (captured.length < 5) captured.push(`pageerror ${error.message}`)
+    })
     // "OpenTimbre" is locale-independent in the i18n catalog (identical in
     // en and pt), and "Chat" is too — stable proof the real renderer painted
     // without depending on locale, MIDI state, or provider configuration.
     await expect(window.locator('ot-titlebar')).toContainText('OpenTimbre')
     await expect(window.locator('ot-app-shell')).toBeVisible()
     await expect(window.getByRole('tab', { name: 'Chat' })).toBeVisible()
+  } catch (error) {
+    await diagnose(app, captured)
+    throw error
   } finally {
-    await app.close()
+    if (app) {
+      await raceTimeout(app.close(), 10_000, undefined)
+    }
   }
 })
