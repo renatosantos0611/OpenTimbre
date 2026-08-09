@@ -111,6 +111,27 @@ test('an unknown plugin in the rig is a contained failure', async () => {
   assert.equal(sends.length, 0)
 })
 
+test('connect() reports the real MIDI state without a loaded rig or an apply', async () => {
+  const { transport, connectCount } = fakeTransport()
+  const applier = createSceneApplier({ transport, clock: fakeClock().clock })
+
+  assert.deepEqual(applier.midiState(), { port: null, error: null }, 'unknown before the first connect attempt')
+
+  await applier.connect()
+
+  assert.deepEqual(applier.midiState(), { port: 'VoiceRig', error: null })
+  assert.equal(connectCount.value, 1)
+})
+
+test('connect() surfaces a failed connection without a loaded rig', async () => {
+  const { transport } = fakeTransport('Port not found. Create it in loopMIDI.')
+  const applier = createSceneApplier({ transport, clock: fakeClock().clock })
+
+  await applier.connect()
+
+  assert.deepEqual(applier.midiState(), { port: null, error: 'Port not found. Create it in loopMIDI.' })
+})
+
 test('a disconnected MIDI port fails the apply and sends nothing', async () => {
   const { transport, sends, connectCount } = fakeTransport('Port not found. Create it in loopMIDI.')
   const applier = createSceneApplier({ transport, clock: fakeClock().clock })

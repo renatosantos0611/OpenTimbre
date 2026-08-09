@@ -165,6 +165,7 @@ app.whenReady().then(async () => {
     mappingDir: path.resolve(process.cwd(), 'midi-mapping'),
   })
   const applier = createSceneApplier({ transport })
+  void applier.connect() // eager attempt so the status bar shows the real MIDI state at boot, not just after a scene apply
 
   const send = (channel: string, payload: unknown) => {
     BrowserWindow.getAllWindows()[0]?.webContents.send(channel, payload)

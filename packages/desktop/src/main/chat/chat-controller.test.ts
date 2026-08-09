@@ -105,7 +105,7 @@ function memRepo(): ConversationRepository {
 
 function fakeApplier() {
   const rigs: Array<Rig | null> = []
-  const applier: SceneApplier = { setRig: (r) => rigs.push(r), apply: async (s) => ({ scene: s, amp: 'CLN', ccsSent: 0, ms: 0, warnings: [] }), midiState: () => ({ port: null, error: null }) }
+  const applier: SceneApplier = { setRig: (r) => rigs.push(r), apply: async (s) => ({ scene: s, amp: 'CLN', ccsSent: 0, ms: 0, warnings: [] }), midiState: () => ({ port: null, error: null }), connect: async () => {} }
   return { applier, rigs }
 }
 
