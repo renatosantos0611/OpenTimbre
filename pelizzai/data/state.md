@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch; quick-fix (composer select chevrons pinned to a fixed end position) resumed and ratified 2026-08-09 on current branch
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -146,6 +146,23 @@
   green; verified with a throwaway Playwright screenshot (script + PNG not committed) against the
   real built bundle at 678x864, pt locale: `.send`/`.model-btn`/`.mode-btn` all measured 36px tall
   and the empty `.entry` measured ~39px (two lines).
+- quick-fix (post-delivery): user asked for the model select's chevron to sit at a fixed place at
+  the end of the button, for the Manual/Auto select to have a fixed size with its chevron fixed
+  the same way, and for the two chevrons to look the same. Root cause of the model select: its
+  `.model-btn` had a fixed `width: 160px`, but `.label` had no `flex`/`min-width` — for a short
+  model name (e.g. "GPT-4o") the label just wrapped its content and the chevron sat immediately
+  after the text, leaving a visible gap before the button's real right edge (only long labels
+  happened to reach the edge). Root cause of the mode select: `.mode-btn` had no width at all, so
+  its content-driven size (and the chevron's position) shifted between "Manual" and "Auto".
+  Fixed both the same way: `.label { flex: 1; min-width: 0; overflow: hidden; text-overflow:
+  ellipsis; white-space: nowrap }` so the label fills the available space and the chevron
+  (`.chev { flex: none }`) always docks flush right; gave `.mode-btn` a fixed `width: 112px` (was
+  content-sized) so it no longer resizes between modes — done at 2f8205c; typecheck clean, 83/83
+  main-process tests, 77/77 renderer tests green; verified with a throwaway Playwright script
+  (not committed) against the real built bundle at 678x864, pt locale, using a short model label
+  on purpose: both chevrons measured a 9-11px inset from their button's right edge (padding, not a
+  gap) and `.mode-btn`'s right edge/chevron position were pixel-identical between "Manual" and
+  "Auto".
 
 ## History
 
