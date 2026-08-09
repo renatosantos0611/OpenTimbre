@@ -54,3 +54,7 @@
 ## Reseal 3 (final — CI loop closure)
 
 - 2026-08-09 — dry-run loop: (a) electron moved to devDependencies (29ecc14); (b) pinned exact 43.3.0 (59f0de6); (c) smoke retargeted to win-unpacked (592a71a, ratified); (d) main/preload bundled with esbuild — Node cannot strip .ts under node_modules in asar (4dd245b, ratified); (e) data dir mkdir before initStore (d3dc4b4). Temporary boot diagnostics added then removed (afd6a1d → 9d4a719). Final pipeline GREEN end-to-end: checks → build → renderer e2e → NSIS+portable packaging → packaged smoke → publish. Draft release v0.1.0 and tag v0.1.0-ci-test deleted afterwards. Feed-error silence + injectable updater loader unit-tested (62 main tests). Cumulative delta review APPROVED. Seal reissued at 1ebccaf.
+
+## Delivery follow-up
+
+- 2026-08-09 — PR #3 merged into origin/main at 1f1fce4 (initial seal f0cbf0d) — user merged before the dry-run loop closed. The 13 fix commits (CI dry-run loop) opened as PR #4 (renatosantos0611/OpenTimbre#4); `done` observes base-ref containing validated-head 1ebccaf, pending PR #4 merge. Draft release v0.1.0 and tag v0.1.0-ci-test already deleted.

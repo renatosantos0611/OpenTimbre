@@ -16,7 +16,7 @@
 - base-sha: 49e0dea76cf8ba42ec44db016aabc5fc20ac7b85
 - validated-head: 1ebccaf748e1dfa46a12e14e52c4c134eed37cb5
 - delivery-head: 1ebccaf748e1dfa46a12e14e52c4c134eed37cb5
-- delivery-status: pr-open — https://github.com/renatosantos0611/OpenTimbre/pull/3 — CI release pipeline dry-run GREEN end-to-end (packaging + packaged smoke + publish); draft release v0.1.0 and tag v0.1.0-ci-test cleaned up
+- delivery-status: pr-open — PR #3 merged at 1f1fce4 (initial seal); PR #4 carries the CI dry-run fixes → https://github.com/renatosantos0611/OpenTimbre/pull/4
 - confirm: base-ref contains validated-head (PR/branch integrated)
 - kickoff: ratified 2026-08-08
 - isolation: branch
