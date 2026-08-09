@@ -5,7 +5,7 @@
     "rootDir": "src/main",
     "types": ["node", "electron"],
     "allowJs": false,
-    "noEmit": false,
+    "noEmit": true,
     "allowImportingTsExtensions": false,
     "rewriteRelativeImportExtensions": true
   },
