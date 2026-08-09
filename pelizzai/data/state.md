@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch; quick-fix (composer select chevrons pinned to a fixed end position) resumed and ratified 2026-08-09 on current branch; quick-fix (composer AI icon, fixed-size model panel, search autofocus) resumed and ratified 2026-08-09 on current branch — interview-me on which icon represents AI: user chose Brain circuit (LucideBrainCircuit) over Sparkles/Bot/Wand
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch; quick-fix (composer select chevrons pinned to a fixed end position) resumed and ratified 2026-08-09 on current branch; quick-fix (composer AI icon, fixed-size model panel, search autofocus) resumed and ratified 2026-08-09 on current branch — interview-me on which icon represents AI: user chose Brain circuit (LucideBrainCircuit) over Sparkles/Bot/Wand; quick-fix (move AI icon onto the model select, ChatGPT-logo request declined) resumed and ratified 2026-08-09 on current branch — interview-me: OpenAI's logo is absent from simple-icons (looks trademark-pulled) while Anthropic's is present, so a static ChatGPT icon would misrepresent the multi-provider picker; user chose a generic icon for both providers over a per-provider brand icon or a supplied logo file
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -179,6 +179,24 @@
   script (not committed) against the real built bundle at 678x864, pt locale: search input reported
   as `document.activeElement` immediately after opening, and the panel's bounding box (240x320) was
   pixel-identical before and after typing a filter that narrowed 3 models down to 1.
+- quick-fix (post-delivery): user said the icon from the previous quick-fix was in the wrong
+  place (it should be on the model select, not floating over the free-text input) and asked to
+  swap it for the ChatGPT icon. Moved the icon: `composer.ts` reverted to a plain textarea (no
+  `.entry-row` wrapper, no icon), and `model-menu.ts`'s `.model-btn` gained the icon as its
+  leading child (before `.label`), `flex: none` like the chevron. On the icon swap: checked
+  simple-icons' dataset (`data/simple-icons.json`) directly — Anthropic's mark is there, but
+  there is no OpenAI/ChatGPT entry at all (title search for "openai"/"gpt"/"chatgpt" only turns up
+  "OpenAI Gym", unrelated), consistent with a trademark-driven removal rather than an oversight.
+  Since this model picker lists both GPT and Claude models, a fixed ChatGPT icon would misrepresent
+  it whenever a Claude model is active — raised this to the user with 3 options (dynamic per-provider
+  brand icons / static ChatGPT regardless of provider / generic icon for both) before touching code.
+  First interview-me picked "dynamic per-provider"; once the OpenAI-logo gap surfaced, a second
+  interview-me (generic-for-both / generic-GPT-plus-real-Anthropic-logo / user-supplied file) landed
+  on generic for both — kept the already-chosen Brain circuit glyph rather than introducing a
+  one-sided brand icon or fabricating an OpenAI mark from memory — done at ee3cb60; typecheck clean,
+  83/83 main-process tests, 77/77 renderer tests green; verified with a throwaway Playwright
+  screenshot (not committed) against the real built bundle at 678x864, pt locale: icon now renders
+  inside `.model-btn` before the label, textarea has no icon.
 
 ## History
 
