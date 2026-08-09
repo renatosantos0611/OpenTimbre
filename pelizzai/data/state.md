@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -136,6 +136,16 @@
   baseline matches the reference (merged box, model left / Manual+send right, hint below), typing a
   long draft grows the box to two lines while the actions stay pinned inside it, and it collapses
   back to one row after the simulated send.
+- quick-fix (post-delivery): user asked for the model/Manual/send controls to sit at the same
+  height, and for the textarea to start at 2 lines instead of 1. `.model-btn`
+  (`model-menu.ts`) and `.mode-btn` (`mode-menu.ts`) were `height: 32px` against `.send`'s
+  `36px` — bumped both to `36px` so the whole actions row sits flush. `.entry` had no
+  `min-height`, so it opened at one line; added `min-height: calc(2 * 14px * 1.4)` (the
+  textarea's own font-size/line-height) — the auto-grow from the previous commit still expands
+  past it — done at 777ce65; typecheck clean, 83/83 main-process tests, 77/77 renderer tests
+  green; verified with a throwaway Playwright screenshot (script + PNG not committed) against the
+  real built bundle at 678x864, pt locale: `.send`/`.model-btn`/`.mode-btn` all measured 36px tall
+  and the empty `.entry` measured ~39px (two lines).
 
 ## History
 
