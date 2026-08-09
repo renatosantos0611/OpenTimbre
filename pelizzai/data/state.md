@@ -38,8 +38,9 @@
 - T1 ✅ 5efdfa4 — app:// protocol handler + traversal defenses, 6 new tests, split review approved; plan-fact amendment: renderer base is dist/renderer/browser
 - T2 ✅ 827ce66 — electron-builder 26.15.3 config (NSIS per-user + portable, release/), version 0.1.0; docs verified via app-builder-lib scheme.json (docs site unfetchable); split review approved
 - T3 ✅ b4080e6 — UpdaterStatus contracts + UpdaterRuntime seam (electron/inert) + updater:download/install IPC + main wiring, 6 new tests; plan amendment: fake-desktop-api stubs moved to T3; split review approved
-- T4 ✅ pending-sha — update banner in StatusBar (4 states + dismiss), 9 unit + 4 e2e scenarios, 8 i18n keys en/pt; split review approved
-- next: T5 GitHub Actions release workflow + packaged e2e
+- T4 ✅ ddff7d8 (+16caec6 e2e remainder) — update banner in StatusBar (4 states + dismiss), 9 unit + 4 e2e scenarios, 8 i18n keys en/pt; split review approved
+- T5 ✅ b290da2 — release.yml (tag → checks → build → e2e → package → packaged smoke → publish) + e2e-packaged Playwright smoke; amendment: build precedes renderer e2e; split review approved
+- next: T5 dry-run decision (throwaway tag → Actions, external effect) + T6 release docs
 - pending: domain skill candidate electron-builder (propose at closeout)
 
 ## History
