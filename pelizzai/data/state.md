@@ -50,6 +50,7 @@
 - T7 ✅ 2026-08-09 — `ai:listModels` channel: model-catalog with label/tier rules (tier decision ratified), allSettled degradation, no key leaks; 73 main tests, typecheck
 - T8 ✅ 2026-08-09 — model picker in composer: searchable, grouped by tier, degraded states, persists via setModel; 69 renderer + 14 e2e tests
 - T9 ✅ 2026-08-09 — Settings parity: four groups (guitar/AI/appearance/window), key-row badges, provider labels, window toggles; autoApply moved to composer only; 70 renderer + 14 e2e tests
+- T10 ✅ 2026-08-09 — full `npm run check` exit 0 (all unit suites incl. 70 renderer), e2e 14 pass, lint 0, fresh-profile boot green; no code fix needed. Packaged smoke (`dist:win`+`test:packaged`) is Windows-only — node-gyp can't cross-compile @julusian/midi on Linux; covered by CI release.yml on windows-latest
 - open gaps: none blocking; residuals listed in the plan under `## Exposed material gaps`
 
 ## History
