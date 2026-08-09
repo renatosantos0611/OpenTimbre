@@ -42,6 +42,7 @@
 - next: post-plan gate ratified 2026-08-09 (branch / inline / granular / split, kickoff ratified);
   starting Task 1
 - T1 ✅ 2026-08-09 — ESM boot fix: single re-export `electron.ts`, value imports repointed; 64 main tests, typecheck, live boot green (0 SyntaxError)
+- T2 ✅ 2026-08-09 — fresh profile: `dim_on_unfocus` default true, `locale` default en + OS-resolved fallback via `resolveLocale`/`hasStored`; 67 main tests
 - open gaps: none blocking; residuals listed in the plan under `## Exposed material gaps`
 
 ## History

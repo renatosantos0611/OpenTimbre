@@ -17,7 +17,7 @@ import { anthropicProvider } from '@opentimbre/core/src/providers/anthropic.ts'
 import { configure as configureKeys } from '@opentimbre/core/src/secrets/key-store.ts'
 import { createMainWindow } from './window.ts'
 import { registerRendererProtocol } from './renderer-protocol.ts'
-import { initStore, getStore } from './storage/desktop-store.ts'
+import { initStore, getStore, resolveLocale } from './storage/desktop-store.ts'
 import { createSafeStorageVault } from './storage/vault.ts'
 import { registerIpcHandlers } from './ipc/handlers.ts'
 import { createPluginManager } from './plugins/plugin-manager.ts'
@@ -150,11 +150,13 @@ app.whenReady().then(async () => {
   const updater = createUpdater({ runtime: updaterRuntime, send })
 
   const store = getStore()
+  const getLocale = (): Locale =>
+    store.hasStored('locale') ? (store.get('locale') as Locale) : resolveLocale(app.getLocale())
   const chat = createChatController({
     repo: createConversationRepository(store.connection),
     getProviders: wireProviders,
     getGuitar,
-    getLocale: () => store.get('locale') as Locale,
+    getLocale,
     autoApply: () => store.getBool('auto_apply'),
     applier,
     send,
@@ -172,7 +174,7 @@ app.whenReady().then(async () => {
     chat,
     updater,
     send,
-    getLocale: () => store.get('locale') as Locale,
+    getLocale,
     getGuitar,
     setAlwaysOnTop,
     systemDark: nativeTheme.shouldUseDarkColors,
