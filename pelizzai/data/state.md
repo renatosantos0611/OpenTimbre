@@ -7,34 +7,40 @@
 
 ## Active task
 
-- slug: phase4-packaging
-- track: infra
+- slug: ui-legacy-parity
+- track: feature
 - lane: exploratory
-- phase: delivered
-- branch: feat/phase4-packaging
+- phase: planning
+- branch: spec/ui-legacy-parity
 - base-ref: refs/remotes/origin/main
-- base-sha: 49e0dea76cf8ba42ec44db016aabc5fc20ac7b85
-- validated-head: 1ebccaf748e1dfa46a12e14e52c4c134eed37cb5
-- delivery-head: 1ebccaf748e1dfa46a12e14e52c4c134eed37cb5
-- delivery-status: pr-open — PR #3 merged at 1f1fce4 (initial seal); PR #4 carries the CI dry-run fixes → https://github.com/renatosantos0611/OpenTimbre/pull/4
-- confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-08
-- isolation: branch
+- base-sha: c687657c129f99c8b449ba205469b027470b2faa
+- validated-head: <none>
+- delivery-head: <none>
+- delivery-status: local — planning branch published at base
+- confirm: <none>
+- kickoff: pending
+- isolation: <pending>
 - worktree-path: <none>
-- execution-mode: subagents
-- commit-strategy: granular
-- review-profile: split
-- effect: write-local
-- risk: high
-- overlays: pelizzai-oswap, pelizzai-documenting-features
+- execution-mode: <unset>
+- commit-strategy: <unset>
+- review-profile: <unset>
+- effect: external
+- risk: medium
+- overlays: pelizzai-frontend, pelizzai-oswap, opentimbre-angular-ui, opentimbre-electron-ipc, opentimbre-secrets, opentimbre-i18n, opentimbre-testing, opentimbre-code-style
 - audience: technical
-- spec: pelizzai/specs/2026-08-08-phase4-packaging.md
-- plan: pelizzai/plans/2026-08-08-phase4-packaging.md
-- project: /workspace/OpenTimbre
+- spec: pelizzai/specs/2026-08-09-ui-legacy-parity.md
+- plan: pelizzai/plans/2026-08-09-ui-legacy-parity.md
+- project: C:/Users/dingo/github/opentimbre
 
 ## Progress
 
-- next: observe delivery `done` (PR merged into base-ref) at the next opening
+- scope: planning only — restore legacy visual/navigational parity in the Angular renderer,
+  unblock screen switching, expose the AI key inputs in Settings, settle the unfocus behavior.
+  No product code in this task.
+- done: reproduction (app does not boot — ESM/electron named import), discovery closed with 5
+  ratified decisions, spec written, plan written with 10 vertical tasks
+- next: plan content approval by the user → post-plan setup gate of `pelizzai-execution-plans`
+- open gaps: none blocking; residuals listed in the plan under `## Exposed material gaps`
 
 ## History
 
@@ -43,6 +49,7 @@
 - 2026-08-06 rebuild-phase1-foundation — done — local delivery accepted; 125 tests passed → data/history/2026-08-05-rebuild-phase1-foundation.md
 - 2026-08-06 rebuild-phase2-plugins — done 2026-08-06 — PR #1 merged into origin/main at 0e1f593 → data/history/2026-08-06-rebuild-phase2-plugins.md
 - 2026-08-08 phase3-desktop — done 2026-08-08 — PR #2 merged into origin/main at 49e0dea → data/history/2026-08-08-phase3-desktop.md
-- 2026-08-08 phase4-packaging — delivered — packaging + confirmed auto-update, 6 tasks, split+OWASP reviewed → data/history/2026-08-08-phase4-packaging.md
+- 2026-08-08 phase4-packaging — done 2026-08-09 — observed: origin/main contains validated-head 1ebccaf (PR #5 at eb8242c); follow-up PR #6 merged at c687657 → data/history/2026-08-08-phase4-packaging.md
+- 2026-08-09 ui-legacy-parity — discovery — planning branch spec/ui-legacy-parity opened at c687657
 
-_Last updated: 2026-08-08_
+_Last updated: 2026-08-09_
