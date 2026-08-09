@@ -16,49 +16,34 @@ const PICKUPS = ['single', 'humbucker', 'HSS', 'HSH', 'P90', 'other'] as const
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <fieldset class="group">
-      <legend>{{ i18n.t('settings.guitar') }}</legend>
-      <div class="grid">
-        <label class="field">
-          <span>{{ i18n.t('settings.guitar.model') }}</span>
-          <input [value]="model()" (input)="model.set($any($event.target).value)" />
-        </label>
-        <label class="field">
-          <span>{{ i18n.t('settings.guitar.pickups') }}</span>
-          <select [value]="pickups()" (change)="pickups.set($any($event.target).value)">
-            @for (p of PICKUPS; track p) {
-              <option [value]="p">{{ pickupLabel(p) }}</option>
-            }
-          </select>
-        </label>
-        <label class="field">
-          <span>{{ i18n.t('settings.guitar.tuning') }}</span>
-          <input [value]="tuning()" (input)="tuning.set($any($event.target).value)" />
-        </label>
-        <label class="field">
-          <span>{{ i18n.t('settings.guitar.strings') }}</span>
-          <input type="number" min="4" max="12" [value]="strings()" (input)="setStrings($any($event.target).value)" />
-        </label>
-      </div>
-      <button class="save" type="button" (click)="save()">
-        {{ saved() ? i18n.t('settings.guitar.saved') : i18n.t('settings.guitar.save') }}
-      </button>
-    </fieldset>
+    <div class="grid">
+      <label class="field">
+        <span>{{ i18n.t('settings.guitar.model') }}</span>
+        <input [value]="model()" (input)="model.set($any($event.target).value)" />
+      </label>
+      <label class="field">
+        <span>{{ i18n.t('settings.guitar.pickups') }}</span>
+        <select [value]="pickups()" (change)="pickups.set($any($event.target).value)">
+          @for (p of PICKUPS; track p) {
+            <option [value]="p">{{ pickupLabel(p) }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        <span>{{ i18n.t('settings.guitar.tuning') }}</span>
+        <input [value]="tuning()" (input)="tuning.set($any($event.target).value)" />
+      </label>
+      <label class="field">
+        <span>{{ i18n.t('settings.guitar.strings') }}</span>
+        <input type="number" min="4" max="12" [value]="strings()" (input)="setStrings($any($event.target).value)" />
+      </label>
+    </div>
+    <button class="save" type="button" (click)="save()">
+      {{ saved() ? i18n.t('settings.guitar.saved') : i18n.t('settings.guitar.save') }}
+    </button>
   `,
   styles: [
     `
-      .group {
-        border: 0;
-        padding: 0;
-        margin: 0 0 16px;
-      }
-      legend {
-        font-family: var(--font-display);
-        font-weight: 500;
-        font-size: 12px;
-        color: var(--text-dim);
-        margin-bottom: 6px;
-      }
       .grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
