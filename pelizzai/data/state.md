@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch; quick-fix (composer select chevrons pinned to a fixed end position) resumed and ratified 2026-08-09 on current branch; quick-fix (composer AI icon, fixed-size model panel, search autofocus) resumed and ratified 2026-08-09 on current branch — interview-me on which icon represents AI: user chose Brain circuit (LucideBrainCircuit) over Sparkles/Bot/Wand; quick-fix (move AI icon onto the model select, ChatGPT-logo request declined) resumed and ratified 2026-08-09 on current branch — interview-me: OpenAI's logo is absent from simple-icons (looks trademark-pulled) while Anthropic's is present, so a static ChatGPT icon would misrepresent the multi-provider picker; user chose a generic icon for both providers over a per-provider brand icon or a supplied logo file
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch; quick-fix (composer select chevrons pinned to a fixed end position) resumed and ratified 2026-08-09 on current branch; quick-fix (composer AI icon, fixed-size model panel, search autofocus) resumed and ratified 2026-08-09 on current branch — interview-me on which icon represents AI: user chose Brain circuit (LucideBrainCircuit) over Sparkles/Bot/Wand; quick-fix (move AI icon onto the model select, ChatGPT-logo request declined) resumed and ratified 2026-08-09 on current branch — interview-me: OpenAI's logo is absent from simple-icons (looks trademark-pulled) while Anthropic's is present, so a static ChatGPT icon would misrepresent the multi-provider picker; user chose a generic icon for both providers over a per-provider brand icon or a supplied logo file; quick-fix (select label left-align + Claude label formatting) resumed and ratified 2026-08-09 on current branch — interview-me: user confirmed formatting Claude model names to match GPT's polish (e.g. "Claude Opus 5") rather than leaving them as raw ids
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -197,6 +197,26 @@
   83/83 main-process tests, 77/77 renderer tests green; verified with a throwaway Playwright
   screenshot (not committed) against the real built bundle at 678x864, pt locale: icon now renders
   inside `.model-btn` before the label, textarea has no icon.
+- quick-fix (post-delivery): user reported the model name looked centered instead of left-aligned,
+  and asked whether GPT version names should be capitalized ("leave everything uppercase, at
+  least GPT"). Root cause of the centering: `.model-btn`/`.mode-btn` are `<button>` elements, whose
+  UA default is `text-align: center`; `.label` never overrode it (only `.item` in the model list
+  had an explicit `text-align: left`), so a short label centered inside its `flex: 1` box instead
+  of sitting flush left after the icon — added the explicit override to both selects' `.label`
+  (same latent bug in both, fixed for consistency even though only the model select was called
+  out). On capitalization: GPT labels were already correct (`GPT-5.6 Terra`, from
+  `model-catalog.ts`'s `modelLabel()`); the real gap was Anthropic — that function only formatted
+  the `gpt-*` family and passed Claude ids through raw (`claude-opus-5` instead of a display name),
+  a stark inconsistency next to GPT's polish. Confirmed via interview-me before touching the
+  formatter (it's a real naming-scheme decision, not a mechanical tweak): extended `modelLabel()`
+  to capitalize `claude-<family>-<version>`, normalizing a dashed point release (`-4-5`) to dotted
+  (`4.5`) — the same shape `modelTier` already parses. TDD: updated `model-catalog.test.ts`'s
+  assertions first (confirmed RED — actual `'claude-opus-5'` vs expected `'Claude Opus 5'`), then
+  implemented (GREEN) — done at 03542c0; typecheck clean, 83/83 main-process tests (includes the
+  updated `model-catalog.test.ts`), 77/77 renderer tests green; verified with a throwaway Playwright
+  script (not committed) against the real built bundle at 678x864: label text's left edge now
+  matches its box's left edge (was centered with ~17px gap on each side), and an active
+  `claude-sonnet-4-5` model renders as "Claude Sonnet 4.5" in the select.
 
 ## History
 
