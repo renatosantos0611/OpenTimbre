@@ -31,7 +31,7 @@ function provider(responses: Response[], history: unknown[] = []): RigChatProvid
     model: () => 'fake-model',
     tools,
     asks,
-    listModels: async () => [{ provider: 'anthropic', providerLabel: 'Fake Anthropic', id: 'fake-model' }],
+    listModels: async () => [{ provider: 'anthropic', providerLabel: 'Fake Anthropic', id: 'fake-model', releasedAt: 0 }],
     createSession: () => {
       let responseIndex = 0
       const session: Session = {
@@ -223,6 +223,6 @@ test('listModels combines model catalogs without contacting a live provider in t
   const fake = provider([])
 
   assert.deepEqual(await listModels([fake]), [
-    { provider: 'anthropic', providerLabel: 'Fake Anthropic', id: 'fake-model' },
+    { provider: 'anthropic', providerLabel: 'Fake Anthropic', id: 'fake-model', releasedAt: 0 },
   ])
 })

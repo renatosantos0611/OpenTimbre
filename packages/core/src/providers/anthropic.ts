@@ -203,7 +203,14 @@ export function anthropicProvider(client: AnthropicClient): AnthropicProvider {
     createSession: (system, history) => createSession(client, model(), system, history),
     listModels: async () => {
       const page = await client.models.list({ limit: 100 })
-      return page.data.map((item) => ({ provider: 'anthropic', providerLabel: 'Anthropic', id: item.id }))
+      return page.data.map((item) => ({
+        provider: 'anthropic',
+        providerLabel: 'Anthropic',
+        id: item.id,
+        // `created_at` is an RFC 3339 string, "may be set to an epoch value if
+        // the release date is unknown" (SDK docs) — Date already maps that to 0.
+        releasedAt: item.created_at ? new Date(item.created_at).getTime() : 0,
+      }))
     },
   }
 }

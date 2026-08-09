@@ -66,8 +66,12 @@ export async function listAvailableModels(providers: readonly RigChatProvider[])
           id: m.id,
           label: modelLabel(p.id, m.id),
           tier: modelTier(p.id, m.id),
+          releasedAt: typeof m.releasedAt === 'number' ? m.releasedAt : 0,
         }))
     }),
   )
-  return settled.flatMap((result) => (result.status === 'fulfilled' ? result.value : []))
+  const merged = settled.flatMap((result) => (result.status === 'fulfilled' ? result.value : []))
+  // Newest first; a provider that didn't report a date (releasedAt 0) sorts last.
+  merged.sort((a, b) => b.releasedAt - a.releasedAt)
+  return merged.map(({ releasedAt: _releasedAt, ...model }) => model)
 }

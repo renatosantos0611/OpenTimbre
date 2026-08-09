@@ -4,7 +4,11 @@ import type { ProviderId } from '@opentimbre/contracts'
 import type { RigChatProvider } from '@opentimbre/core/src/chat/rig-chat.ts'
 import { listAvailableModels, modelLabel, modelTier } from './model-catalog.ts'
 
-function provider(id: ProviderId, ids: string[] | (() => Promise<string[]>)): RigChatProvider {
+function provider(
+  id: ProviderId,
+  ids: string[] | (() => Promise<string[]>),
+  releasedAt: Record<string, number> = {},
+): RigChatProvider {
   const first = (): string => (typeof ids === 'function' ? '' : (ids[0] ?? ''))
   return {
     id,
@@ -15,7 +19,7 @@ function provider(id: ProviderId, ids: string[] | (() => Promise<string[]>)): Ri
     },
     listModels: async () => {
       const value = typeof ids === 'function' ? await (ids as () => Promise<string[]>)() : ids
-      return value.map((m) => ({ provider: id, providerLabel: id, id: m }))
+      return value.map((m) => ({ provider: id, providerLabel: id, id: m, releasedAt: releasedAt[m] ?? 0 }))
     },
   }
 }
@@ -40,14 +44,37 @@ test('modelTier derives a cost bucket from the id', () => {
   assert.equal(modelTier('openai', 'weird'), 'mid')
 })
 
-test('listAvailableModels merges both providers and orders nothing', async () => {
+test('listAvailableModels merges both providers', async () => {
   const models = await listAvailableModels([
     provider('openai', ['gpt-5.6-sol']),
     provider('anthropic', ['claude-opus-5']),
   ])
   assert.equal(models.length, 2)
-  assert.equal(models[0].label, 'GPT-5.6 Sol')
-  assert.equal(models[1].id, 'claude-opus-5')
+  assert.deepEqual(
+    models.map((m) => m.id),
+    ['gpt-5.6-sol', 'claude-opus-5'],
+  )
+})
+
+test('listAvailableModels sorts every provider merged, newest release first', async () => {
+  const models = await listAvailableModels([
+    provider('openai', ['gpt-old', 'gpt-new'], { 'gpt-old': 1000, 'gpt-new': 3000 }),
+    provider('anthropic', ['claude-mid'], { 'claude-mid': 2000 }),
+  ])
+  assert.deepEqual(
+    models.map((m) => m.id),
+    ['gpt-new', 'claude-mid', 'gpt-old'],
+  )
+})
+
+test('a model with no reported release date sorts after every dated model', async () => {
+  const models = await listAvailableModels([
+    provider('openai', ['gpt-dated', 'gpt-undated'], { 'gpt-dated': 1000 }),
+  ])
+  assert.deepEqual(
+    models.map((m) => m.id),
+    ['gpt-dated', 'gpt-undated'],
+  )
 })
 
 test('a provider that errors contributes nothing but does not fail the call', async () => {

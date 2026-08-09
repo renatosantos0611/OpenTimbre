@@ -15,11 +15,27 @@ test('Anthropic session resumes native message history', () => {
 test('Anthropic provider exposes the SDK model catalog through the core shape', async () => {
   const fake = {
     models: {
-      list: async () => ({ data: [{ id: 'claude-test' }] }),
+      list: async () => ({ data: [{ id: 'claude-test', created_at: '2026-01-15T00:00:00Z' }] }),
     },
   } as unknown as AnthropicClient
 
   assert.deepEqual(await anthropicProvider(fake).listModels(), [
-    { provider: 'anthropic', providerLabel: 'Anthropic', id: 'claude-test' },
+    {
+      provider: 'anthropic',
+      providerLabel: 'Anthropic',
+      id: 'claude-test',
+      releasedAt: Date.parse('2026-01-15T00:00:00Z'),
+    },
   ])
+})
+
+test('Anthropic provider defaults releasedAt to 0 when the SDK omits created_at', async () => {
+  const fake = {
+    models: {
+      list: async () => ({ data: [{ id: 'claude-test' }] }),
+    },
+  } as unknown as AnthropicClient
+
+  const [model] = await anthropicProvider(fake).listModels()
+  assert.equal(model.releasedAt, 0)
 })

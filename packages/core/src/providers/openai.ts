@@ -237,7 +237,13 @@ export function openaiProvider(client: OpenAIClient): OpenAIProvider {
     createSession: (system, history) => createSession(client, model(), system, history),
     listModels: async () => {
       const page = await client.models.list()
-      return page.data.map((item) => ({ provider: 'openai', providerLabel: 'OpenAI', id: item.id }))
+      return page.data.map((item) => ({
+        provider: 'openai',
+        providerLabel: 'OpenAI',
+        id: item.id,
+        // `created` is Unix seconds; 0 (not `NaN`) so a missing value still sorts last.
+        releasedAt: item.created ? item.created * 1000 : 0,
+      }))
     },
   }
 }

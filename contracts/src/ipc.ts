@@ -135,8 +135,12 @@ export type KeyInfo = {
   readable: boolean
 }
 
-/** A model available from *any* provider with a valid key, not just the active one. */
-export type AvailableModel = { provider: ProviderId; providerLabel: string; id: string }
+/**
+ * A model available from *any* provider with a valid key, not just the active
+ * one. `releasedAt` is a Unix-ms timestamp — 0 when the provider's API didn't
+ * report one — used to sort the newest models first.
+ */
+export type AvailableModel = { provider: ProviderId; providerLabel: string; id: string; releasedAt: number }
 
 /** Coarse cost bucket derived from the model id — neither provider returns pricing. */
 export type ModelTier = 'low' | 'mid' | 'high'

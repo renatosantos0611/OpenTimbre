@@ -30,7 +30,7 @@ function provider(label: string, responses: Response[]): RigChatProvider & { ses
     label,
     model: () => 'fake-model',
     sessions: () => sessions,
-    listModels: async () => [{ provider: 'anthropic', providerLabel: label, id: 'fake-model' }],
+    listModels: async () => [{ provider: 'anthropic', providerLabel: label, id: 'fake-model', releasedAt: 0 }],
     createSession: () => {
       sessions++
       let index = 0

@@ -44,30 +44,32 @@ import { I18nService } from '../i18n.service'
             />
           </label>
 
-          @if (desktop.modelsError()) {
-            <p class="degraded">{{ i18n.t('chat.model.error') }}</p>
-          } @else if (desktop.models().length === 0) {
-            <p class="degraded">{{ i18n.t('chat.model.empty') }}</p>
-          } @else if (filtered().length === 0) {
-            <p class="degraded">{{ i18n.t('chat.model.noResults') }}</p>
-          } @else {
-            @for (group of groups(); track group.tier) {
-              <div class="group">
-                <span class="group-tag">{{ tierLabel()[group.tier] }}</span>
-                @for (model of group.models; track model.id) {
-                  <button
-                    class="item"
-                    type="button"
-                    [attr.aria-pressed]="isActive(model)"
-                    (click)="choose(model)"
-                  >
-                    <span class="item-name">{{ model.label }}</span>
-                    <span class="item-id">{{ model.id }}</span>
-                  </button>
-                }
-              </div>
+          <div class="list">
+            @if (desktop.modelsError()) {
+              <p class="degraded">{{ i18n.t('chat.model.error') }}</p>
+            } @else if (desktop.models().length === 0) {
+              <p class="degraded">{{ i18n.t('chat.model.empty') }}</p>
+            } @else if (filtered().length === 0) {
+              <p class="degraded">{{ i18n.t('chat.model.noResults') }}</p>
+            } @else {
+              @for (group of groups(); track group.tier) {
+                <div class="group">
+                  <span class="group-tag">{{ tierLabel()[group.tier] }}</span>
+                  @for (model of group.models; track model.id) {
+                    <button
+                      class="item"
+                      type="button"
+                      [attr.aria-pressed]="isActive(model)"
+                      (click)="choose(model)"
+                    >
+                      <span class="item-name">{{ model.label }}</span>
+                      <span class="item-id">{{ model.id }}</span>
+                    </button>
+                  }
+                </div>
+              }
             }
-          }
+          </div>
         </div>
       }
     </div>
@@ -130,6 +132,11 @@ import { I18nService } from '../i18n.service'
         border-bottom: 1px solid var(--border);
         color: var(--text-faint);
         flex: none;
+      }
+      .list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
       }
       .search input {
         flex: 1;
