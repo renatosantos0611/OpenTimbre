@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { UpdaterStatus } from '@opentimbre/contracts'
-import { createUpdater, inertUpdaterRuntime, type UpdaterRuntime } from './updater.ts'
+import { createElectronUpdaterRuntime, createUpdater, inertUpdaterRuntime, type AutoUpdaterLike, type UpdaterRuntime } from './updater.ts'
 
 /** Recorded push sent toward the renderer window. */
 type Sent = { channel: string; payload: unknown }
@@ -110,4 +110,120 @@ test('the inert runtime never emits a status — dev runs and portable stay sile
   runtime.quitAndInstall()
   assert.equal(statuses.length, 0)
   unsubscribe()
+})
+
+// ── electron-updater wrapper (loader seam) ─────────────────────────────
+// `createElectronUpdaterRuntime` takes an injectable loader so these tests
+// drive the real event mapping with an EventEmitter-like fake — no Electron and
+// no network, per `opentimbre-testing`.
+
+/** A scriptable `AutoUpdaterLike`: record listeners, fire events, settle the in-flight download. */
+function fakeAutoUpdater(): AutoUpdaterLike & {
+  fire(channel: string, payload: unknown): void
+  settleDownload(outcome: 'resolve' | 'reject', error?: Error): void
+} {
+  const listeners = new Map<string, ((payload: unknown) => void)[]>()
+  let resolveDownload: (() => void) | null = null
+  let rejectDownload: ((e: Error) => void) | null = null
+  return {
+    // Start both on to prove the wrapper forces them off.
+    autoDownload: true,
+    autoInstallOnAppQuit: true,
+    checkForUpdates() {
+      return Promise.resolve()
+    },
+    downloadUpdate() {
+      return new Promise<void>((resolve, reject) => {
+        resolveDownload = () => resolve()
+        rejectDownload = (e) => reject(e)
+      })
+    },
+    quitAndInstall() {},
+    on(channel, listener) {
+      const list = listeners.get(channel) ?? []
+      list.push(listener)
+      listeners.set(channel, list)
+      return undefined
+    },
+    fire(channel, payload) {
+      for (const l of listeners.get(channel) ?? []) l(payload)
+    },
+    settleDownload(outcome, error) {
+      if (outcome === 'resolve') resolveDownload?.()
+      else rejectDownload?.(error ?? new Error('download failed'))
+    },
+  }
+}
+
+test('the electron runtime forces autoDownload and autoInstallOnAppQuit off', () => {
+  const fake = fakeAutoUpdater()
+  createElectronUpdaterRuntime(() => fake)
+  // Download only on explicit confirm; install only on the explicit restart
+  // action — never on quit.
+  assert.equal(fake.autoDownload, false)
+  assert.equal(fake.autoInstallOnAppQuit, false)
+})
+
+test('a feed error before any download is silent — no error banner at boot', () => {
+  const fake = fakeAutoUpdater()
+  const runtime = createElectronUpdaterRuntime(() => fake)
+  const statuses: UpdaterStatus[] = []
+  runtime.onStatus((s) => statuses.push(s))
+  runtime.checkForUpdates()
+  // Unreachable feed / no release yet surface as an `error` event pre-download
+  // — the ratified contract swallows them.
+  fake.fire('error', new Error('net::ERR_NAME_NOT_RESOLVED'))
+  fake.fire('update-not-available', undefined)
+  assert.equal(statuses.length, 0)
+})
+
+test('an error during an in-flight download reaches the renderer', async () => {
+  const fake = fakeAutoUpdater()
+  const runtime = createElectronUpdaterRuntime(() => fake)
+  const statuses: UpdaterStatus[] = []
+  runtime.onStatus((s) => statuses.push(s))
+  const pending = runtime.downloadUpdate()
+  fake.fire('error', new Error('interrupted download'))
+  fake.settleDownload('reject', new Error('interrupted download'))
+  await assert.rejects(() => pending, /interrupted download/)
+  assert.deepEqual(statuses, [{ state: 'error', message: 'interrupted download' }])
+})
+
+test('available/downloading/ready map through unchanged; not-available sends nothing', () => {
+  const fake = fakeAutoUpdater()
+  const runtime = createElectronUpdaterRuntime(() => fake)
+  const statuses: UpdaterStatus[] = []
+  runtime.onStatus((s) => statuses.push(s))
+  fake.fire('update-available', { version: '9.9.9' })
+  fake.fire('download-progress', { percent: 42.5 })
+  fake.fire('update-downloaded', undefined)
+  fake.fire('update-not-available', undefined)
+  assert.deepEqual(statuses, [
+    { state: 'available', version: '9.9.9' },
+    { state: 'downloading', percent: 42.5 },
+    { state: 'ready' },
+  ])
+})
+
+test('after a failed download the phase resets, so the retry surfaces its failure', async () => {
+  const fake = fakeAutoUpdater()
+  const runtime = createElectronUpdaterRuntime(() => fake)
+  const statuses: UpdaterStatus[] = []
+  runtime.onStatus((s) => statuses.push(s))
+  // First attempt fails; the wrapper reports it and clears the phase.
+  const first = runtime.downloadUpdate()
+  fake.fire('error', new Error('first attempt failed'))
+  fake.settleDownload('reject', new Error('first attempt failed'))
+  await assert.rejects(() => first, /first attempt failed/)
+  // A stray feed error between attempts stays silent — phase was reset.
+  fake.fire('error', new Error('transient feed blip'))
+  // Second attempt must not be swallowed by the earlier failure.
+  const second = runtime.downloadUpdate()
+  fake.fire('error', new Error('second attempt failed'))
+  fake.settleDownload('reject', new Error('second attempt failed'))
+  await assert.rejects(() => second, /second attempt failed/)
+  assert.deepEqual(statuses, [
+    { state: 'error', message: 'first attempt failed' },
+    { state: 'error', message: 'second attempt failed' },
+  ])
 })

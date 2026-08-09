@@ -52,6 +52,9 @@
 11. Manual SemVer bump + hand-written `CHANGELOG.md`; release = tag push — ratified: interview 2026-08-08 (S5) — rejected: changelog tooling — why: no new dependency for a solo-cadence product.
 12. Task 3 (not Task 4) adds the three mechanical stub members to `fake-desktop-api.ts` — origin: plan amendment 2026-08-08 (task-boundary defect; the DesktopApi addition otherwise breaks renderer typecheck under Task 3's green-tree proof duty) — rejected: ship T3 typecheck-red / weaken the contract to optional members — why: keeps every ratified contract intact and hands Task 4 a green base.
 13. `autoInstallOnAppQuit = false` — ratified: execution interview 2026-08-08 (strict reading of the spec's "restart-and-install starts only after an explicit install message") — rejected: electron-updater default (install a confirmed download on quit) — why: a downloaded update applies only via the banner Restart action; quitting never installs silently.
+14. Bundle desktop main/preload with esbuild (externals: electron, electron-updater, @julusian/midi); tsconfig.main.json noEmit — ratified: execution interview 2026-08-08 — rejected: per-package JS emit / no fix — why: Node refuses type-stripping under node_modules (ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING, reproduced); workspace .ts deep-imports crashed the packaged main before first paint.
+15. Automated packaged smoke launches `release/win-unpacked/OpenTimbre.exe` — ratified: execution interview 2026-08-08 — rejected: portable-wrapper exe (Playwright CDP cannot attach through the relaunching wrapper) — why: proves the real packaged runtime (asar, app:// handler, preload, updater); wrapper/installer layers stay on the manual checklist.
+16. electron-updater 'error' events are silent until a download starts — ratified: spec (no error UI for an unavailable feed) + execution amendment 2026-08-08 — rejected: forward every error — why: feed/network errors at startup must never paint the update banner.
 
 ---
 

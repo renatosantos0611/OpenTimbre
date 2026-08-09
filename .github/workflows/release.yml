@@ -1,6 +1,6 @@
 # Tag-triggered release pipeline for the desktop app: full proof chain
 # (lint, typecheck, unit suites, renderer e2e) -> build -> packaged-runtime
-# smoke on the portable exe -> publish NSIS + portable artifacts to the tag's
+# smoke on the unpacked runtime -> publish NSIS + portable artifacts to the tag's
 # GitHub Release. Least privilege: GITHUB_TOKEN only, contents: write only.
 name: release
 
@@ -43,7 +43,7 @@ jobs:
         run: npx electron-builder --win --publish never
         working-directory: packages/desktop
 
-      - name: Packaged smoke on the portable exe
+      - name: Packaged smoke on the unpacked runtime
         run: npm run test:packaged -w @opentimbre/desktop
 
       # Republishes over the tag's release; the token is scoped to this step.

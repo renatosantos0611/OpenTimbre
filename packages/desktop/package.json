@@ -10,8 +10,8 @@
   },
   "scripts": {
     "build": "npm run build:main && npm run build:preload && npm run build:renderer",
-    "build:main": "tsc -p tsconfig.main.json",
-    "build:preload": "tsc -p tsconfig.preload.json",
+    "build:main": "esbuild src/main/main.ts --bundle --platform=node --format=esm --target=node22 --external:electron --external:electron-updater --external:@julusian/midi --outfile=dist/main/main.js",
+    "build:preload": "esbuild src/preload/preload.cts --bundle --platform=node --format=cjs --external:electron --outfile=dist/preload/preload.cjs",
     "build:renderer": "ng build desktop",
     "dist:win": "npm run build && electron-builder --win",
     "typecheck": "tsc -p tsconfig.main.json && tsc -p tsconfig.renderer.json --noEmit",
@@ -32,7 +32,6 @@
     "@opentimbre/contracts": "*",
     "@opentimbre/core": "*",
     "@opentimbre/platform-node": "*",
-    "electron": "^43.2.0",
     "electron-updater": "^6.8.9",
     "openai": "^7.4.0",
     "zod": "^3.25.76"
@@ -45,7 +44,9 @@
     "@fontsource/source-sans-3": "^5.3.0",
     "@lucide/angular": "^1.30.0",
     "@playwright/test": "^1.62.1",
+    "electron": "43.3.0",
     "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
     "jsdom": "^26.1.0",
     "vitest": "^4.1.10"
   },
