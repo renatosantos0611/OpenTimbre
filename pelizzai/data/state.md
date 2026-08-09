@@ -38,6 +38,11 @@
 - quick-fix (post-delivery): remove native OS title bar text and default File/Edit/View/Window
   menu — `titleBarStyle: 'hidden'` + `titleBarOverlay` (keeps native minimize/maximize/close),
   `Menu.setApplicationMenu(null)` — done; typecheck clean, 75/75 main-process tests green
+- quick-fix (post-delivery): history click now switches back to the chat pane after opening a
+  conversation; the top plugin bar shows only the plugin the AI suggested for the open
+  conversation (`OpenConversation.plugin`) instead of the whole catalog; each history row now
+  shows its own suggested plugin — done at 960f8ab; typecheck clean (desktop + contracts), 79/79
+  main-process tests, 74/74 renderer tests green
 - false alarm, resolved: `npm run desktop` appeared to crash before any window opened —
   `TypeError: Cannot read properties of undefined (reading 'registerSchemesAsPrivileged')` — when
   launched from the agent's own sandboxed shell (no display attached). The user confirmed
