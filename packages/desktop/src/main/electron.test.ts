@@ -33,6 +33,7 @@ const EXPECTED_NAMES = [
   'app',
   'BrowserWindow',
   'ipcMain',
+  'Menu',
   'protocol',
   'safeStorage',
   'session',

@@ -34,6 +34,7 @@ type Deps = {
   getLocale: () => import('@opentimbre/i18n').Locale
   systemDark: boolean
   setAlwaysOnTop: (onTop: boolean) => void
+  setTitleBarOverlay: (theme: import('@opentimbre/contracts').Theme) => void
   version: string
   listModels: () => Promise<import('@opentimbre/contracts').ModelInfo[]>
 }
@@ -88,7 +89,13 @@ export function registerIpcHandlers(deps: Deps): void {
   })
 
   ipcMain.handle('window:setTheme', (event, theme) => {
-    try { trusted(event); deps.store.set('theme', validatePayload('window:setTheme', theme) as string); return appState(deps) } catch (e) { return failure(String(e)) }
+    try {
+      trusted(event)
+      const value = validatePayload('window:setTheme', theme) as import('@opentimbre/contracts').Theme
+      deps.store.set('theme', value)
+      deps.setTitleBarOverlay(value)
+      return appState(deps)
+    } catch (e) { return failure(String(e)) }
   })
 
   ipcMain.handle('window:setLocale', (event, locale) => {

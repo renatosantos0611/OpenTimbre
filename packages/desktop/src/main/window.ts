@@ -1,4 +1,13 @@
-/** Creates the secure 420x700 desktop window and applies navigation lockdown. */
+/**
+ * Creates the secure 420x700 desktop window and applies navigation lockdown.
+ * Frameless: the OS title bar (app name) and the default File/Edit/View/Window
+ * menu are replaced by the in-content hamburger row (`ot-titlebar`), which
+ * already draws its own `-webkit-app-region: drag` strip. `titleBarStyle:
+ * 'hidden'` keeps the native minimize/maximize/close buttons — Electron
+ * composites them into `titleBarOverlay`'s reserved top-right area — instead
+ * of hand-drawing a second set that would fight the OS over hover/snap
+ * behavior.
+ */
 import { BrowserWindow, session } from './electron.ts'
 import type { BrowserWindowType, Rectangle } from './electron.ts'
 import { fileURLToPath } from 'node:url'
@@ -8,10 +17,16 @@ export const APP_ORIGIN = 'app://opentimbre'
 
 export type WindowBounds = { x: number; y: number; width: number; height: number }
 
+/** Matches `ot-titlebar`'s `:host { height: 40px }` so the overlay row lines up with it. */
+export const TITLE_BAR_HEIGHT = 40
+
+export type TitleBarOverlayColors = { color: string; symbolColor: string }
+
 export function createMainWindow(opts: {
   alwaysOnTop: boolean
   bounds: Partial<WindowBounds>
   onBoundsChanged: (bounds: Rectangle) => void
+  overlay: TitleBarOverlayColors
 }): BrowserWindowType {
   const window = new BrowserWindow({
     width: 420,
@@ -22,6 +37,8 @@ export function createMainWindow(opts: {
     y: opts.bounds.y,
     show: false,
     alwaysOnTop: opts.alwaysOnTop,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: { ...opts.overlay, height: TITLE_BAR_HEIGHT },
     webPreferences: {
       contextIsolation: true,
       sandbox: true,

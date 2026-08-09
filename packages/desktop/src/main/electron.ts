@@ -3,7 +3,7 @@
 // destructures here, once, instead of at every call site.
 import electron from 'electron'
 
-export const { app, BrowserWindow, ipcMain, protocol, safeStorage, session, nativeTheme } = electron
+export const { app, BrowserWindow, ipcMain, Menu, protocol, safeStorage, session, nativeTheme } = electron
 // `BrowserWindow` is a value here (the destructured constructor), so callers
 // that use it as a type pick up this alias instead of importing the value.
 export type { BrowserWindow as BrowserWindowType, Rectangle } from 'electron'

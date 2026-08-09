@@ -1,5 +1,5 @@
 /** Electron entry point - wires store, IPC handlers, plugin host, and security lockdown. */
-import { app, BrowserWindow, protocol, safeStorage, nativeTheme } from './electron.ts'
+import { app, BrowserWindow, Menu, protocol, safeStorage, nativeTheme } from './electron.ts'
 import type { BrowserWindowType } from './electron.ts'
 import path from 'node:path'
 import os from 'node:os'
@@ -8,18 +8,19 @@ import { spawn } from 'node:child_process'
 import { access, copyFile, mkdir, readFile } from 'node:fs/promises'
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
-import type { Guitar, AvailableModel, ProviderId } from '@opentimbre/contracts'
+import type { Guitar, AvailableModel, ProviderId, ResolvedTheme, Theme } from '@opentimbre/contracts'
 import type { Locale } from '@opentimbre/i18n'
 import type { RigChatProvider } from '@opentimbre/core/src/chat/rig-chat.ts'
 import { listModels } from '@opentimbre/core/src/chat/rig-chat.ts'
 import { openaiProvider } from '@opentimbre/core/src/providers/openai.ts'
 import { anthropicProvider } from '@opentimbre/core/src/providers/anthropic.ts'
 import { configure as configureKeys } from '@opentimbre/core/src/secrets/key-store.ts'
-import { createMainWindow } from './window.ts'
+import { createMainWindow, type TitleBarOverlayColors } from './window.ts'
 import { registerRendererProtocol } from './renderer-protocol.ts'
 import { initStore, getStore, resolveLocale } from './storage/desktop-store.ts'
 import { createSafeStorageVault } from './storage/vault.ts'
 import { registerIpcHandlers } from './ipc/handlers.ts'
+import { resolveTheme } from './ipc/app-state.ts'
 import { createPluginManager } from './plugins/plugin-manager.ts'
 import { createSceneApplier } from './rig/scene-applier.ts'
 import { createChatController } from './chat/chat-controller.ts'
@@ -98,6 +99,13 @@ function wireProviders(): RigChatProvider[] {
   return providers
 }
 
+/** Ported from `styles.css` design tokens (`--surface-chrome` / `--text-dim`) so the native
+ *  minimize/maximize/close row matches the in-content chrome instead of a default white bar. */
+const TITLE_BAR_OVERLAY: Record<ResolvedTheme, TitleBarOverlayColors> = {
+  dark: { color: '#171719', symbolColor: '#a4a1ae' },
+  light: { color: '#efede8', symbolColor: '#56545e' },
+}
+
 /** The full guitar object the AI prompt needs; read from the persisted store. */
 const DEFAULT_GUITAR: Guitar = { model: 'Default guitar', pickups: 'humbucker', tuning: 'E standard', strings: 6 }
 
@@ -112,6 +120,10 @@ function getGuitar(): Guitar {
 }
 
 app.whenReady().then(async () => {
+  // Suppresses the default File/Edit/View/Window menu (Windows/Linux also drop
+  // the menu bar itself); called before any window exists so it never flashes.
+  Menu.setApplicationMenu(null)
+
   const dataDir = resolveDataDir()
   // The data directory must exist before SQLite can create the database file —
   // a fresh machine has no %APPDATA%\OpenTimbre.
@@ -178,6 +190,9 @@ app.whenReady().then(async () => {
     getLocale,
     getGuitar,
     setAlwaysOnTop,
+    setTitleBarOverlay: (theme: Theme) => {
+      win?.setTitleBarOverlay(TITLE_BAR_OVERLAY[resolveTheme(theme, nativeTheme.shouldUseDarkColors)])
+    },
     systemDark: nativeTheme.shouldUseDarkColors,
     version: app.getVersion() || '3.0-dev',
     listModels: () => listAvailableModels(wireProviders()),
@@ -200,7 +215,11 @@ app.whenReady().then(async () => {
   // When the OS theme changes and the window follows `system`, push the new
   // resolved theme so the renderer repaints without a reload.
   nativeTheme.on('updated', () => {
-    if (store.get('theme') === 'system') send('window:themeChanged', nativeTheme.shouldUseDarkColors ? 'dark' : 'light')
+    if (store.get('theme') === 'system') {
+      const resolved: ResolvedTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+      send('window:themeChanged', resolved)
+      win?.setTitleBarOverlay(TITLE_BAR_OVERLAY[resolved])
+    }
   })
 
   // Angular's application builder emits the browsable bundle under
@@ -210,6 +229,7 @@ app.whenReady().then(async () => {
   registerRendererProtocol(rendererDir)
 
   function openWindow(): void {
+    const chosenTheme = (store.get('theme') as Theme) || 'system'
     win = createMainWindow({
       alwaysOnTop: store.getBool('always_on_top'),
       bounds: {
@@ -218,6 +238,7 @@ app.whenReady().then(async () => {
         width: store.getNumber('width'),
         height: store.getNumber('height'),
       },
+      overlay: TITLE_BAR_OVERLAY[resolveTheme(chosenTheme, nativeTheme.shouldUseDarkColors)],
       onBoundsChanged(b) {
         store.setNumber('bounds_x', b.x)
         store.setNumber('bounds_y', b.y)

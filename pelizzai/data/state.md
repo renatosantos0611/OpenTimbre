@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -34,7 +34,22 @@
 
 ## Progress
 
-- T<n>: <pending>
+- 10 plan tasks: done, sealed at a4d03b9 (fbf10b6 = seal commit); awaiting destination decision
+- quick-fix (post-delivery): remove native OS title bar text and default File/Edit/View/Window
+  menu — `titleBarStyle: 'hidden'` + `titleBarOverlay` (keeps native minimize/maximize/close),
+  `Menu.setApplicationMenu(null)` — done; typecheck clean, 75/75 main-process tests green
+- known gap (found while validating the quick-fix, NOT caused by it — reproduced identically with
+  the fix's files stashed out): `npm run desktop` crashes before any window opens —
+  `TypeError: Cannot read properties of undefined (reading 'registerSchemesAsPrivileged')` at
+  `packages/desktop/src/main/main.ts`'s top-level `protocol.registerSchemesAsPrivileged(...)`,
+  called right after the `electron.ts` re-export import. A deferred call (`await` one
+  `setImmediate` tick before the call) did NOT fix it — reverted, not committed. Root cause
+  unconfirmed; leading hypothesis is that Electron's ESM `import electron from 'electron'` under
+  this bundling setup does not resolve to the native API binding the way `require('electron')`
+  does in CJS main processes (see `opentimbre-electron-ipc` and Task 1 of the parity plan, which
+  introduced `electron.ts`). Blocks visual verification of ANY renderer change on this branch,
+  including this quick-fix's title bar; the code was validated by typecheck + tests + Electron
+  documentation only, not by a rendered window.
 
 ## History
 
