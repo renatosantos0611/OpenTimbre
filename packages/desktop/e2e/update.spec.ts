@@ -167,7 +167,7 @@ test('update banner: dismiss hides the row for the session', async ({ page }) =>
   await page.locator('ot-status-bar .update .dismiss').click()
   await expect(page.locator('ot-status-bar .update')).toHaveCount(0)
   // The existing chrome rows are untouched.
-  await expect(page.locator('ot-status-bar')).toContainText('Port open: Virtual Port')
+  await expect(page.locator('ot-status-bar')).toContainText('Connected')
 })
 
 test('update banner: readable contrast in both themes', async ({ page }) => {

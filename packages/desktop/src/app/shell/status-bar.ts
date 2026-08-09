@@ -19,14 +19,9 @@ import { I18nService } from '../i18n.service'
   template: `
     <div class="row">
       <span class="label">{{ i18n.t('shell.status.midi') }}</span>
-      <span class="value" [class.muted]="!port()">
-        @if (midiError()) {
-          <span class="dot danger"></span>{{ i18n.t('shell.status.midiError') }}
-        } @else if (port()) {
-          {{ i18n.t('shell.status.midiOpen', { port: port() ?? '' }) }}
-        } @else {
-          <span class="dot muted"></span>{{ i18n.t('shell.status.midiClosed') }}
-        }
+      <span class="value">
+        <span class="dot" [class.ok]="midiConnected()" [class.danger]="!midiConnected()"></span>
+        {{ midiConnected() ? i18n.t('shell.status.midiConnected') : i18n.t('shell.status.midiNotFound') }}
       </span>
     </div>
     <div class="row">
@@ -164,6 +159,9 @@ import { I18nService } from '../i18n.service'
       .dot.danger {
         background: var(--danger);
       }
+      .dot.ok {
+        background: var(--success);
+      }
       .pill-row {
         color: var(--accent);
       }
@@ -254,8 +252,7 @@ export class StatusBar {
   readonly newChat = output<void>()
   readonly openSettings = output<void>()
 
-  readonly port = computed(() => this.desktop.midi().port)
-  readonly midiError = computed(() => this.desktop.midi().error)
+  readonly midiConnected = computed(() => Boolean(this.desktop.midi().port))
   readonly aiModel = computed(() => this.desktop.ai()?.modelLabel ?? '')
 
   readonly chatStatusLabel = computed(() => {
