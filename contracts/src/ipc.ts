@@ -99,6 +99,8 @@ export type Summary = {
   title: string
   updatedAt: string
   turns: number
+  /** Plugin of the conversation's last rig, or `null` if it never produced one. */
+  plugin: string | null
 }
 
 export type AppliedScene = {

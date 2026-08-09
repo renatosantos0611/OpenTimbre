@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { DESKTOP_API } from '../desktop.service'
+import { DESKTOP_API, DesktopService } from '../desktop.service'
 import { createFakeDesktopApi, makeAppState } from '../testing/fake-desktop-api'
 import { AppShell } from './app-shell'
 
@@ -123,7 +123,7 @@ describe('Task 10 settings and plugin bar', () => {
     expect(modelInput.disabled).toBe(true)
   })
 
-  it('renders each catalog plugin in the plugin bar', async () => {
+  it('shows no plugin until the conversation has a suggestion', async () => {
     const { el, fixture } = render()
     await flush()
     for (const id of ['gojira', 'soldano', 'tim-henson', 'petrucci']) {
@@ -131,7 +131,26 @@ describe('Task 10 settings and plugin bar', () => {
     }
     fixture.detectChanges()
     const bar = el.querySelector('ot-plugin-bar') as HTMLElement
-    expect(bar.querySelectorAll('.plugin').length).toBe(4)
+    expect(bar.querySelectorAll('.plugin').length).toBe(0)
+  })
+
+  it('shows only the plugin the AI suggested for the open conversation', async () => {
+    fake.openConversation = async () => ({
+      id: 'c1',
+      title: 'Tone hunt',
+      messages: [],
+      plugin: 'gojira',
+      memoryLost: false,
+    })
+    const { el, fixture } = render()
+    await flush()
+    for (const id of ['gojira', 'soldano', 'tim-henson', 'petrucci']) {
+      fake.pushPluginChanged({ id, name: id, installed: true, path: '/x', running: false, mappingStatus: 'ok' })
+    }
+    await TestBed.inject(DesktopService).openConversation('c1')
+    fixture.detectChanges()
+    const bar = el.querySelector('ot-plugin-bar') as HTMLElement
+    expect(bar.querySelectorAll('.plugin').length).toBe(1)
     expect(bar.textContent).toContain('gojira')
   })
 })

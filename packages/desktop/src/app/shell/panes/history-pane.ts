@@ -43,7 +43,12 @@ import { PaneHeader } from '../pane-header'
               <button class="row" type="button" (click)="open(item.id)">
                 <span class="row-main">
                   <span class="row-title">{{ item.title }}</span>
-                  <span class="row-meta">{{ item.turns }} · {{ item.updatedAt }}</span>
+                  <span class="row-meta">
+                    {{ item.turns }} · {{ item.updatedAt }}
+                    @if (item.plugin) {
+                      · {{ item.plugin }}
+                    }
+                  </span>
                 </span>
               </button>
               <button
@@ -186,14 +191,16 @@ export class HistoryPane implements OnInit {
   readonly i18n = inject(I18nService)
 
   readonly back = output<void>()
+  readonly opened = output<void>()
   readonly confirmingId = signal<string | null>(null)
 
   ngOnInit(): void {
     void this.desktop.listConversations()
   }
 
-  open(id: string): void {
-    void this.desktop.openConversation(id)
+  async open(id: string): Promise<void> {
+    await this.desktop.openConversation(id)
+    this.opened.emit()
   }
 
   askDelete(id: string): void {

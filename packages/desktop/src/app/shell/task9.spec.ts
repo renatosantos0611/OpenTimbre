@@ -111,7 +111,7 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
 
   it('deletes a conversation through the confirmation dialog', async () => {
     fake.listConversations = async () => [
-      { id: 'c1', title: 'Tone hunt', updatedAt: 'now', turns: 3 },
+      { id: 'c1', title: 'Tone hunt', updatedAt: 'now', turns: 3, plugin: 'gojira' },
     ]
     const { el, fixture } = render()
     await flush()

@@ -47,7 +47,7 @@ import { AboutPane } from './panes/about-pane'
             <ot-chat-pane />
           </div>
           <div class="pane" [class.is-active]="pane() === 'history'">
-            <ot-history-pane (back)="selectPane('chat')" />
+            <ot-history-pane (back)="selectPane('chat')" (opened)="selectPane('chat')" />
           </div>
           <div class="pane" [class.is-active]="pane() === 'settings'">
             <ot-settings-pane (back)="selectPane('chat')" />

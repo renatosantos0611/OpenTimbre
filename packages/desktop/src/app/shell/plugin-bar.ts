@@ -1,9 +1,9 @@
 /**
- * The plugin bar: one row per catalog plugin, rendering its status
- * (installed/running/mapping) and actions (open, install mapping). The plugin
- * id list comes from `AppState.pluginIds` — main derives it from `CATALOG`,
- * this component never imports core (see `opentimbre-plugin-spec`). States
- * arrive via `plugin:changed` pushes into `DesktopService.pluginStates`.
+ * The plugin bar: shows only the plugin the AI suggested for the current
+ * conversation (`OpenConversation.plugin`), rendering its status
+ * (installed/running/mapping) and actions (open, install mapping). Empty
+ * until the conversation has a suggestion. States arrive via
+ * `plugin:changed` pushes into `DesktopService.pluginStates`.
  */
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
 import { LucideAudioLines, LucideDownload, LucidePlay } from '@lucide/angular'
@@ -144,7 +144,10 @@ export class PluginBar {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
 
-  readonly pluginIds = computed(() => this.desktop.pluginIds())
+  readonly pluginIds = computed(() => {
+    const suggested = this.desktop.currentConversation()?.plugin
+    return suggested ? [suggested] : []
+  })
 
   state(id: string) {
     return this.desktop.pluginStates()[id]
