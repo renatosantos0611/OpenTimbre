@@ -36,8 +36,7 @@ import { I18nService } from '../i18n.service'
           <svg lucideSettings [size]="15"></svg>
           <span>{{ i18n.t('shell.menu.settings') }}</span>
         </button>
-        <!-- The About pane is mounted in Task 4; keep the entry disabled until then. -->
-        <button class="menu-item" type="button" disabled (click)="choose('about')">
+        <button class="menu-item" type="button" (click)="choose('about')">
           <svg lucideInfo [size]="15"></svg>
           <span>{{ i18n.t('shell.menu.about') }}</span>
         </button>
@@ -109,13 +108,6 @@ import { I18nService } from '../i18n.service'
       }
       .menu-item:hover {
         background: var(--surface-raise);
-      }
-      .menu-item:disabled {
-        opacity: 0.5;
-        cursor: default;
-      }
-      .menu-item:disabled:hover {
-        background: transparent;
       }
       .menu-item svg {
         color: var(--text-dim);

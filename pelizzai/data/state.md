@@ -44,6 +44,7 @@
 - T1 ✅ 2026-08-09 — ESM boot fix: single re-export `electron.ts`, value imports repointed; 64 main tests, typecheck, live boot green (0 SyntaxError)
 - T2 ✅ 2026-08-09 — fresh profile: `dim_on_unfocus` default true, `locale` default en + OS-resolved fallback via `resolveLocale`/`hasStored`; 67 main tests
 - T3 ✅ 2026-08-09 — legacy chrome: hamburger+menu titlebar, status-bar icon actions, tab strip removed, PaneHeader back buttons; 54 renderer + 14 e2e tests, live boot green
+- T4 ✅ 2026-08-09 — About pane mounted (menu re-enabled), version + tagline from catalog; 57 renderer + 14 e2e tests
 - open gaps: none blocking; residuals listed in the plan under `## Exposed material gaps`
 
 ## History

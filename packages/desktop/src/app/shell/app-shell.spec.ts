@@ -78,6 +78,23 @@ describe('AppShell', () => {
     expect(el.querySelector('ot-chat-pane')).toBeTruthy()
   })
 
+  it('opens About from the menu and returns to chat', () => {
+    const { el, fixture } = render()
+    const panes = el.querySelectorAll<HTMLElement>('.pane')
+
+    el.querySelector<HTMLButtonElement>('.menu-btn')!.dispatchEvent(new Event('click'))
+    fixture.detectChanges()
+    const menuItems = el.querySelectorAll<HTMLButtonElement>('.menu-item')
+    menuItems[1].click()
+    fixture.detectChanges()
+    expect(panes[3].classList.contains('is-active')).toBe(true)
+    expect(el.querySelector('ot-about-pane')).toBeTruthy()
+
+    el.querySelector<HTMLButtonElement>('ot-about-pane ot-pane-header .back')!.click()
+    fixture.detectChanges()
+    expect(panes[0].classList.contains('is-active')).toBe(true)
+  })
+
   it('renders the empty chat state', async () => {
     const { el, fixture } = render()
     await flush()

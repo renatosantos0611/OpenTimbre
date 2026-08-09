@@ -63,6 +63,8 @@
   "shell.status.settings": "Configurações",
   "shell.back": "Voltar para a conversa",
   "shell.paneHeader.history": "Conversas",
+  "about.platform": "para Windows",
+  "about.tagline": "Timbres de guitarra em linguagem natural, aplicados por MIDI CC nos plugins da Neural DSP.",
   "settings.title": "Configurações",
   "settings.theme": "Tema",
   "settings.theme.system": "Sistema",

@@ -63,6 +63,8 @@
   "shell.status.settings": "Settings",
   "shell.back": "Back to the conversation",
   "shell.paneHeader.history": "Conversations",
+  "about.platform": "for Windows",
+  "about.tagline": "Guitar tones in natural language, applied by MIDI CC to Neural DSP plugins.",
   "settings.title": "Settings",
   "settings.theme": "Theme",
   "settings.theme.system": "System",

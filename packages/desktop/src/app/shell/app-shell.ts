@@ -24,12 +24,13 @@ import { Composer } from './composer'
 import { ChatPane } from './panes/chat-pane'
 import { HistoryPane } from './panes/history-pane'
 import { SettingsPane } from './panes/settings-pane'
+import { AboutPane } from './panes/about-pane'
 
 @Component({
   selector: 'ot-app-shell',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TitleBar, StatusBar, PluginBar, Composer, ChatPane, HistoryPane, SettingsPane],
+  imports: [TitleBar, StatusBar, PluginBar, Composer, ChatPane, HistoryPane, SettingsPane, AboutPane],
   template: `
     <div class="shell" [attr.data-dimmed]="dimmed() ? 'true' : null">
       <ot-titlebar (select)="selectPane($event)" />
@@ -50,6 +51,9 @@ import { SettingsPane } from './panes/settings-pane'
           </div>
           <div class="pane" [class.is-active]="pane() === 'settings'">
             <ot-settings-pane (back)="selectPane('chat')" />
+          </div>
+          <div class="pane" [class.is-active]="pane() === 'about'">
+            <ot-about-pane (back)="selectPane('chat')" />
           </div>
         </div>
       </section>
