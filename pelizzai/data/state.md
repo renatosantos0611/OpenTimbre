@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -92,6 +92,16 @@
   (fidelity loss on tool-call state, extra tokens resent every incompatible resume, same-model vs
   same-provider granularity, banner wording) that reverses documented intended behavior. Recommendation
   given to the user, awaiting their decision before implementing.
+- quick-fix (post-delivery): MIDI status display simplified to one pattern —
+  `MIDI <dot> Connected`/`Not found` (pt: `Conectado`/`Não localizado`), dot green (`--success`) when
+  connected, red (`--danger`) otherwise. Replaced the old three-way text ("Port open: <name>" /
+  "MIDI closed" / raw MIDI error message); the port name and the specific error string no longer
+  render in the status bar. Removed `shell.status.midiOpen/midiClosed/midiError` from both locales
+  (i18n key-parity test still green), added `midiConnected`/`midiNotFound`. Updated the e2e assertion
+  pinned to the old "Port open: Virtual Port" copy — done at 398fccf; typecheck clean, i18n
+  key-parity test green, 77/77 renderer tests, e2e `update.spec.ts`/`shell.spec.ts` green except one
+  pre-existing, unrelated `2px` vs `3px` focus-outline-width assertion (not touched by this change,
+  looks like a display-scaling artifact of this sandbox, not a regression).
 - false alarm, resolved: `npm run desktop` appeared to crash before any window opened —
   `TypeError: Cannot read properties of undefined (reading 'registerSchemesAsPrivileged')` — when
   launched from the agent's own sandboxed shell (no display attached). The user confirmed
