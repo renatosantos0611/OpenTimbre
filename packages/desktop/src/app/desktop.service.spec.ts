@@ -75,7 +75,7 @@ describe('DesktopService', () => {
 
   it('appends a user + ai turn to the transcript on a successful send', async () => {
     await service.load()
-    fake.sendChat = async (text) => ({ text, rig: null, cards: null })
+    fake.sendChat = async (text) => ({ text, rig: null, cards: null, conversationId: 'c1', autoApplied: null })
     await service.sendChat('a heavy chug')
     expect(service.transcript()).toEqual([
       { role: 'user', text: 'a heavy chug' },
@@ -90,13 +90,33 @@ describe('DesktopService', () => {
     const gate = new Promise<void>((r) => (release = r))
     fake.sendChat = async (text) => {
       await gate
-      return { text, rig: null, cards: null }
+      return { text, rig: null, cards: null, conversationId: 'c1', autoApplied: null }
     }
     const pending = service.sendChat('hello')
     expect(service.busy()).toBe(true)
     release()
     await pending
     expect(service.busy()).toBe(false)
+  })
+
+  it('drops a response that resolves after navigating to another conversation', async () => {
+    await service.load()
+    let release!: () => void
+    const gate = new Promise<void>((r) => (release = r))
+    fake.sendChat = async (text) => {
+      await gate
+      return { text, rig: { plugin: 'gojira', song: 's', artist: 'a', amp: 'CLN', note: '', scenes: {} }, cards: null, conversationId: 'stale', autoApplied: null }
+    }
+    fake.openConversation = async () => ({ id: 'other', title: 'Other', messages: [{ role: 'user', text: 'hi' }], plugin: 'soldano', memoryLost: false })
+
+    const pending = service.sendChat('hello')
+    await service.openConversation('other')
+    release()
+    await pending
+
+    expect(service.transcript()).toEqual([{ role: 'user', text: 'hi' }])
+    expect(service.currentConversation()?.id).toBe('other')
+    expect(service.currentConversation()?.plugin).toBe('soldano')
   })
 
   it('appends a user + error message when the provider call fails', async () => {

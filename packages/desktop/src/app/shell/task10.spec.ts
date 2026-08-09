@@ -153,4 +153,22 @@ describe('Task 10 settings and plugin bar', () => {
     expect(bar.querySelectorAll('.plugin').length).toBe(1)
     expect(bar.textContent).toContain('gojira')
   })
+
+  it('shows the suggested plugin live, right after the AI answers in a brand-new chat', async () => {
+    fake.sendChat = async (text) => ({
+      text: 'here',
+      rig: { plugin: 'soldano', song: 's', artist: 'a', amp: 'CLN', note: '', scenes: {} },
+      cards: null,
+      conversationId: 'new-1',
+      autoApplied: null,
+    })
+    const { el, fixture } = render()
+    await flush()
+    fake.pushPluginChanged({ id: 'soldano', name: 'soldano', installed: true, path: '/x', running: false, mappingStatus: 'ok' })
+    await TestBed.inject(DesktopService).sendChat('give me a Soldano tone')
+    fixture.detectChanges()
+    const bar = el.querySelector('ot-plugin-bar') as HTMLElement
+    expect(bar.querySelectorAll('.plugin').length).toBe(1)
+    expect(bar.textContent).toContain('soldano')
+  })
 })

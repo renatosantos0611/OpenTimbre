@@ -80,6 +80,14 @@ export type Cards = Record<string, SceneCard>
 
 export type Turn = { text: string; rig: Rig | null; cards: Cards | null }
 
+/**
+ * What `chat:send` actually returns: a `Turn` plus the persistence-layer facts
+ * the renderer needs but core's `RigChat` doesn't know about — which
+ * conversation this landed in, and the scene Auto mode already applied (if
+ * any), so the UI can confirm it without a manual click.
+ */
+export type SentTurn = Turn & { conversationId: string; autoApplied: AppliedScene | null }
+
 export type Role = 'user' | 'ai' | 'error'
 export type Message = { role: Role; text: string; rig?: Rig }
 export type MessageWithCards = Message & { cards?: Cards }
@@ -205,7 +213,7 @@ export type UpdaterStatus =
  */
 export type IpcChannels = {
   'app:state': { payload: void; result: Result<AppState> }
-  'chat:send': { payload: string; result: Result<Turn> }
+  'chat:send': { payload: string; result: Result<SentTurn> }
   'chat:new': { payload: void; result: Result<void> }
   'rig:apply': { payload: string; result: Result<AppliedScene> }
   'config:guitar': { payload: Guitar; result: Result<AppState> }
@@ -247,7 +255,7 @@ export type IpcEvents = {
 
 export type DesktopApi = {
   getState(): Promise<Result<AppState>>
-  sendChat(text: string): Promise<Result<Turn>>
+  sendChat(text: string): Promise<Result<SentTurn>>
   newChat(): Promise<Result<void>>
   applyRig(scene: string): Promise<Result<AppliedScene>>
   setGuitar(guitar: Guitar): Promise<Result<AppState>>

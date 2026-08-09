@@ -48,14 +48,14 @@ describe('ChatPane', () => {
 
   it('shows a status row while the AI is answering, defaulting to the querying label', async () => {
     const { el, fixture } = await render()
-    let resolveSend!: (turn: { text: string; rig: null; cards: null }) => void
+    let resolveSend!: (turn: { text: string; rig: null; cards: null; conversationId: string; autoApplied: null }) => void
     fake.sendChat = () => new Promise((resolve) => (resolveSend = resolve))
 
     const send = desktop.sendChat('hello')
     fixture.detectChanges()
     expect(el.querySelector('.status')?.textContent).toContain('thinking…')
 
-    resolveSend({ text: 'answer', rig: null, cards: null })
+    resolveSend({ text: 'answer', rig: null, cards: null, conversationId: 'c1', autoApplied: null })
     await send
     fixture.detectChanges()
     expect(el.querySelector('.status')).toBeNull()

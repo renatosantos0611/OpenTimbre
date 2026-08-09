@@ -25,11 +25,21 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
 
   it('renders a user + ai turn in the transcript', async () => {
     const { el, fixture } = render()
-    fake.sendChat = async () => ({ text: 'a heavy chug', rig: null, cards: null })
+    fake.sendChat = async () => ({ text: 'a heavy chug', rig: null, cards: null, conversationId: 'c1', autoApplied: null })
     await flush()
     await TestBed.inject(DesktopService).sendChat('a heavy chug')
     fixture.detectChanges()
     expect(el.querySelector('ot-chat-pane')?.textContent).toContain('a heavy chug')
+  })
+
+  it('refreshes the history list after a send, so a brand-new conversation shows up right away', async () => {
+    fake.sendChat = async () => ({ text: 'here', rig: null, cards: null, conversationId: 'new-1', autoApplied: null })
+    render()
+    await flush()
+    fake.listConversations = async () => [{ id: 'new-1', title: 'Tone hunt', updatedAt: 'now', turns: 2, plugin: null }]
+    const desktop = TestBed.inject(DesktopService)
+    await desktop.sendChat('give me a tone')
+    expect(desktop.conversations()).toEqual([{ id: 'new-1', title: 'Tone hunt', updatedAt: 'now', turns: 2, plugin: null }])
   })
 
   it('renders a rig card with an apply button and expands its body', async () => {
@@ -59,6 +69,8 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
           pedals: [{ name: 'Boost', detail: '' }],
         },
       },
+      conversationId: 'c1',
+      autoApplied: null,
     })
     await flush()
     await TestBed.inject(DesktopService).sendChat('make it heavy')

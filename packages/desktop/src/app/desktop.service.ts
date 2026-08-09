@@ -95,6 +95,13 @@ export class DesktopService {
   readonly busy = signal(false)
   /** The composer draft, shared so the chat empty-state chips can fill it. */
   readonly draft = signal('')
+  /**
+   * Bumped by every explicit context switch (new chat, open, delete-of-current).
+   * `sendChat` snapshots it before awaiting so a response for a conversation
+   * the guitarist has since navigated away from is dropped instead of
+   * corrupting whatever is on screen now.
+   */
+  private readonly generation = signal(0)
   /** The amp of the last applied scene, shown in the status-bar pill (empty until one is applied). */
   readonly appliedAmp = signal('')
 
@@ -144,23 +151,40 @@ export class DesktopService {
   async sendChat(text: string): Promise<void> {
     if (this.busy()) return
     this.busy.set(true)
+    const gen = this.generation()
     this.transcript.update((msgs) => [...msgs, { role: 'user', text }])
     try {
       const result = await this.api.sendChat(text)
+      // The guitarist may have switched to another conversation while this
+      // was in flight — only the still-current view gets the response.
+      const stillCurrent = this.generation() === gen
       if ('error' in result) {
-        this.transcript.update((msgs) => [...msgs, { role: 'error', text: result.error }])
+        if (stillCurrent) this.transcript.update((msgs) => [...msgs, { role: 'error', text: result.error }])
         return
       }
-      this.transcript.update((msgs) => [
-        ...msgs,
-        result.rig ? { role: 'ai', text: result.text, rig: result.rig, cards: result.cards ?? undefined } : { role: 'ai', text: result.text },
-      ])
+      if (stillCurrent) {
+        this.transcript.update((msgs) => [
+          ...msgs,
+          result.rig ? { role: 'ai', text: result.text, rig: result.rig, cards: result.cards ?? undefined } : { role: 'ai', text: result.text },
+        ])
+        const prev = this.currentConversation()
+        this.currentConversation.set({
+          id: result.conversationId,
+          title: prev?.title ?? text.slice(0, 60),
+          messages: this.transcript(),
+          plugin: result.rig?.plugin ?? prev?.plugin ?? null,
+          memoryLost: prev?.memoryLost ?? false,
+        })
+        if (result.autoApplied) this.appliedAmp.set(result.autoApplied.amp)
+      }
+      void this.listConversations()
     } finally {
       this.busy.set(false)
     }
   }
 
   async newChat(): Promise<void> {
+    this.generation.update((g) => g + 1)
     await this.api.newChat()
     this.transcript.set([])
     this.currentConversation.set(null)
@@ -202,6 +226,7 @@ export class DesktopService {
   }
 
   async openConversation(id: string): Promise<void> {
+    this.generation.update((g) => g + 1)
     const result = await this.api.openConversation(id)
     if ('error' in result) return
     this.currentConversation.set(result)
@@ -213,6 +238,7 @@ export class DesktopService {
     if ('error' in result) return
     this.conversations.set(result)
     if (this.currentConversation()?.id === id) {
+      this.generation.update((g) => g + 1)
       this.currentConversation.set(null)
       this.transcript.set([])
     }
