@@ -64,6 +64,14 @@ import { RigCard } from './rig-card'
             }
           }
         }
+        @if (desktop.busy()) {
+          <div class="row ai" aria-live="polite">
+            <span class="who">{{ i18n.t('shell.chat.assistant') }}</span>
+            <div class="prose status">
+              <span class="status-dot"></span>{{ statusLabel() }}
+            </div>
+          </div>
+        }
       }
     </div>
   `,
@@ -183,6 +191,29 @@ import { RigCard } from './rig-card'
       .error .bubble {
         color: var(--danger);
       }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-dim);
+        font-style: italic;
+      }
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--accent);
+        animation: status-pulse 1.1s ease-in-out infinite;
+      }
+      @keyframes status-pulse {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
     `,
   ],
 })
@@ -198,6 +229,13 @@ export class ChatPane {
   ])
 
   readonly memoryLost = () => this.desktop.currentConversation()?.memoryLost === true
+
+  /** `chatStatus` starts null for the brief gap before the first phase push
+   *  arrives, and `querying` is always that first phase — same fallback. */
+  readonly statusLabel = computed(() => {
+    const status = this.desktop.chatStatus() ?? 'querying'
+    return this.i18n.t(`chat.status.${status}`)
+  })
 
   /** A chip only fills the composer draft — the guitarist decides to send. */
   fillDraft(text: string): void {

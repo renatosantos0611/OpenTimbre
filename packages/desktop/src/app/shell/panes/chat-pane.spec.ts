@@ -45,4 +45,33 @@ describe('ChatPane', () => {
     expect(el.querySelector('.invite')).toBeNull()
     expect(el.querySelector('.row')).toBeTruthy()
   })
+
+  it('shows a status row while the AI is answering, defaulting to the querying label', async () => {
+    const { el, fixture } = await render()
+    let resolveSend!: (turn: { text: string; rig: null; cards: null }) => void
+    fake.sendChat = () => new Promise((resolve) => (resolveSend = resolve))
+
+    const send = desktop.sendChat('hello')
+    fixture.detectChanges()
+    expect(el.querySelector('.status')?.textContent).toContain('thinking…')
+
+    resolveSend({ text: 'answer', rig: null, cards: null })
+    await send
+    fixture.detectChanges()
+    expect(el.querySelector('.status')).toBeNull()
+  })
+
+  it('the status row follows chat:status pushes for the phase in progress', async () => {
+    const { el, fixture } = await render()
+    fake.sendChat = () => new Promise(() => undefined)
+
+    void desktop.sendChat('hello')
+    fake.pushChatStatus('validating')
+    fixture.detectChanges()
+    expect(el.querySelector('.status')?.textContent).toContain('checking the response…')
+
+    fake.pushChatStatus('correcting')
+    fixture.detectChanges()
+    expect(el.querySelector('.status')?.textContent).toContain('fixing a mistake…')
+  })
 })
