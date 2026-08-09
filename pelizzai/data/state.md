@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency)
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -52,6 +52,18 @@
   sending stays out of scope by design, ratified via interview-me; Auto mode's silent apply now
   updates the status-bar amp pill; model-picker button given a fixed width — done at b5eeb83;
   typecheck clean (core + contracts + desktop), 81/81 main-process tests, 77/77 renderer tests
+- quick-fix (post-delivery): MIDI identification was silently broken — `buildAppState` always
+  reported `midi: { port: null, error: null }` regardless of the real connection, so the status
+  bar never showed the actual port/error. `app-state.ts`/`handlers.ts` now source `midi` from the
+  scene applier's real connection state (`SceneApplier.midiState()`); `DEFAULT_PORT` in
+  `windows.ts`/`macos.ts` (checks for a port named `VoiceRig`, overridable via `VOICERIG_PORT`) is
+  now documented as a name that may change in a future release. The MODEL badge showed the raw
+  model id instead of the name chosen from the model list — added `modelLabel` end-to-end
+  (contracts → main `model-catalog` → `desktop.service` → status bar) and removed the now-redundant
+  free-text model field on the AI settings pane. Also carried over from this session's uncommitted
+  work: main-process window opacity for dim-on-unfocus, saved API keys loaded into `process.env` on
+  boot, immediate first plugin poll on start — done at 72d419d; typecheck clean (all workspaces),
+  81/81 main-process tests, 77/77 renderer tests, 29/29 platform-node tests, 11/11 CLI tests green
 - false alarm, resolved: `npm run desktop` appeared to crash before any window opened —
   `TypeError: Cannot read properties of undefined (reading 'registerSchemesAsPrivileged')` — when
   launched from the agent's own sandboxed shell (no display attached). The user confirmed
