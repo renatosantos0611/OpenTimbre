@@ -20,7 +20,7 @@ import {
   viewChild,
 } from '@angular/core'
 import type { ModelInfo, ModelTier } from '@opentimbre/contracts'
-import { LucideChevronUp, LucideSearch } from '@lucide/angular'
+import { LucideBrainCircuit, LucideChevronUp, LucideSearch } from '@lucide/angular'
 import { DesktopService } from '../desktop.service'
 import { I18nService } from '../i18n.service'
 
@@ -28,7 +28,7 @@ import { I18nService } from '../i18n.service'
   selector: 'ot-model-menu',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucideChevronUp, LucideSearch],
+  imports: [LucideBrainCircuit, LucideChevronUp, LucideSearch],
   template: `
     <div class="wrap">
       <button
@@ -39,6 +39,7 @@ import { I18nService } from '../i18n.service'
         [attr.title]="i18n.t('chat.model.title')"
         (click)="toggle($event)"
       >
+        <svg class="ai-icon" lucideBrainCircuit [size]="14"></svg>
         <span class="label">{{ activeLabel() }}</span>
         <svg class="chev" lucideChevronUp [size]="14"></svg>
       </button>
@@ -114,6 +115,10 @@ import { I18nService } from '../i18n.service'
       .model-btn[aria-expanded='true'] {
         border-color: var(--accent-line);
         color: var(--text);
+      }
+      .ai-icon {
+        flex: none;
+        color: var(--text-faint);
       }
       .label {
         flex: 1;

@@ -13,7 +13,7 @@ import {
   inject,
   viewChild,
 } from '@angular/core'
-import { LucideBrainCircuit, LucideSend } from '@lucide/angular'
+import { LucideSend } from '@lucide/angular'
 import { DesktopService } from '../desktop.service'
 import { I18nService } from '../i18n.service'
 import { ModeMenu } from './mode-menu'
@@ -23,23 +23,20 @@ import { ModelMenu } from './model-menu'
   selector: 'ot-composer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucideBrainCircuit, LucideSend, ModeMenu, ModelMenu],
+  imports: [LucideSend, ModeMenu, ModelMenu],
   template: `
     <div class="composer">
       <div class="composer-inner">
-        <div class="entry-row">
-          <svg class="ai-icon" lucideBrainCircuit [size]="16"></svg>
-          <textarea
-            #entry
-            class="entry"
-            rows="1"
-            [placeholder]="i18n.t('shell.composer.placeholder')"
-            [value]="draft()"
-            (input)="onInput($event)"
-            (keydown.enter)="onEnter($event)"
-            [attr.aria-label]="i18n.t('shell.composer.placeholder')"
-          ></textarea>
-        </div>
+        <textarea
+          #entry
+          class="entry"
+          rows="1"
+          [placeholder]="i18n.t('shell.composer.placeholder')"
+          [value]="draft()"
+          (input)="onInput($event)"
+          (keydown.enter)="onEnter($event)"
+          [attr.aria-label]="i18n.t('shell.composer.placeholder')"
+        ></textarea>
 
         <div class="actions">
           <ot-model-menu />
@@ -85,19 +82,8 @@ import { ModelMenu } from './model-menu'
       .composer-inner:focus-within {
         border-color: var(--border-strong);
       }
-      .entry-row {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      .ai-icon {
-        flex: none;
-        margin-top: 2px;
-        color: var(--text-faint);
-      }
       .entry {
-        flex: 1;
-        min-width: 0;
+        width: 100%;
         resize: none;
         /* Two lines from the start, so the box doesn't open cramped for a first sentence. */
         min-height: calc(2 * 14px * 1.4);
