@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency)
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -43,6 +43,15 @@
   conversation (`OpenConversation.plugin`) instead of the whole catalog; each history row now
   shows its own suggested plugin — done at 960f8ab; typecheck clean (desktop + contracts), 79/79
   main-process tests, 74/74 renderer tests green
+- quick-fix (post-delivery): live plugin bar/history refresh, safe conversation switching, auto-apply
+  feedback, model-select width — plugin bar and history rows now update from each response's rig
+  instead of only on explicit reopen; history list refreshes after every send; a response for a
+  conversation the guitarist has navigated away from is dropped (generation-counter guard) instead
+  of corrupting the visible transcript, and the main process only applies a finished send's
+  rig/auto-apply if that conversation is still active (`active === a` guard) — true concurrent
+  sending stays out of scope by design, ratified via interview-me; Auto mode's silent apply now
+  updates the status-bar amp pill; model-picker button given a fixed width — done at b5eeb83;
+  typecheck clean (core + contracts + desktop), 81/81 main-process tests, 77/77 renderer tests
 - false alarm, resolved: `npm run desktop` appeared to crash before any window opened —
   `TypeError: Cannot read properties of undefined (reading 'registerSchemesAsPrivileged')` — when
   launched from the agent's own sandboxed shell (no display attached). The user confirmed
