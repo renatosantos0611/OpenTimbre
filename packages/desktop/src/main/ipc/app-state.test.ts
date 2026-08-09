@@ -20,7 +20,8 @@ test('buildAppState returns the contract camelCase shape', () => {
     listKeys: () => [KEY],
     getGuitar: () => DEFAULT_GUITAR,
     getLocale: () => 'en',
-    ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-4o', available: [] },
+    ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-4o', modelLabel: 'GPT-4o', available: [] },
+    midi: { port: null, error: null },
     systemDark: true,
     version: '3.0-dev',
   })
@@ -49,7 +50,8 @@ test('a persisted preference and model flow into AppState', () => {
     listKeys: () => [],
     getGuitar: () => DEFAULT_GUITAR,
     getLocale: () => 'pt',
-    ai: { provider: 'anthropic', label: 'Anthropic', model: 'claude-opus', available: [] },
+    ai: { provider: 'anthropic', label: 'Anthropic', model: 'claude-opus', modelLabel: 'claude-opus', available: [] },
+    midi: { port: null, error: null },
     systemDark: true,
     version: 'x',
   })

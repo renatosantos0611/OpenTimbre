@@ -161,7 +161,7 @@ export type ModelInfo = { provider: ProviderId; id: string; label: string; tier:
 export type AppState = {
   locale: Locale
   midi: { port: string | null; error: string | null }
-  ai: { provider: ProviderId; label: string; model: string; available: AvailableModel[] } | null
+  ai: { provider: ProviderId; label: string; model: string; modelLabel: string; available: AvailableModel[] } | null
   aiError: string | null
   guitar: Guitar
   alwaysOnTop: boolean

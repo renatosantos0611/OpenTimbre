@@ -256,7 +256,7 @@ export class StatusBar {
 
   readonly port = computed(() => this.desktop.midi().port)
   readonly midiError = computed(() => this.desktop.midi().error)
-  readonly aiModel = computed(() => this.desktop.ai()?.model ?? '')
+  readonly aiModel = computed(() => this.desktop.ai()?.modelLabel ?? '')
 
   readonly chatStatusLabel = computed(() => {
     const status: ChatStatus = this.desktop.chatStatus()

@@ -1,16 +1,14 @@
 /**
  * Root shell: title bar, operational status, plugin bar, central pane, and
- * composer. Owns the active-pane signal and the theme/dim attributes on the
- * host; the panes stay mounted (toggled by class) so chat content, draft, and
+ * composer. Owns the active-pane signal and the theme attribute on the host;
+ * the panes stay mounted (toggled by class) so chat content, draft, and
  * scroll survive a switch — there is no router (see `opentimbre-angular-ui`).
  */
 import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  HostListener,
   OnInit,
-  computed,
   effect,
   inject,
   signal,
@@ -32,7 +30,7 @@ import { AboutPane } from './panes/about-pane'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TitleBar, StatusBar, PluginBar, Composer, ChatPane, HistoryPane, SettingsPane, AboutPane],
   template: `
-    <div class="shell" [attr.data-dimmed]="dimmed() ? 'true' : null">
+    <div class="shell">
       <ot-titlebar (select)="selectPane($event)" />
       <ot-status-bar
         (openHistory)="selectPane('history')"
@@ -58,7 +56,9 @@ import { AboutPane } from './panes/about-pane'
         </div>
       </section>
 
-      <ot-composer />
+      @if (pane() === 'chat') {
+        <ot-composer />
+      }
     </div>
   `,
   styles: [
@@ -73,10 +73,6 @@ import { AboutPane } from './panes/about-pane'
         height: 100vh;
         background: var(--surface);
         color: var(--text);
-        transition: opacity 120ms ease;
-      }
-      .shell[data-dimmed='true'] {
-        opacity: 0.72;
       }
       .central {
         display: flex;
@@ -110,9 +106,6 @@ export class AppShell implements OnInit {
   readonly desktop = inject(DesktopService)
 
   readonly pane = signal<Pane>('chat')
-  private readonly focused = signal(true)
-
-  readonly dimmed = computed(() => this.desktop.dimOnUnfocus() && !this.focused())
 
   /**
    * The theme tokens hang off `:root[data-theme]`, so the resolved theme is
@@ -131,17 +124,6 @@ export class AppShell implements OnInit {
 
   ngOnInit(): void {
     this.desktop.load()
-    this.focused.set(document.hasFocus())
-  }
-
-  @HostListener('window:focus')
-  onFocus(): void {
-    this.focused.set(true)
-  }
-
-  @HostListener('window:blur')
-  onBlur(): void {
-    this.focused.set(false)
   }
 
   selectPane(paneId: Pane): void {

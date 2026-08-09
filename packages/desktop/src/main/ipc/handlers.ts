@@ -34,6 +34,7 @@ type Deps = {
   getLocale: () => import('@opentimbre/i18n').Locale
   systemDark: boolean
   setAlwaysOnTop: (onTop: boolean) => void
+  setDimOnUnfocus: (on: boolean) => void
   setTitleBarOverlay: (theme: import('@opentimbre/contracts').Theme) => void
   version: string
   listModels: () => Promise<import('@opentimbre/contracts').ModelInfo[]>
@@ -46,6 +47,7 @@ function appState(deps: Deps): import('@opentimbre/contracts').AppState {
     getGuitar: deps.getGuitar,
     getLocale: deps.getLocale,
     ai: deps.getAi(),
+    midi: deps.applier.midiState(),
     systemDark: deps.systemDark,
     version: deps.version,
   })
@@ -113,7 +115,7 @@ export function registerIpcHandlers(deps: Deps): void {
   })
 
   ipcMain.handle('window:dimOnUnfocus', (event, value) => {
-    try { trusted(event); const v = validatePayload('window:dimOnUnfocus', value) as boolean; deps.store.setBool('dim_on_unfocus', v); return v } catch (e) { return failure(String(e)) }
+    try { trusted(event); const v = validatePayload('window:dimOnUnfocus', value) as boolean; deps.setDimOnUnfocus(v); return v } catch (e) { return failure(String(e)) }
   })
 
   ipcMain.handle('window:autoApply', (event, value) => {

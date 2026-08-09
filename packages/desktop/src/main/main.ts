@@ -14,7 +14,7 @@ import type { RigChatProvider } from '@opentimbre/core/src/chat/rig-chat.ts'
 import { listModels } from '@opentimbre/core/src/chat/rig-chat.ts'
 import { openaiProvider } from '@opentimbre/core/src/providers/openai.ts'
 import { anthropicProvider } from '@opentimbre/core/src/providers/anthropic.ts'
-import { configure as configureKeys } from '@opentimbre/core/src/secrets/key-store.ts'
+import { configure as configureKeys, applyToEnvironment } from '@opentimbre/core/src/secrets/key-store.ts'
 import { createMainWindow, type TitleBarOverlayColors } from './window.ts'
 import { registerRendererProtocol } from './renderer-protocol.ts'
 import { initStore, getStore, resolveLocale, type DesktopStore } from './storage/desktop-store.ts'
@@ -26,7 +26,7 @@ import { createSceneApplier } from './rig/scene-applier.ts'
 import { createChatController } from './chat/chat-controller.ts'
 import { createConversationRepository } from './chat/conversation-repository.ts'
 import { createUpdater, createElectronUpdaterRuntime, inertUpdaterRuntime } from './updater/updater.ts'
-import { listAvailableModels } from './ai/model-catalog.ts'
+import { listAvailableModels, modelLabel } from './ai/model-catalog.ts'
 import type { PluginFileSystem } from '@opentimbre/platform-node/src/plugin-host.ts'
 import { createWindowsPluginHost, createMacosPluginHost } from '@opentimbre/platform-node/src/plugin-host.ts'
 import { windowsTransport, windowsPlatformInfo } from '@opentimbre/platform-node/src/windows.ts'
@@ -141,6 +141,14 @@ app.whenReady().then(async () => {
     file: path.join(dataDir, 'settings.db'),
     vault: safeStorage.isEncryptionAvailable() ? createSafeStorageVault() : null,
   })
+  // Load saved API keys into process.env so provider SDK constructors find
+  // them — without this, keys persist in SQLite but never reach the providers
+  // until the user re-saves one (mirrors legacy `abrirCofre` → `aplicarNoAmbiente`).
+  try {
+    applyToEnvironment()
+  } catch (err) {
+    console.error('Could not load saved API keys:', err)
+  }
 
   // The OS branch is confined to this composition root — the shared modules
   // never read `process.platform` (see `opentimbre-cross-platform`). Windows
@@ -188,6 +196,17 @@ app.whenReady().then(async () => {
   const setAlwaysOnTop = (onTop: boolean): void => {
     win?.setAlwaysOnTop(onTop)
   }
+  /** Opacity for the whole OS window when dim-on-unfocus is active. */
+  const DIM_OPACITY = 0.6
+  const setOpacity = (): void => {
+    const dim = store.getBool('dim_on_unfocus')
+    const focused = win?.isFocused() ?? true
+    win?.setOpacity(dim && !focused ? DIM_OPACITY : 1)
+  }
+  const setDimOnUnfocus = (on: boolean): void => {
+    store.setBool('dim_on_unfocus', on)
+    setOpacity()
+  }
   registerIpcHandlers({
     store,
     plugins,
@@ -198,6 +217,7 @@ app.whenReady().then(async () => {
     getLocale,
     getGuitar,
     setAlwaysOnTop,
+    setDimOnUnfocus,
     setTitleBarOverlay: (theme: Theme) => {
       win?.setTitleBarOverlay(TITLE_BAR_OVERLAY[resolveTheme(theme, nativeTheme.shouldUseDarkColors)])
     },
@@ -208,10 +228,12 @@ app.whenReady().then(async () => {
       const modelId = store.get('model_id')
       const providerId = (store.get('provider_id') as ProviderId) || 'openai'
       if (!modelId) return null
+      const cached = modelCache.find((m) => m.id === modelId)
       return {
         provider: providerId,
         label: '',
         model: modelId,
+        modelLabel: cached ? modelLabel(cached.provider, cached.id) : modelId,
         available: modelCache,
       }
     },
@@ -255,6 +277,8 @@ app.whenReady().then(async () => {
       },
     })
     plugins.start()
+    win.on('focus', () => setOpacity())
+    win.on('blur', () => setOpacity())
     win.on('closed', () => {
       win = null
       plugins.stop()

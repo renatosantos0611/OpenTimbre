@@ -29,7 +29,7 @@ export function makeAppState(overrides: Partial<AppState> = {}): AppState {
   return {
     locale: 'en',
     midi: { port: 'Virtual Port', error: null },
-    ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-4o', available: [] },
+    ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-4o', modelLabel: 'GPT-4o', available: [] },
     aiError: null,
     guitar: DEFAULT_GUITAR,
     alwaysOnTop: true,

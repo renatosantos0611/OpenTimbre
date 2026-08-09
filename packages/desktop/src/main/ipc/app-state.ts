@@ -26,6 +26,7 @@ export type AiState = {
   provider: ProviderId
   label: string
   model: string
+  modelLabel: string
   available: AvailableModel[]
 }
 
@@ -35,6 +36,7 @@ export type AppStateDeps = {
   getGuitar: () => Guitar
   getLocale: () => Locale
   ai: AiState | null
+  midi: { port: string | null; error: string | null }
   systemDark: boolean
   version: string
 }
@@ -48,7 +50,7 @@ export function buildAppState(deps: AppStateDeps): AppState {
 
   return {
     locale: deps.getLocale(),
-    midi: { port: null, error: null },
+    midi: deps.midi,
     ai,
     aiError: null,
     guitar: deps.getGuitar(),

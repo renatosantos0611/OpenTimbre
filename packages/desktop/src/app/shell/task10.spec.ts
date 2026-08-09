@@ -119,8 +119,6 @@ describe('Task 10 settings and plugin bar', () => {
     const ai = el.querySelector('ot-ai-settings') as HTMLElement
     const seg = ai.querySelector<HTMLButtonElement>('.seg-btn')!
     expect(seg.disabled).toBe(true)
-    const modelInput = ai.querySelector<HTMLInputElement>('input:not([type="password"])')!
-    expect(modelInput.disabled).toBe(true)
   })
 
   it('shows no plugin until the conversation has a suggestion', async () => {

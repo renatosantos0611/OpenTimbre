@@ -33,6 +33,8 @@ export type SceneApplierOptions = {
 export type SceneApplier = {
   setRig(rig: Rig | null): void
   apply(scene: string): Promise<Result<AppliedScene>>
+  /** Current MIDI connection state — `{ port, error }` or both null before first connect. */
+  midiState(): { port: string | null; error: string | null }
 }
 
 export function createSceneApplier(options: SceneApplierOptions): SceneApplier {
@@ -41,10 +43,15 @@ export function createSceneApplier(options: SceneApplierOptions): SceneApplier {
 
   let rig: Rig | null = null
   let send: Send | null = null
+  let midiPort: string | null = null
+  let midiError: string | null = null
 
   return {
     setRig(r) {
       rig = r
+    },
+    midiState() {
+      return { port: midiPort, error: midiError }
     },
     async apply(sceneName) {
       if (!rig) return { error: 'No rig loaded — nothing to apply yet.' }
@@ -58,8 +65,13 @@ export function createSceneApplier(options: SceneApplierOptions): SceneApplier {
 
       if (!send) {
         const connection = await transport.connect()
-        if ('error' in connection) return connection // port missing — contained failure, app stays open
+        if ('error' in connection) {
+          midiError = connection.error
+          return connection // port missing — contained failure, app stays open
+        }
         send = connection.send
+        midiError = null
+        midiPort = 'VoiceRig'
       }
 
       const warnings: string[] = []

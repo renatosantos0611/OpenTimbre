@@ -45,15 +45,6 @@ type KeySource = 'app' | 'environment' | 'none'
       </div>
     </label>
 
-    <label class="field">
-      <span>{{ i18n.t('settings.ai.model') }}</span>
-      <input
-        [value]="model()"
-        [disabled]="locked()"
-        (change)="setModel($any($event.target).value)"
-      />
-    </label>
-
     @if (!desktop.ai() && !forced()) {
       <p class="hint">{{ i18n.t('settings.ai.noProvider') }}</p>
     }
@@ -259,7 +250,6 @@ export class AiSettings {
   readonly forced = computed(() => this.desktop.forcedProvider())
   readonly locked = computed(() => Boolean(this.forced()))
   readonly keys = computed(() => this.desktop.keys())
-  readonly model = computed(() => this.desktop.ai()?.model ?? '')
 
   readonly prefLabel = computed(() => ({
     auto: this.i18n.t('settings.ai.providerAuto'),
@@ -298,10 +288,5 @@ export class AiSettings {
 
   setPreference(pref: ProviderPreference): void {
     void this.desktop.setProviderPreference(pref)
-  }
-
-  setModel(id: string): void {
-    const provider = this.desktop.ai()?.provider ?? 'openai'
-    void this.desktop.setModel(provider, id)
   }
 }

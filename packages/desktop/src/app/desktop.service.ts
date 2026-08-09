@@ -37,6 +37,7 @@ type AiState = {
   provider: string
   label: string
   model: string
+  modelLabel: string
   available: { provider: string; providerLabel: string; id: string }[]
 }
 

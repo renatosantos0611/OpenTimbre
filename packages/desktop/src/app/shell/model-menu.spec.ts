@@ -17,7 +17,7 @@ describe('ModelMenu', () => {
 
   beforeEach(() => {
     fake = createFakeDesktopApi(
-      makeAppState({ ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-5.6-sol', available: [] } }),
+      makeAppState({ ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-5.6-sol', modelLabel: 'GPT-5.6 Sol', available: [] } }),
     )
     fake.listModels = async () => MODELS
     TestBed.configureTestingModule({ providers: [{ provide: DESKTOP_API, useValue: fake }] })
