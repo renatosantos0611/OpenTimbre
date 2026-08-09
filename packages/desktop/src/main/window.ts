@@ -1,5 +1,5 @@
 /**
- * Creates the secure 420x700 desktop window and applies navigation lockdown.
+ * Creates the secure 678x864 desktop window and applies navigation lockdown.
  * Frameless: the OS title bar (app name) and the default File/Edit/View/Window
  * menu are replaced by the in-content hamburger row (`ot-titlebar`), which
  * already draws its own `-webkit-app-region: drag` strip. `titleBarStyle:
@@ -29,8 +29,8 @@ export function createMainWindow(opts: {
   overlay: TitleBarOverlayColors
 }): BrowserWindowType {
   const window = new BrowserWindow({
-    width: 420,
-    height: 700,
+    width: 678,
+    height: 864,
     minWidth: 360,
     minHeight: 520,
     x: opts.bounds.x,

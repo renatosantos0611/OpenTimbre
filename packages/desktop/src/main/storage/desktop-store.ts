@@ -8,8 +8,8 @@ export const DEFAULTS: Record<string, string | number | boolean> = {
   always_on_top: true,
   dim_on_unfocus: true,
   auto_apply: false,
-  width: 420,
-  height: 700,
+  width: 678,
+  height: 864,
 }
 
 /** Maps an OS locale to the two locales the app ships. `pt-BR` → `pt`; anything else */

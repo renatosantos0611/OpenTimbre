@@ -1,7 +1,7 @@
 /**
  * The window's drag region: a single hamburger button that opens the anchored
  * app menu (Settings, About). The legacy keeps the app identity out of this
- * strip — a 420px bar repeating "OpenTimbre" wastes space the guitarist
+ * strip — a narrow bar repeating "OpenTimbre" wastes space the guitarist
  * already knows. Reads no state; emits which pane to open (see
  * `opentimbre-angular-ui`).
  */

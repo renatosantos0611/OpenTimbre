@@ -1,6 +1,6 @@
 /**
  * The Manual/Auto application-mode selector. The composer sits at the bottom
- * of a 700px window, so the menu opens upward. The mode is a single source of
+ * of the window, so the menu opens upward. The mode is a single source of
  * truth in `DesktopService.autoApply()` — this component only reads it and
  * emits the choice; it does not hold a second copy (see `opentimbre-angular-ui`).
  */
