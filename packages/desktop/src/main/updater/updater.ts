@@ -65,7 +65,11 @@ export function createElectronUpdaterRuntime(): UpdaterRuntime {
   // Download only after the user confirms in the banner; a silent download
   // would burn bandwidth on updates the user may never install.
   autoUpdater.autoDownload = false
-  autoUpdater.autoInstallOnAppQuit = true
+  // A downloaded update applies ONLY via the explicit install action (banner
+  // Restart button -> `updater:install` IPC); quitting the app never installs
+  // silently (user-ratified spec reading: restart-and-install needs an
+  // explicit install message).
+  autoUpdater.autoInstallOnAppQuit = false
 
   const listeners = new Set<(s: UpdaterStatus) => void>()
   const emit = (status: UpdaterStatus): void => {

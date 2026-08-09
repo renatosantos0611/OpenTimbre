@@ -51,6 +51,7 @@
 10. Packaged-runtime proof = Playwright smoke on the portable exe in CI + manual checklist — ratified: interview 2026-08-08 (decision 7) — rejected: manual only / unit only — why: automates what Phase 3 deferred; checklist covers installer UX.
 11. Manual SemVer bump + hand-written `CHANGELOG.md`; release = tag push — ratified: interview 2026-08-08 (S5) — rejected: changelog tooling — why: no new dependency for a solo-cadence product.
 12. Task 3 (not Task 4) adds the three mechanical stub members to `fake-desktop-api.ts` — origin: plan amendment 2026-08-08 (task-boundary defect; the DesktopApi addition otherwise breaks renderer typecheck under Task 3's green-tree proof duty) — rejected: ship T3 typecheck-red / weaken the contract to optional members — why: keeps every ratified contract intact and hands Task 4 a green base.
+13. `autoInstallOnAppQuit = false` — ratified: execution interview 2026-08-08 (strict reading of the spec's "restart-and-install starts only after an explicit install message") — rejected: electron-updater default (install a confirmed download on quit) — why: a downloaded update applies only via the banner Restart action; quitting never installs silently.
 
 ---
 
