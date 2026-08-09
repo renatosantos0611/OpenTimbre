@@ -1,43 +1,48 @@
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { _electron, expect, test, type ElectronApplication } from '@playwright/test'
 
 /**
- * Packaged-runtime smoke: launches the portable exe produced by
- * electron-builder and proves the real app boots and paints — real main
+ * Packaged-runtime smoke: launches the UNPACKED packaged runtime
+ * (`release/win-unpacked/OpenTimbre.exe`, emitted by electron-builder next
+ * to the artifacts) and proves the real app boots and paints — real main
  * process, real preload bridge, real renderer over app://, none of the e2e
- * stubs. No MIDI hardware, no API keys, no network expectations: the
- * portable build runs the inert updater, so an unreachable update feed must
- * stay silent and the app must boot offline anyway. Only runnable where the
- * Windows artifacts exist — `.github/workflows/release.yml` step 7.
+ * stubs.
+ *
+ * Why unpacked, not the portable exe: the portable/NSIS wrapper layers are
+ * electron-builder's own code, and the portable wrapper relaunches the inner
+ * exe, which breaks Playwright's CDP attach. The wrappers stay covered by
+ * the manual release checklist; this smoke proves OUR packaged runtime —
+ * asar contents, the app:// protocol handler, the preload bridge, and the
+ * updater wiring — which is identical between win-unpacked and the installed
+ * app.
+ *
+ * No MIDI hardware, no API keys, no network prerequisites. Here the app is
+ * packaged without the PORTABLE_EXECUTABLE_DIR marker, so the real updater
+ * runs its startup check; an unreachable feed must stay silent and never
+ * block the boot. Only runnable where the Windows artifacts exist —
+ * `.github/workflows/release.yml` step 7.
  */
 
 const RELEASE_DIR = fileURLToPath(new URL('../release/', import.meta.url))
 
 /**
- * Locates the portable exe among the electron-builder artifacts. The NSIS
- * target emits "OpenTimbre Setup <ver>.exe"; the portable target emits the
- * product name without "Setup". The portable is therefore the single *.exe
- * whose name does not contain "Setup" — and any other shape (a missing
- * release dir, no exes, or zero/several non-Setup matches) fails the test
- * loudly instead of guessing.
+ * Resolves the unpacked runtime exe. electron-builder always emits
+ * `win-unpacked/` next to the artifacts and names the exe after productName
+ * ("OpenTimbre"). A missing directory or exe fails the test loudly instead
+ * of guessing.
  */
-function findPortableExe(): string {
-  if (!existsSync(RELEASE_DIR)) {
-    throw new Error(`release directory missing — run electron-builder first: ${RELEASE_DIR}`)
+function findUnpackedExe(): string {
+  const unpackedDir = join(RELEASE_DIR, 'win-unpacked')
+  if (!existsSync(unpackedDir)) {
+    throw new Error(`unpacked runtime missing — run electron-builder first: ${unpackedDir}`)
   }
-  const exes = readdirSync(RELEASE_DIR).filter((file) => file.endsWith('.exe'))
-  if (exes.length === 0) {
-    throw new Error(`no .exe artifacts found in ${RELEASE_DIR}`)
+  const exe = join(unpackedDir, 'OpenTimbre.exe')
+  if (!existsSync(exe)) {
+    throw new Error(`unpacked exe missing (productName should yield OpenTimbre.exe): ${exe}`)
   }
-  const portable = exes.filter((file) => !file.includes('Setup'))
-  if (portable.length !== 1) {
-    throw new Error(
-      `expected exactly one portable exe (no "Setup" in the name), found ${portable.length} in [${exes.join(', ')}]`,
-    )
-  }
-  return join(RELEASE_DIR, portable[0])
+  return exe
 }
 
 /** Caps a promise so diagnostics and teardown can never hang the unwind. */
@@ -77,7 +82,7 @@ test('packaged portable app boots and paints the shell', async () => {
   const captured: string[] = []
   let app: ElectronApplication | null = null
   try {
-    const executablePath = findPortableExe()
+    const executablePath = findUnpackedExe()
     // CI Windows sessions have no reliable GPU, and a GPU-init hang was the
     // observed failure mode; --disable-gpu avoids it and --no-sandbox is the
     // standard CI-Electron companion. The oracle (the shell paints) is
