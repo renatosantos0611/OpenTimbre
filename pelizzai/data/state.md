@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch; quick-fix (composer select chevrons pinned to a fixed end position) resumed and ratified 2026-08-09 on current branch
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch; quick-fix (composer select chevrons pinned to a fixed end position) resumed and ratified 2026-08-09 on current branch; quick-fix (composer AI icon, fixed-size model panel, search autofocus) resumed and ratified 2026-08-09 on current branch — interview-me on which icon represents AI: user chose Brain circuit (LucideBrainCircuit) over Sparkles/Bot/Wand
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -163,6 +163,22 @@
   on purpose: both chevrons measured a 9-11px inset from their button's right edge (padding, not a
   gap) and `.mode-btn`'s right edge/chevron position were pixel-identical between "Manual" and
   "Auto".
+- quick-fix (post-delivery): user asked for (1) the model select to be left-aligned — already true
+  (`ot-model-menu` is the actions row's first child with `margin-right: auto`, unchanged), (2) an
+  AI icon in the input's left corner, (3) the model panel to be a fixed size, and (4) opening the
+  model panel to focus the search field so the guitarist doesn't have to click it before typing.
+  Icon choice had no legacy reference to copy, so it went through interview-me: user picked Brain
+  circuit (`LucideBrainCircuit`) over Sparkles/Bot/Wand. `composer.ts` gained a `.entry-row` flex
+  row (icon + textarea) so the icon sits fixed at the top-left regardless of how tall the textarea
+  grows; the icon never overlaps typed text since it's a flex sibling, not an absolute overlay.
+  `model-menu.ts`'s `.panel` changed from `max-height: 320px` to a fixed `height: 320px` (was
+  shrinking to fit fewer filtered results). Autofocus: a `viewChild` ref on the search `<input>` +
+  an `effect()` watching `open()` (constructor-created, torn down via `DestroyRef`, mirroring
+  `AppShell`'s existing theme effect so the minifier doesn't drop it) — done at 5fe811c; typecheck
+  clean, 83/83 main-process tests, 77/77 renderer tests green; verified with a throwaway Playwright
+  script (not committed) against the real built bundle at 678x864, pt locale: search input reported
+  as `document.activeElement` immediately after opening, and the panel's bounding box (240x320) was
+  pixel-identical before and after typing a filter that narrowed 3 models down to 1.
 
 ## History
 
