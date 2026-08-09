@@ -1,5 +1,6 @@
 /** Electron entry point - wires store, IPC handlers, plugin host, and security lockdown. */
-import { app, BrowserWindow, protocol, safeStorage, nativeTheme } from 'electron'
+import { app, BrowserWindow, protocol, safeStorage, nativeTheme } from './electron.ts'
+import type { BrowserWindowType } from './electron.ts'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
@@ -160,7 +161,7 @@ app.whenReady().then(async () => {
   })
 
   const modelCache: AvailableModel[] = []
-  let win: BrowserWindow | null = null
+  let win: BrowserWindowType | null = null
   const setAlwaysOnTop = (onTop: boolean): void => {
     win?.setAlwaysOnTop(onTop)
   }

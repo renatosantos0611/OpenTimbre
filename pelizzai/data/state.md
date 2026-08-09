@@ -18,12 +18,12 @@
 - delivery-head: <none>
 - delivery-status: local — planning branch published at base
 - confirm: <none>
-- kickoff: pending
-- isolation: <pending>
+- kickoff: ratified 2026-08-09
+- isolation: branch
 - worktree-path: <none>
-- execution-mode: <unset>
-- commit-strategy: <unset>
-- review-profile: <unset>
+- execution-mode: inline
+- commit-strategy: granular
+- review-profile: split
 - effect: external
 - risk: medium
 - overlays: pelizzai-frontend, pelizzai-oswap, opentimbre-angular-ui, opentimbre-electron-ipc, opentimbre-secrets, opentimbre-i18n, opentimbre-testing, opentimbre-code-style
@@ -39,9 +39,9 @@
   No product code in this task.
 - done: reproduction (app does not boot — ESM/electron named import), discovery closed with 5
   ratified decisions, spec written, plan written with 10 vertical tasks
-- next: plan approved 2026-08-09; user asked for planning only, so execution is paused. Resume at
-  the post-plan setup gate of `pelizzai-execution-plans` (isolation, mode, commits, review) before
-  Task 1.
+- next: post-plan gate ratified 2026-08-09 (branch / inline / granular / split, kickoff ratified);
+  starting Task 1
+- T1 ✅ 2026-08-09 — ESM boot fix: single re-export `electron.ts`, value imports repointed; 64 main tests, typecheck, live boot green (0 SyntaxError)
 - open gaps: none blocking; residuals listed in the plan under `## Exposed material gaps`
 
 ## History

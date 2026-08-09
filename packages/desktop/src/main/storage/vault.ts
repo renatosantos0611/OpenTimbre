@@ -12,7 +12,7 @@
  * unprotected store that marks rows accordingly — absence is a supported
  * state, not a crash.
  */
-import { safeStorage } from 'electron'
+import { safeStorage } from '../electron.ts'
 import type { Vault } from '@opentimbre/core/src/ports/vault.ts'
 
 export function createSafeStorageVault(): Vault | null {

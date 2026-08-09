@@ -9,7 +9,8 @@
  * SceneApplier; chat/conversation operations delegate to the injected
  * ChatController.
  */
-import { ipcMain, type IpcMainInvokeEvent } from 'electron'
+import { ipcMain } from '../electron.ts'
+import type { IpcMainInvokeEvent } from 'electron'
 import { list as listKeys, remove as removeKey, save as saveKey } from '@opentimbre/core/src/secrets/key-store.ts'
 import { assertTrustedSender } from '../security.ts'
 import { APP_ORIGIN } from '../window.ts'

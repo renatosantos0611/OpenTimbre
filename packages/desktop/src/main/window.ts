@@ -1,5 +1,6 @@
 /** Creates the secure 420x700 desktop window and applies navigation lockdown. */
-import { BrowserWindow, session, type Rectangle } from 'electron'
+import { BrowserWindow, session } from './electron.ts'
+import type { BrowserWindowType, Rectangle } from './electron.ts'
 import { fileURLToPath } from 'node:url'
 import { isTrustedNavigation } from './security.ts'
 
@@ -11,7 +12,7 @@ export function createMainWindow(opts: {
   alwaysOnTop: boolean
   bounds: Partial<WindowBounds>
   onBoundsChanged: (bounds: Rectangle) => void
-}): BrowserWindow {
+}): BrowserWindowType {
   const window = new BrowserWindow({
     width: 420,
     height: 700,
