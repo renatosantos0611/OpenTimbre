@@ -217,9 +217,7 @@ export class ModelMenu implements OnInit {
 
   readonly activeLabel = computed(() => {
     const ai = this.desktop.ai()
-    if (!ai) return this.i18n.t('chat.model.none')
-    const match = this.desktop.models().find((m) => m.id === ai.model)
-    return match ? match.label : ai.model
+    return ai ? ai.modelLabel : this.i18n.t('chat.model.none')
   })
 
   readonly filtered = computed(() => {
