@@ -10,7 +10,7 @@
 - slug: ui-legacy-parity
 - track: feature
 - lane: exploratory
-- phase: planning
+- phase: planned
 - branch: spec/ui-legacy-parity
 - base-ref: refs/remotes/origin/main
 - base-sha: c687657c129f99c8b449ba205469b027470b2faa
@@ -39,7 +39,9 @@
   No product code in this task.
 - done: reproduction (app does not boot — ESM/electron named import), discovery closed with 5
   ratified decisions, spec written, plan written with 10 vertical tasks
-- next: plan content approval by the user → post-plan setup gate of `pelizzai-execution-plans`
+- next: plan approved 2026-08-09; user asked for planning only, so execution is paused. Resume at
+  the post-plan setup gate of `pelizzai-execution-plans` (isolation, mode, commits, review) before
+  Task 1.
 - open gaps: none blocking; residuals listed in the plan under `## Exposed material gaps`
 
 ## History

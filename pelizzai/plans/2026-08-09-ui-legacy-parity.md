@@ -38,7 +38,7 @@ main/preload, `node:sqlite` for settings, Vitest (renderer), `node --test` (main
 - Discovery: ratified on 2026-08-09
 - Spec: `pelizzai/specs/2026-08-09-ui-legacy-parity.md` approved on 2026-08-09
 - Domain skills: existing catalog set — `opentimbre-angular-ui`, `opentimbre-electron-ipc`, `opentimbre-secrets`, `opentimbre-i18n`, `opentimbre-code-style`, `opentimbre-testing`, `opentimbre-cross-platform` — ratified on 2026-08-09
-- Plan: draft
+- Plan: approved on 2026-08-09
 
 ---
 
