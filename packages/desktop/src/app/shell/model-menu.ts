@@ -6,7 +6,19 @@
  * survives a restart. Degraded states (no key, empty, provider error) render
  * an explanatory line instead of an empty panel (see `opentimbre-angular-ui`).
  */
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, OnInit, computed, inject, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  HostListener,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core'
 import type { ModelInfo, ModelTier } from '@opentimbre/contracts'
 import { LucideChevronUp, LucideSearch } from '@lucide/angular'
 import { DesktopService } from '../desktop.service'
@@ -36,6 +48,7 @@ import { I18nService } from '../i18n.service'
           <label class="search">
             <svg lucideSearch [size]="14"></svg>
             <input
+              #searchInput
               type="text"
               [placeholder]="i18n.t('chat.model.search')"
               [value]="filter()"
@@ -119,7 +132,7 @@ import { I18nService } from '../i18n.service'
         bottom: calc(100% + 6px);
         left: 0;
         width: 240px;
-        max-height: 320px;
+        height: 320px;
         display: flex;
         flex-direction: column;
         border: 1px solid var(--border);
@@ -208,8 +221,22 @@ export class ModelMenu implements OnInit {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
   private readonly elRef = inject(ElementRef)
+  private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput')
   readonly open = signal(false)
   readonly filter = signal('')
+
+  /**
+   * Opening the panel jumps straight to search — no click detour before
+   * typing. Created in the constructor and passed to `DestroyRef`, both to
+   * tear it down and to keep the minifier from dropping it (see `AppShell`'s
+   * theme effect for the same pattern).
+   */
+  constructor() {
+    const ref = effect(() => {
+      if (this.open()) this.searchInput()?.nativeElement.focus()
+    })
+    inject(DestroyRef).onDestroy(() => ref.destroy())
+  }
 
   readonly tierLabel = computed(
     () =>
