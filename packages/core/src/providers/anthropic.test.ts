@@ -39,3 +39,28 @@ test('Anthropic provider defaults releasedAt to 0 when the SDK omits created_at'
   const [model] = await anthropicProvider(fake).listModels()
   assert.equal(model.releasedAt, 0)
 })
+
+test('a model override wins over ANTHROPIC_MODEL and the hardcoded default', () => {
+  const previous = process.env['ANTHROPIC_MODEL']
+  process.env['ANTHROPIC_MODEL'] = 'claude-env-model'
+  try {
+    const provider = anthropicProvider(client, 'claude-picked-in-ui')
+    assert.equal(provider.model(), 'claude-picked-in-ui')
+    assert.equal(provider.createSession('system').model(), 'claude-picked-in-ui')
+  } finally {
+    if (previous === undefined) delete process.env['ANTHROPIC_MODEL']
+    else process.env['ANTHROPIC_MODEL'] = previous
+  }
+})
+
+test('an empty override falls back to ANTHROPIC_MODEL, never sends an empty model string', () => {
+  const previous = process.env['ANTHROPIC_MODEL']
+  process.env['ANTHROPIC_MODEL'] = 'claude-env-model'
+  try {
+    assert.equal(anthropicProvider(client, '').model(), 'claude-env-model')
+    assert.equal(anthropicProvider(client, undefined).model(), 'claude-env-model')
+  } finally {
+    if (previous === undefined) delete process.env['ANTHROPIC_MODEL']
+    else process.env['ANTHROPIC_MODEL'] = previous
+  }
+})

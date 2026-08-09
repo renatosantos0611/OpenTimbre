@@ -17,7 +17,7 @@ import { anthropicProvider } from '@opentimbre/core/src/providers/anthropic.ts'
 import { configure as configureKeys } from '@opentimbre/core/src/secrets/key-store.ts'
 import { createMainWindow, type TitleBarOverlayColors } from './window.ts'
 import { registerRendererProtocol } from './renderer-protocol.ts'
-import { initStore, getStore, resolveLocale } from './storage/desktop-store.ts'
+import { initStore, getStore, resolveLocale, type DesktopStore } from './storage/desktop-store.ts'
 import { createSafeStorageVault } from './storage/vault.ts'
 import { registerIpcHandlers } from './ipc/handlers.ts'
 import { resolveTheme } from './ipc/app-state.ts'
@@ -83,16 +83,24 @@ function launchProcess(executable: string): Promise<void> {
  * `applyToEnvironment()` keeps that in step with what's saved. A missing key
  * makes the SDK constructor throw; caught here so the app still boots with
  * that provider simply absent as a candidate (absence is a supported state).
+ *
+ * `model_id`/`provider_id` are what the composer's model picker writes
+ * (`ai:model`, handlers.ts) — without threading them here, every session
+ * silently used the provider's hardcoded default model instead of whatever
+ * the guitarist picked, which fails outright for an account without access
+ * to that default.
  */
-function wireProviders(): RigChatProvider[] {
+function wireProviders(store: DesktopStore): RigChatProvider[] {
+  const activeProvider = store.get('provider_id')
+  const activeModel = store.get('model_id')
   const providers: RigChatProvider[] = []
   try {
-    providers.push(openaiProvider(new OpenAI()))
+    providers.push(openaiProvider(new OpenAI(), activeProvider === 'openai' ? activeModel : undefined))
   } catch {
     /* no OpenAI key — not a candidate */
   }
   try {
-    providers.push(anthropicProvider(new Anthropic()))
+    providers.push(anthropicProvider(new Anthropic(), activeProvider === 'anthropic' ? activeModel : undefined))
   } catch {
     /* no Anthropic key — not a candidate */
   }
@@ -167,7 +175,7 @@ app.whenReady().then(async () => {
     store.hasStored('locale') ? (store.get('locale') as Locale) : resolveLocale(app.getLocale())
   const chat = createChatController({
     repo: createConversationRepository(store.connection),
-    getProviders: wireProviders,
+    getProviders: () => wireProviders(store),
     getGuitar,
     getLocale,
     autoApply: () => store.getBool('auto_apply'),
@@ -195,7 +203,7 @@ app.whenReady().then(async () => {
     },
     systemDark: nativeTheme.shouldUseDarkColors,
     version: app.getVersion() || '3.0-dev',
-    listModels: () => listAvailableModels(wireProviders()),
+    listModels: () => listAvailableModels(wireProviders(store)),
     getAi: () => {
       const modelId = store.get('model_id')
       const providerId = (store.get('provider_id') as ProviderId) || 'openai'
@@ -210,7 +218,7 @@ app.whenReady().then(async () => {
   })
 
   // Warm the model cache in the background; failures leave it empty.
-  void listModels(wireProviders()).then((models) => modelCache.push(...models)).catch(() => undefined)
+  void listModels(wireProviders(store)).then((models) => modelCache.push(...models)).catch(() => undefined)
 
   // When the OS theme changes and the window follows `system`, push the new
   // resolved theme so the renderer repaints without a reload.

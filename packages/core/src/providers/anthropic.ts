@@ -191,16 +191,23 @@ export type AnthropicProvider = {
   listModels(): Promise<AvailableModel[]>
 }
 
-/** Binds this provider's session/validation logic to an injected client. */
-export function anthropicProvider(client: AnthropicClient): AnthropicProvider {
+/**
+ * Binds this provider's session/validation logic to an injected client.
+ * `modelOverride` — the model the guitarist actually picked in the composer —
+ * wins over `ANTHROPIC_MODEL`/`DEFAULT_MODEL` when given; `validate()` keeps
+ * checking the env-configured model, since it answers "is this key usable at
+ * all", not "is the guitarist's current pick usable".
+ */
+export function anthropicProvider(client: AnthropicClient, modelOverride?: string): AnthropicProvider {
+  const activeModel = (): string => modelOverride || model()
   return {
     id: 'anthropic',
     label: 'Anthropic',
     keyEnv: KEY_ENV,
-    model,
+    model: activeModel,
     hasKey,
     validate: () => validate(client),
-    createSession: (system, history) => createSession(client, model(), system, history),
+    createSession: (system, history) => createSession(client, activeModel(), system, history),
     listModels: async () => {
       const page = await client.models.list({ limit: 100 })
       return page.data.map((item) => ({
