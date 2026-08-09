@@ -65,6 +65,22 @@ async function diagnose(app: ElectronApplication | null, captured: string[]): Pr
     }
     const windows = app.windows()
     console.log(`[packaged-smoke] app launched; open windows: ${windows.length}`)
+    if (windows.length === 0) {
+      // TEMPORARY diagnostic — remove once root-caused: zero BrowserWindows
+      // with a live process; probe whether the main process is responsive at
+      // all (app version + ready state) before boot can reach openWindow().
+      const main = await raceTimeout(
+        app.evaluate(({ app: electronApp }) => ({
+          version: electronApp.getVersion(),
+          ready: electronApp.isReady(),
+        })),
+        2000,
+        null,
+      )
+      console.log(
+        `[packaged-smoke] main process probe: ${main ? JSON.stringify(main) : '<evaluate timed out or failed>'}`,
+      )
+    }
     const window = windows[0]
     if (window) {
       const title = await raceTimeout(window.evaluate(() => document.title), 2000, '<title unavailable>')

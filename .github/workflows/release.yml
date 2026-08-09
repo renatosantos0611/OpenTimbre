@@ -43,6 +43,23 @@ jobs:
         run: npx electron-builder --win --publish never
         working-directory: packages/desktop
 
+      # TEMPORARY diagnostic — remove once root-caused: the smoke showed zero
+      # BrowserWindows with no captured stderr; this runs the packaged main
+      # directly and prints its stdout/stderr to surface where boot stops
+      # before openWindow().
+      - name: Boot diagnostics (temporary)
+        working-directory: packages/desktop
+        run: |
+          $exe = Resolve-Path "release/win-unpacked/OpenTimbre.exe"
+          $p = Start-Process -FilePath $exe -ArgumentList "--enable-logging=stderr","--disable-gpu","--no-sandbox" -PassThru -RedirectStandardError "$env:RUNNER_TEMP/app-stderr.txt" -RedirectStandardOutput "$env:RUNNER_TEMP/app-stdout.txt"
+          Start-Sleep -Seconds 25
+          if (!$p.HasExited) { Stop-Process -Id $p.Id -Force }
+          "--- stdout ---"
+          Get-Content "$env:RUNNER_TEMP/app-stdout.txt" -ErrorAction SilentlyContinue
+          "--- stderr ---"
+          Get-Content "$env:RUNNER_TEMP/app-stderr.txt" -ErrorAction SilentlyContinue
+        continue-on-error: true
+
       - name: Packaged smoke on the unpacked runtime
         run: npm run test:packaged -w @opentimbre/desktop
 
