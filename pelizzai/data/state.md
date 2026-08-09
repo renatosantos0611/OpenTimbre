@@ -38,18 +38,12 @@
 - quick-fix (post-delivery): remove native OS title bar text and default File/Edit/View/Window
   menu — `titleBarStyle: 'hidden'` + `titleBarOverlay` (keeps native minimize/maximize/close),
   `Menu.setApplicationMenu(null)` — done; typecheck clean, 75/75 main-process tests green
-- known gap (found while validating the quick-fix, NOT caused by it — reproduced identically with
-  the fix's files stashed out): `npm run desktop` crashes before any window opens —
-  `TypeError: Cannot read properties of undefined (reading 'registerSchemesAsPrivileged')` at
-  `packages/desktop/src/main/main.ts`'s top-level `protocol.registerSchemesAsPrivileged(...)`,
-  called right after the `electron.ts` re-export import. A deferred call (`await` one
-  `setImmediate` tick before the call) did NOT fix it — reverted, not committed. Root cause
-  unconfirmed; leading hypothesis is that Electron's ESM `import electron from 'electron'` under
-  this bundling setup does not resolve to the native API binding the way `require('electron')`
-  does in CJS main processes (see `opentimbre-electron-ipc` and Task 1 of the parity plan, which
-  introduced `electron.ts`). Blocks visual verification of ANY renderer change on this branch,
-  including this quick-fix's title bar; the code was validated by typecheck + tests + Electron
-  documentation only, not by a rendered window.
+- false alarm, resolved: `npm run desktop` appeared to crash before any window opened —
+  `TypeError: Cannot read properties of undefined (reading 'registerSchemesAsPrivileged')` — when
+  launched from the agent's own sandboxed shell (no display attached). The user confirmed
+  `npm run desktop` boots normally on their machine, so this was environment-specific to the
+  sandbox, not a defect in the app or in this quick-fix. No code change needed; the earlier
+  speculative `setImmediate` deferral attempt was already reverted, not committed.
 
 ## History
 
