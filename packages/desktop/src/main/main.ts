@@ -229,12 +229,16 @@ app.whenReady().then(async () => {
       const modelId = store.get('model_id')
       const providerId = (store.get('provider_id') as ProviderId) || 'openai'
       if (!modelId) return null
-      const cached = modelCache.find((m) => m.id === modelId)
       return {
         provider: providerId,
         label: '',
         model: modelId,
-        modelLabel: cached ? modelLabel(cached.provider, cached.id) : modelId,
+        // provider+id are already known — no need to find the model in
+        // `modelCache` first (that lookup used to miss and silently fall
+        // back to the raw id whenever the background warm-up hadn't
+        // resolved yet, which raced independently of the picker's own
+        // `listModels()` call).
+        modelLabel: modelLabel(providerId, modelId),
         available: modelCache,
       }
     },
