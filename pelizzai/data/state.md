@@ -14,9 +14,9 @@
 - branch: feat/phase4-packaging
 - base-ref: refs/remotes/origin/main
 - base-sha: 49e0dea76cf8ba42ec44db016aabc5fc20ac7b85
-- validated-head: 29ecc14ce5fec6ff4e2232c4f4ffe05d712de25b
-- delivery-head: f0cbf0d4c0a9f321ec1bc5013ba42d72f4610541
-- delivery-status: resealing — CI dry-run exposed electron-in-dependencies packaging failure; fix 29ecc14 re-validated (suite green + focused review APPROVED)
+- validated-head: 59f0de66f9c18ce14df3408338de1ef674ea3000
+- delivery-head: 2462f017d8bfa607c8f803bdada9345bb6ac2085
+- delivery-status: resealing (2nd) — CI dry-run exposed electron range-version packaging failure; pin 59f0de6 re-validated (suite green + focused review APPROVED)
 - confirm: base-ref contains validated-head (PR/branch integrated)
 - kickoff: ratified 2026-08-08
 - isolation: branch

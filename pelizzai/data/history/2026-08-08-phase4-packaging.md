@@ -46,3 +46,7 @@
 ## Reseal (packaging fix)
 
 - 2026-08-08 — CI dry-run (tag v0.1.0-ci-test) failed at "Package NSIS + portable": electron-builder requires electron in devDependencies. Fix 29ecc14 (manifest move only; electron-updater stays runtime; suite green; focused delta review APPROVED). Seal invalidated at e46ff22 and reissued at 29ecc14.
+
+## Reseal 2 (electron version pin)
+
+- 2026-08-08 — second dry-run failed at "Package NSIS + portable": electron-builder requires an exact electron version (range unresolvable for binary download). Fix 59f0de6 pins electron 43.3.0 (exact resolved version; lockfile integrity unchanged; suite green; focused delta review APPROVED). Seal reissued at 59f0de6.
