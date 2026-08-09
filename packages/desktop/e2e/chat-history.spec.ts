@@ -113,6 +113,9 @@ async function stubBridge(page: Page, opts: { busy?: boolean } = {}): Promise<vo
         onChatStatus: () => () => undefined,
         onThemeChanged: () => () => undefined,
         onPluginChanged: () => () => undefined,
+        downloadUpdate: async () => undefined,
+        installUpdate: async () => undefined,
+        onUpdaterStatus: () => () => undefined,
       }
     },
     { busy: opts.busy ?? false, rig: RIG, cards: CARDS },

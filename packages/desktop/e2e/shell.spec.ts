@@ -67,6 +67,9 @@ async function stubBridge(page: Page): Promise<void> {
       onChatStatus: () => () => undefined,
       onThemeChanged: () => () => undefined,
       onPluginChanged: () => () => undefined,
+      downloadUpdate: async () => undefined,
+      installUpdate: async () => undefined,
+      onUpdaterStatus: () => () => undefined,
     }
   })
 }
