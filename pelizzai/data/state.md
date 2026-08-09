@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -73,6 +73,25 @@
   `BrowserWindow` call never reads `opts.bounds.width`/`height` — only `x`/`y` — so a
   guitarist-resized window snaps back to the default width/height on relaunch even though the size
   is persisted to the store; worth a follow-up if that's unwanted behavior.
+- bug fix (post-delivery): MIDI showed "closed" in the status bar even with loopMIDI's VoiceRig
+  port already open before launch — confirmed cause: `SceneApplier.apply()` only opened the MIDI
+  port lazily on the first scene apply, so `midiState()` stayed `{ port: null, error: null }` until
+  a rig was actually applied. Added `SceneApplier.connect()` (same connect-and-cache logic, no rig
+  required) and call it once at startup in `main.ts`, mirroring the plugin manager's immediate first
+  poll. Known remaining limitation, out of scope: no periodic re-check, so opening loopMIDI only
+  after the app has started still won't update the status until a scene is applied or the app
+  restarts — flagged to the user as a possible follow-up — done at 3854825; typecheck clean, 83/83
+  main-process tests green (2 new)
+- open question raised, not yet decided: cross-provider/model conversation resume currently drops
+  all memory (`memoryLost: true`, banner shown) by design (`rig-chat.ts`'s `canResume` requires an
+  exact provider+model match against `RigChatSnapshot`) — the user wants the AI to keep the
+  conversation's context even when reopened under a different provider or model. Investigated:
+  `createSession(system, history)` in both `openai.ts` and `anthropic.ts` accepts a plain
+  history array and the stored `messages` (role+text, provider-agnostic) could seed a synthetic
+  history on incompatible resume instead of starting empty — feasible, but a real design decision
+  (fidelity loss on tool-call state, extra tokens resent every incompatible resume, same-model vs
+  same-provider granularity, banner wording) that reverses documented intended behavior. Recommendation
+  given to the user, awaiting their decision before implementing.
 - false alarm, resolved: `npm run desktop` appeared to crash before any window opened —
   `TypeError: Cannot read properties of undefined (reading 'registerSchemesAsPrivileged')` — when
   launched from the agent's own sandboxed shell (no display attached). The user confirmed
