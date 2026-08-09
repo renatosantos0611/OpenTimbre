@@ -63,7 +63,7 @@ import { I18nService } from '../i18n.service'
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        height: 32px;
+        height: 36px;
         padding: 0 10px;
         border: 1px solid var(--border);
         border-radius: var(--r-sm);

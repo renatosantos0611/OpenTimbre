@@ -85,6 +85,8 @@ import { ModelMenu } from './model-menu'
       .entry {
         width: 100%;
         resize: none;
+        /* Two lines from the start, so the box doesn't open cramped for a first sentence. */
+        min-height: calc(2 * 14px * 1.4);
         max-height: 150px;
         padding: 0;
         border: 0;
