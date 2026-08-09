@@ -18,7 +18,7 @@
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -119,6 +119,23 @@
   `npm run desktop` boots normally on their machine, so this was environment-specific to the
   sandbox, not a defect in the app or in this quick-fix. No code change needed; the earlier
   speculative `setImmediate` deferral attempt was already reverted, not committed.
+- quick-fix (post-delivery): user supplied a new reference screenshot showing the composer's
+  textarea and its actions row (model picker, Manual/Auto, send) sharing ONE rounded bordered box,
+  and asked for the textarea to grow with the typed text. The two were previously separate boxes
+  (`.entry` had its own border; `.actions` sat below it, outside that border, inside an unbordered
+  `.composer`), and the textarea had no auto-grow (`rows="1"`, fixed `max-height: 96px`, no resize
+  JS). Restructured to match the legacy pattern (`legacy/desktop/renderer/styles.css`'s
+  `.composer-inner` + `app.ts`'s `ajustarAltura()`): a new `.composer-inner` wrapper carries the
+  single border/radius/background and a `focus-within` border-color change, holding both the
+  textarea (now borderless/transparent, `padding:0`) and `.actions` (`padding-top` in place of the
+  border's old gap); `Composer.resize()` sets `height: auto` then `scrollHeight`px on every input,
+  capped by `.entry`'s `max-height: 150px`, and `send()` resets the textarea's value/height via a
+  `viewChild` template ref before clearing the draft signal — done at 998069d; typecheck clean,
+  83/83 main-process tests, 77/77 renderer tests green; verified with a throwaway Playwright
+  screenshot (script + PNGs not committed) against the real built bundle at 678x864, pt locale:
+  baseline matches the reference (merged box, model left / Manual+send right, hint below), typing a
+  long draft grows the box to two lines while the actions stay pinned inside it, and it collapses
+  back to one row after the simulated send.
 
 ## History
 
