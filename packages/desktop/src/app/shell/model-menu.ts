@@ -94,7 +94,7 @@ import { I18nService } from '../i18n.service'
         display: block;
         position: relative;
         margin-right: auto;
-        /* Let the button shrink below its 160px cap at the 360px minimum width. */
+        /* Let the button shrink below its 200px cap at the 360px minimum width. */
         flex: 0 1 auto;
         min-width: 0;
       }
@@ -104,7 +104,7 @@ import { I18nService } from '../i18n.service'
         gap: 4px;
         height: 36px;
         width: 100%;
-        max-width: 160px;
+        max-width: 200px;
         min-width: 0;
         padding: 0 8px;
         border: 1px solid var(--border);
