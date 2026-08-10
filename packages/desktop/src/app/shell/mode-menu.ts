@@ -58,13 +58,18 @@ import { I18nService } from '../i18n.service'
       :host {
         display: block;
         position: relative;
+        /* Let the button shrink below its 112px cap at the 360px minimum width. */
+        flex: 0 1 auto;
+        min-width: 0;
       }
       .mode-btn {
         display: inline-flex;
         align-items: center;
         gap: 6px;
         height: 36px;
-        width: 112px;
+        width: 100%;
+        max-width: 112px;
+        min-width: 0;
         padding: 0 10px;
         border: 1px solid var(--border);
         border-radius: var(--r-sm);

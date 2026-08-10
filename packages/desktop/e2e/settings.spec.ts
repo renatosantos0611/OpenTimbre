@@ -152,13 +152,13 @@ test('settings: forced provider disables AI controls', async ({ page }) => {
   await expect(page.locator('ot-ai-settings')).toContainText('AI_PROVIDER')
 })
 
-test('plugin bar renders all catalog plugins with actions', async ({ page }) => {
+test('plugin bar is empty until a conversation suggests a plugin', async ({ page }) => {
   await page.setViewportSize({ width: 420, height: 700 })
   await stubBridge(page)
   await page.goto('/')
   await expect(page.locator('ot-app-shell')).toBeVisible()
-  await expect(page.locator('ot-plugin-bar .plugin')).toHaveCount(4)
-  await expect(page.locator('ot-plugin-bar')).toContainText('gojira')
+  // Fresh shell, no conversation: the plugin bar shows no plugins.
+  await expect(page.locator('ot-plugin-bar .plugin')).toHaveCount(0)
 
   // The Manual/Auto mode in the composer reflects the single autoApply state.
   await expect(page.locator('ot-mode-menu .mode-btn')).toContainText('Manual')

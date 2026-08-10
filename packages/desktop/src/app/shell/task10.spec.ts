@@ -153,7 +153,7 @@ describe('Task 10 settings and plugin bar', () => {
   })
 
   it('shows the suggested plugin live, right after the AI answers in a brand-new chat', async () => {
-    fake.sendChat = async (text) => ({
+    fake.sendChat = async () => ({
       text: 'here',
       rig: { plugin: 'soldano', song: 's', artist: 'a', amp: 'CLN', note: '', scenes: {} },
       cards: null,

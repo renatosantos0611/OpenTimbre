@@ -153,12 +153,16 @@ for (const viewport of VIEWPORTS) {
   // so the renderer no longer sets data-dimmed. Verify the setting toggles.
   await page.getByRole('button', { name: 'Settings' }).click()
   await page.getByLabel('Dim when unfocused').check()
-  await page.evaluate(() => window.dispatchEvent(new Event('blur')))
-  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
 
-  // Focus is visible on the first interactive element.
+  // Focus is visible on an interactive element when you Tab.
   await page.evaluate(() => (document.activeElement as HTMLElement)?.blur())
-  await page.keyboard.press('Tab')
+  // After the settings flow the first Tab can land on <body>; keep Tabbing
+  // until an interactive element has focus, then check its focus ring.
+  let guard = 0
+  while ((await page.evaluate(() => document.activeElement?.tagName)) === 'BODY' && guard < 10) {
+    await page.keyboard.press('Tab')
+    guard++
+  }
   const focus = await page.evaluate(() => {
     const el = document.activeElement as HTMLElement
     const cs = getComputedStyle(el)
