@@ -169,4 +169,27 @@ describe('Task 10 settings and plugin bar', () => {
     expect(bar.querySelectorAll('.plugin').length).toBe(1)
     expect(bar.textContent).toContain('soldano')
   })
+
+  it('shows a suggested plugin even when its boot-poll push never arrived (a startup race)', async () => {
+    fake.sendChat = async () => ({
+      text: 'here',
+      rig: { plugin: 'petrucci', song: 's', artist: 'a', amp: 'CLN', note: '', scenes: {} },
+      cards: null,
+      conversationId: 'new-2',
+      autoApplied: null,
+    })
+    const { el, fixture } = render()
+    await flush()
+    // No pushPluginChanged for 'petrucci' — the renderer never learned its state from the poll.
+    await TestBed.inject(DesktopService).sendChat('give me a Petrucci tone')
+    fixture.detectChanges()
+    TestBed.flushEffects()
+    await flush()
+    fixture.detectChanges()
+    const bar = el.querySelector('ot-plugin-bar') as HTMLElement
+    // The fake's getPluginState always answers for whatever id it's asked about — the point here
+    // is that the fallback fetch actually asked for 'petrucci' and the chip rendered from it.
+    expect(fake.calls.getPluginState).toContain('petrucci')
+    expect(bar.querySelectorAll('.plugin').length).toBe(1)
+  })
 })

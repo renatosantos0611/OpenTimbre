@@ -5,7 +5,7 @@
  * until the conversation has a suggestion. States arrive via
  * `plugin:changed` pushes into `DesktopService.pluginStates`.
  */
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject } from '@angular/core'
 import { LucideAudioLines, LucideDownload, LucidePlay } from '@lucide/angular'
 import { DesktopService } from '../desktop.service'
 import { I18nService } from '../i18n.service'
@@ -148,6 +148,25 @@ export class PluginBar {
     const suggested = this.desktop.currentConversation()?.plugin
     return suggested ? [suggested] : []
   })
+
+  /**
+   * `pluginStates` is normally filled by the main process's boot-time poll
+   * pushing `plugin:changed` — but that poll starts as soon as the window is
+   * created, racing this app's own boot (Angular loading, `DesktopService`
+   * subscribing). A plugin whose push arrives before the subscription is up
+   * never gets re-sent (the poll only re-emits on a state change), so it
+   * would stay unknown, and therefore invisible here, for the rest of the
+   * session. Pull it directly the moment a conversation suggests a plugin
+   * this bar hasn't seen a state for yet.
+   */
+  constructor() {
+    const ref = effect(() => {
+      for (const id of this.pluginIds()) {
+        if (!this.desktop.pluginStates()[id]) void this.desktop.getPluginState(id)
+      }
+    })
+    inject(DestroyRef).onDestroy(() => ref.destroy())
+  }
 
   state(id: string) {
     return this.desktop.pluginStates()[id]
