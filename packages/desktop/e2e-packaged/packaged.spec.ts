@@ -96,12 +96,17 @@ test('packaged portable app boots and paints the shell', async () => {
     window.on('pageerror', (error) => {
       if (captured.length < 5) captured.push(`pageerror ${error.message}`)
     })
-    // "OpenTimbre" is locale-independent in the i18n catalog (identical in
-    // en and pt), and "Chat" is too — stable proof the real renderer painted
-    // without depending on locale, MIDI state, or provider configuration.
-    await expect(window.locator('ot-titlebar')).toContainText('OpenTimbre')
+    // The window title comes straight from index.html's static <title>, so it
+    // proves the app:// protocol served the real renderer regardless of JS
+    // execution. The shell and its default (Chat) pane are then checked by
+    // selector, not by text, so the oracle stays locale-independent without
+    // depending on MIDI state or provider configuration. `ot-titlebar` renders
+    // no text and there is no tab strip (legacy parity: a bare drag strip and
+    // menu-driven pane switching, see `titlebar.ts`/`app-shell.ts`), so neither
+    // is a usable text/role oracle here.
+    await expect(window).toHaveTitle('OpenTimbre')
     await expect(window.locator('ot-app-shell')).toBeVisible()
-    await expect(window.getByRole('tab', { name: 'Chat' })).toBeVisible()
+    await expect(window.locator('ot-chat-pane')).toBeVisible()
   } catch (error) {
     await diagnose(app, captured)
     throw error
