@@ -260,6 +260,26 @@
   the moment it's missing from `pluginStates` — done at 349929e; typecheck clean, 83/83
   main-process tests, 78/78 renderer tests green (added a regression test that suggests a plugin
   with no prior push at all, asserting the fallback fetch fires and the chip renders).
+- bug fix (post-delivery): user pasted a CI failure log — `test:packaged` failing on
+  `expect(window.locator('ot-titlebar')).toContainText('OpenTimbre')`. Root cause: `bb6d857`
+  ("legacy chrome replaces the tab strip", part of this same UI legacy-parity work) redesigned
+  `ot-titlebar` to a bare drag strip with no text and removed the tab strip entirely, matching the
+  legacy screenshots — but nobody updated the packaged smoke test's oracle, since `test:packaged`
+  only runs against real Windows build artifacts in the release workflow, so this was its first
+  run against that design. Confirmed via `git log`/`git show` (titlebar originally rendered
+  `i18n.t('shell.appName')`, now renders only an icon button) and a repo-wide grep for `role="tab"`
+  (zero matches) that BOTH the `ot-titlebar` text assertion and the next `getByRole('tab', {name:
+  'Chat'})` assertion were stale, not just the one that happened to fail first. Replaced both with
+  locale-independent, selector-based checks: window title (static in `index.html`, proves the
+  `app://` protocol served the real renderer) and `ot-chat-pane` visible (proves the shell painted
+  its default pane) — done at 56b14e6. Could not run `test:packaged` itself in this sandbox
+  (`electron-builder`'s native-module rebuild needs Python, which isn't installed here — an
+  environment limitation, not fixed); verified the renderer-side half of the fix with a throwaway
+  Playwright check (not committed) against the real built bundle: title is "OpenTimbre",
+  `ot-app-shell`/`ot-chat-pane` visible, `ot-titlebar` has zero text, zero `role="tab"` elements —
+  confirming the new oracle holds and the old one really was stale. Flagged to the user: this fix
+  is unverified against the real packaged Electron runtime and should be confirmed by the next CI
+  run of `test:packaged`.
 
 ## History
 
