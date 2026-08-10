@@ -9,7 +9,8 @@
  * SceneApplier; chat/conversation operations delegate to the injected
  * ChatController.
  */
-import { ipcMain, type IpcMainInvokeEvent } from 'electron'
+import { ipcMain } from '../electron.ts'
+import type { IpcMainInvokeEvent } from 'electron'
 import { list as listKeys, remove as removeKey, save as saveKey } from '@opentimbre/core/src/secrets/key-store.ts'
 import { assertTrustedSender } from '../security.ts'
 import { APP_ORIGIN } from '../window.ts'
@@ -33,7 +34,10 @@ type Deps = {
   getLocale: () => import('@opentimbre/i18n').Locale
   systemDark: boolean
   setAlwaysOnTop: (onTop: boolean) => void
+  setDimOnUnfocus: (on: boolean) => void
+  setTitleBarOverlay: (theme: import('@opentimbre/contracts').Theme) => void
   version: string
+  listModels: () => Promise<import('@opentimbre/contracts').ModelInfo[]>
 }
 
 function appState(deps: Deps): import('@opentimbre/contracts').AppState {
@@ -43,6 +47,7 @@ function appState(deps: Deps): import('@opentimbre/contracts').AppState {
     getGuitar: deps.getGuitar,
     getLocale: deps.getLocale,
     ai: deps.getAi(),
+    midi: deps.applier.midiState(),
     systemDark: deps.systemDark,
     version: deps.version,
   })
@@ -86,7 +91,13 @@ export function registerIpcHandlers(deps: Deps): void {
   })
 
   ipcMain.handle('window:setTheme', (event, theme) => {
-    try { trusted(event); deps.store.set('theme', validatePayload('window:setTheme', theme) as string); return appState(deps) } catch (e) { return failure(String(e)) }
+    try {
+      trusted(event)
+      const value = validatePayload('window:setTheme', theme) as import('@opentimbre/contracts').Theme
+      deps.store.set('theme', value)
+      deps.setTitleBarOverlay(value)
+      return appState(deps)
+    } catch (e) { return failure(String(e)) }
   })
 
   ipcMain.handle('window:setLocale', (event, locale) => {
@@ -104,7 +115,7 @@ export function registerIpcHandlers(deps: Deps): void {
   })
 
   ipcMain.handle('window:dimOnUnfocus', (event, value) => {
-    try { trusted(event); const v = validatePayload('window:dimOnUnfocus', value) as boolean; deps.store.setBool('dim_on_unfocus', v); return v } catch (e) { return failure(String(e)) }
+    try { trusted(event); const v = validatePayload('window:dimOnUnfocus', value) as boolean; deps.setDimOnUnfocus(v); return v } catch (e) { return failure(String(e)) }
   })
 
   ipcMain.handle('window:autoApply', (event, value) => {
@@ -205,6 +216,15 @@ export function registerIpcHandlers(deps: Deps): void {
 
   ipcMain.handle('ai:providerPreference', (event, pref) => {
     try { trusted(event); deps.store.set('provider_preference', validatePayload('ai:providerPreference', pref) as string); return appState(deps) } catch (e) { return failure(String(e)) }
+  })
+
+  // Void payload — sender check only. The key is read inside main and used
+  // only as a request header; the returned list never carries it.
+  ipcMain.handle('ai:listModels', async (event) => {
+    try {
+      trusted(event)
+      return await deps.listModels()
+    } catch (e) { return failure(String(e)) }
   })
 
   // ── Updater ──────────────────────────────────────────────

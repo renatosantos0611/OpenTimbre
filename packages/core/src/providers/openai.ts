@@ -225,19 +225,32 @@ export type OpenAIProvider = {
   listModels(): Promise<AvailableModel[]>
 }
 
-/** Binds this provider's session/validation logic to an injected client. */
-export function openaiProvider(client: OpenAIClient): OpenAIProvider {
+/**
+ * Binds this provider's session/validation logic to an injected client.
+ * `modelOverride` — the model the guitarist actually picked in the composer —
+ * wins over `OPENAI_MODEL`/`DEFAULT_MODEL` when given; `validate()` keeps
+ * checking the env-configured model, since it answers "is this key usable at
+ * all", not "is the guitarist's current pick usable".
+ */
+export function openaiProvider(client: OpenAIClient, modelOverride?: string): OpenAIProvider {
+  const activeModel = (): string => modelOverride || model()
   return {
     id: 'openai',
     label: 'OpenAI',
     keyEnv: KEY_ENV,
-    model,
+    model: activeModel,
     hasKey,
     validate: () => validate(client),
-    createSession: (system, history) => createSession(client, model(), system, history),
+    createSession: (system, history) => createSession(client, activeModel(), system, history),
     listModels: async () => {
       const page = await client.models.list()
-      return page.data.map((item) => ({ provider: 'openai', providerLabel: 'OpenAI', id: item.id }))
+      return page.data.map((item) => ({
+        provider: 'openai',
+        providerLabel: 'OpenAI',
+        id: item.id,
+        // `created` is Unix seconds; 0 (not `NaN`) so a missing value still sorts last.
+        releasedAt: item.created ? item.created * 1000 : 0,
+      }))
     },
   }
 }

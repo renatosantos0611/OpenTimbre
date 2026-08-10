@@ -72,6 +72,14 @@ test('list returns summaries ordered by most recent update', () => {
   assert.equal(list[0].id, 'newer')
   assert.equal(list[1].id, 'older')
   assert.equal(list[0].turns, 2, 'turns counts the persisted messages')
+  assert.equal(list[0].plugin, 'gojira', 'summary carries the suggested plugin')
+})
+
+test('list reports a null plugin when the conversation never produced a rig', () => {
+  const repo = createConversationRepository(memdb())
+  repo.save(record({ plugin: null }))
+
+  assert.equal(repo.list()[0].plugin, null)
 })
 
 test('remove deletes a conversation and its messages, reporting whether it existed', () => {

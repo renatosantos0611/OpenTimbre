@@ -2,13 +2,20 @@ import { DatabaseSync } from 'node:sqlite'
 
 export const DEFAULTS: Record<string, string | number | boolean> = {
   guitar: 'stratocaster',
+  locale: 'en',
   model_id: '',
   provider_preference: 'auto',
   always_on_top: true,
-  dim_on_unfocus: false,
+  dim_on_unfocus: true,
   auto_apply: false,
-  width: 420,
-  height: 700,
+  width: 678,
+  height: 864,
+}
+
+/** Maps an OS locale to the two locales the app ships. `pt-BR` → `pt`; anything else */
+/** (including unknown or non-pt locales) intentionally falls back to `en`. */
+export function resolveLocale(osLocale: string): 'en' | 'pt' {
+  return osLocale.toLowerCase().startsWith('pt') ? 'pt' : 'en'
 }
 
 type Row = { key: string; value: string | null }
@@ -49,6 +56,11 @@ export class DesktopStore {
     const d = DEFAULTS[key]
     if (d !== undefined) return String(d)
     return ''
+  }
+
+  /** True when a row exists for the key — lets callers tell an explicit value from the default. */
+  hasStored(key: string): boolean {
+    return this.db.prepare('SELECT 1 FROM settings WHERE key = ?').get(key) !== undefined
   }
 
   /** Reads a numeric setting or returns the default. */

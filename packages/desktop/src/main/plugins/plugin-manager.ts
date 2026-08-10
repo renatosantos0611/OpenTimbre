@@ -100,6 +100,7 @@ export function createPluginManager(options: PluginManagerOptions): PluginManage
   return {
     start() {
       if (pollHandle !== null) return // a second window must not double the polling
+      void poll() // immediate first poll so the renderer has states before the AI suggests a plugin
       pollHandle = timer.setInterval(() => void poll(), POLL_INTERVAL_MS)
     },
     stop() {

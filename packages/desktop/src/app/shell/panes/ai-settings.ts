@@ -17,99 +17,76 @@ const PROVIDERS: { id: 'anthropic' | 'openai'; env: string }[] = [
 ]
 
 type KeyDraft = { provider: 'anthropic' | 'openai'; value: string }
+type KeySource = 'app' | 'environment' | 'none'
 
 @Component({
   selector: 'ot-ai-settings',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <fieldset class="group">
-      <legend>{{ i18n.t('settings.ai') }}</legend>
+    @if (forced()) {
+      <p class="hint warning">{{ i18n.t('settings.ai.forced', { env: 'AI_PROVIDER' }) }}</p>
+    }
 
-      @if (forced()) {
-        <p class="hint warning">{{ i18n.t('settings.ai.forced', { env: 'AI_PROVIDER' }) }}</p>
-      }
+    <label class="field">
+      <span>{{ i18n.t('settings.ai.provider') }}</span>
+      <div class="seg" role="group" [attr.aria-label]="i18n.t('settings.ai.provider')">
+        @for (pref of prefs; track pref) {
+          <button
+            class="seg-btn"
+            type="button"
+            [disabled]="locked()"
+            [attr.aria-pressed]="pref === desktop.providerPreference()"
+            (click)="setPreference(pref)"
+          >
+            {{ prefLabel()[pref] }}
+          </button>
+        }
+      </div>
+    </label>
 
-      <label class="field">
-        <span>{{ i18n.t('settings.ai.provider') }}</span>
-        <div class="seg" role="group" [attr.aria-label]="i18n.t('settings.ai.provider')">
-          @for (pref of prefs; track pref) {
-            <button
-              class="seg-btn"
-              type="button"
-              [disabled]="locked()"
-              [attr.aria-pressed]="pref === desktop.providerPreference()"
-              (click)="setPreference(pref)"
-            >
-              {{ prefLabel()[pref] }}
-            </button>
-          }
-        </div>
-      </label>
+    @if (!desktop.ai() && !forced()) {
+      <p class="hint">{{ i18n.t('settings.ai.noProvider') }}</p>
+    }
 
-      <label class="field">
-        <span>{{ i18n.t('settings.ai.model') }}</span>
+    @if (desktop.keysError()) {
+      <p class="hint warning">{{ desktop.keysError() }}</p>
+    }
+    @for (k of keys(); track k.provider) {
+      <div class="key-row" [class.unreadable]="!k.readable">
+        <span class="badge" [attr.data-state]="k.source">{{ badgeLabel(k) }}</span>
+        <span class="key-name">{{ k.label }}</span>
+        @if (!k.readable) {
+          <span class="key-hint warn">{{ i18n.t('settings.keys.unreadable') }}</span>
+        } @else if (k.source === 'app' && !k.protected) {
+          <span class="key-hint warn">{{ i18n.t('settings.keys.unencrypted') }}</span>
+        }
+        @if (k.source === 'app') {
+          <button
+            class="remove"
+            type="button"
+            [attr.aria-label]="i18n.t('settings.keys.remove', { label: k.label })"
+            (click)="saveKeyForm(k.provider)"
+          >
+            {{ i18n.t('settings.keys.removeTitle') }}
+          </button>
+        }
+      </div>
+    }
+
+    @for (p of PROVIDERS; track p.id) {
+      <div class="key-add">
         <input
-          [value]="model()"
-          [disabled]="locked()"
-          (change)="setModel($any($event.target).value)"
+          type="password"
+          autocomplete="off"
+          [placeholder]="i18n.t('settings.keys.paste')"
+          [value]="draft(p.id).value"
+          (input)="setDraft(p.id, $any($event.target).value)"
+          [attr.aria-label]="i18n.t('settings.keys.paste')"
         />
-      </label>
-
-      @if (!desktop.ai() && !forced()) {
-        <p class="hint">{{ i18n.t('settings.ai.noProvider') }}</p>
-      }
-    </fieldset>
-
-    <fieldset class="group">
-      <legend>{{ i18n.t('settings.keys') }}</legend>
-      @if (desktop.keysError()) {
-        <p class="hint warning">{{ desktop.keysError() }}</p>
-      }
-      @for (k of keys(); track k.provider) {
-        <div class="key-row" [class.unreadable]="!k.readable">
-          <span class="key-name">{{ k.label }}</span>
-          @if (!k.readable) {
-            <span class="key-hint warn">{{ i18n.t('settings.keys.unreadable') }}</span>
-          } @else if (k.source === 'app') {
-            @if (!k.protected) {
-              <span class="key-hint warn">{{ i18n.t('settings.keys.unencrypted') }}</span>
-            } @else {
-              <span class="key-hint">{{ i18n.t('settings.keys.hint', { hint: k.hint ?? '' }) }}</span>
-            }
-          } @else if (k.source === 'environment') {
-            <span class="key-hint">{{ i18n.t('settings.keys.env', { env: k.env }) }}</span>
-          }
-          @if (k.source === 'app') {
-            <button
-              class="remove"
-              type="button"
-              [attr.aria-label]="i18n.t('settings.keys.remove', { label: k.label })"
-              (click)="saveKeyForm(k.provider)"
-            >
-              {{ i18n.t('settings.keys.removeTitle') }}
-            </button>
-          }
-        </div>
-      }
-      @if (keys().length === 0) {
-        <p class="hint">{{ i18n.t('settings.keys.empty') }}</p>
-      }
-
-      @for (p of PROVIDERS; track p.id) {
-        <div class="key-add">
-          <input
-            type="password"
-            autocomplete="off"
-            [placeholder]="i18n.t('settings.keys.paste')"
-            [value]="draft(p.id).value"
-            (input)="setDraft(p.id, $any($event.target).value)"
-            [attr.aria-label]="i18n.t('settings.keys.paste')"
-          />
-          <button class="save" type="button" (click)="saveDraft(p.id)">{{ i18n.t('settings.keys.save') }}</button>
-        </div>
-      }
-    </fieldset>
+        <button class="save" type="button" (click)="saveDraft(p.id)">{{ i18n.t('settings.keys.save') }}</button>
+      </div>
+    }
   `,
   styles: [
     `
@@ -117,13 +94,6 @@ type KeyDraft = { provider: 'anthropic' | 'openai'; value: string }
         border: 0;
         padding: 0;
         margin: 0 0 16px;
-      }
-      legend {
-        font-family: var(--font-display);
-        font-weight: 500;
-        font-size: 12px;
-        color: var(--text-dim);
-        margin-bottom: 6px;
       }
       .field {
         display: flex;
@@ -179,11 +149,30 @@ type KeyDraft = { provider: 'anthropic' | 'openai'; value: string }
       }
       .key-row {
         display: flex;
-        align-items: baseline;
+        align-items: center;
         gap: 8px;
         padding: 6px 0;
         font-size: 13px;
         color: var(--text);
+      }
+      .badge {
+        flex: none;
+        padding: 2px 6px;
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        color: var(--text-faint);
+      }
+      .badge[data-state='app'] {
+        border-color: var(--accent-line);
+        color: var(--accent-strong);
+      }
+      .badge[data-state='environment'] {
+        border-color: var(--border-strong);
+        color: var(--text-dim);
       }
       .key-name {
         font-weight: 500;
@@ -261,13 +250,19 @@ export class AiSettings {
   readonly forced = computed(() => this.desktop.forcedProvider())
   readonly locked = computed(() => Boolean(this.forced()))
   readonly keys = computed(() => this.desktop.keys())
-  readonly model = computed(() => this.desktop.ai()?.model ?? '')
 
   readonly prefLabel = computed(() => ({
     auto: this.i18n.t('settings.ai.providerAuto'),
-    anthropic: 'Anthropic',
-    openai: 'OpenAI',
+    anthropic: this.i18n.t('settings.ai.providerAnthropic'),
+    openai: this.i18n.t('settings.ai.providerOpenai'),
   }))
+
+  /** The three key-row badges: no key, from the environment, or the app hint. */
+  badgeLabel(k: { source: KeySource; hint: string | null }): string {
+    if (k.source === 'app') return this.i18n.t('settings.keys.hint', { hint: k.hint ?? '' })
+    if (k.source === 'environment') return this.i18n.t('settings.keys.badgeEnv')
+    return this.i18n.t('settings.keys.badgeNone')
+  }
 
   draft(provider: 'anthropic' | 'openai'): KeyDraft {
     return this.drafts.find((d) => d.provider === provider)!
@@ -293,10 +288,5 @@ export class AiSettings {
 
   setPreference(pref: ProviderPreference): void {
     void this.desktop.setProviderPreference(pref)
-  }
-
-  setModel(id: string): void {
-    const provider = this.desktop.ai()?.provider ?? 'openai'
-    void this.desktop.setModel(provider, id)
   }
 }

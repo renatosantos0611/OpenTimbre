@@ -29,7 +29,7 @@ describe('AppShell', () => {
     expect(el.querySelector('ot-titlebar')).toBeTruthy()
     expect(el.querySelector('ot-status-bar')).toBeTruthy()
     expect(el.querySelector('ot-plugin-bar')).toBeTruthy()
-    expect(el.querySelector('.pane-tabs')).toBeTruthy()
+    expect(el.querySelector('.pane-tabs')).toBeNull()
     expect(el.querySelector('ot-composer')).toBeTruthy()
   })
 
@@ -47,19 +47,50 @@ describe('AppShell', () => {
     expect(panes[0].classList.contains('is-active')).toBe(true)
   })
 
-  it('switches panes and keeps the chat pane mounted', () => {
+  it('opens settings from the menu and returns to chat via the back button', () => {
     const { el, fixture } = render()
     const panes = el.querySelectorAll<HTMLElement>('.pane')
-    const tabs = el.querySelectorAll<HTMLButtonElement>('.pane-tabs button')
 
-    tabs[2].dispatchEvent(new Event('click'))
+    el.querySelector<HTMLButtonElement>('.menu-btn')!.dispatchEvent(new Event('click'))
+    fixture.detectChanges()
+    const settingsMenuItem = el.querySelector('.menu-item') as HTMLButtonElement
+    expect(settingsMenuItem).toBeTruthy()
+    settingsMenuItem.click()
+    fixture.detectChanges()
+    expect(panes[2].classList.contains('is-active')).toBe(true)
+    expect(el.querySelector('ot-settings-pane')).toBeTruthy()
+
+    el.querySelector<HTMLButtonElement>('ot-pane-header .back')!.click()
+    fixture.detectChanges()
+    expect(panes[0].classList.contains('is-active')).toBe(true)
+    // The chat pane is still in the DOM, so its scroll/draft survive.
+    expect(el.querySelector('ot-chat-pane')).toBeTruthy()
+  })
+
+  it('opens settings from the status bar and keeps the chat pane mounted', () => {
+    const { el, fixture } = render()
+    const panes = el.querySelectorAll<HTMLElement>('.pane')
+
+    el.querySelectorAll<HTMLButtonElement>('ot-status-bar .actions .icon')[2].dispatchEvent(new Event('click'))
     fixture.detectChanges()
     expect(panes[2].classList.contains('is-active')).toBe(true)
     expect(panes[0].classList.contains('is-active')).toBe(false)
-    // The chat pane is still in the DOM, so its scroll/draft survive.
     expect(el.querySelector('ot-chat-pane')).toBeTruthy()
+  })
 
-    tabs[0].dispatchEvent(new Event('click'))
+  it('opens About from the menu and returns to chat', () => {
+    const { el, fixture } = render()
+    const panes = el.querySelectorAll<HTMLElement>('.pane')
+
+    el.querySelector<HTMLButtonElement>('.menu-btn')!.dispatchEvent(new Event('click'))
+    fixture.detectChanges()
+    const menuItems = el.querySelectorAll<HTMLButtonElement>('.menu-item')
+    menuItems[1].click()
+    fixture.detectChanges()
+    expect(panes[3].classList.contains('is-active')).toBe(true)
+    expect(el.querySelector('ot-about-pane')).toBeTruthy()
+
+    el.querySelector<HTMLButtonElement>('ot-about-pane ot-pane-header .back')!.click()
     fixture.detectChanges()
     expect(panes[0].classList.contains('is-active')).toBe(true)
   })
@@ -68,7 +99,7 @@ describe('AppShell', () => {
     const { el, fixture } = render()
     await flush()
     fixture.detectChanges()
-    expect(el.querySelector('ot-chat-pane')?.textContent).toContain('Describe a tone to begin.')
+    expect(el.querySelector('ot-chat-pane')?.textContent).toContain('Build your tone')
   })
 
   it('shows a degraded state when loading fails', async () => {

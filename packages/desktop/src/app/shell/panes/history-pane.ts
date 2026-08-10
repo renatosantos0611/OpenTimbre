@@ -4,19 +4,20 @@
  * accessible in-renderer confirmation — never a native blocking dialog.
  * Empty and loading states are designed, not leftovers (see `pelizzai-frontend`).
  */
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, OnInit, inject, output, signal } from '@angular/core'
 import { LucideClock, LucideTrash2 } from '@lucide/angular'
 import { DesktopService } from '../../desktop.service'
 import { I18nService } from '../../i18n.service'
+import { PaneHeader } from '../pane-header'
 
 @Component({
   selector: 'ot-history-pane',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucideClock, LucideTrash2],
+  imports: [LucideClock, LucideTrash2, PaneHeader],
   template: `
+    <ot-pane-header [title]="i18n.t('shell.paneHeader.history')" (back)="back.emit()" />
     <div class="scroll">
-      <p class="label">{{ i18n.t('shell.pane.history') }}</p>
       @if (desktop.conversations().length === 0) {
         <span class="empty">
           <svg lucideClock [size]="16"></svg>
@@ -42,7 +43,12 @@ import { I18nService } from '../../i18n.service'
               <button class="row" type="button" (click)="open(item.id)">
                 <span class="row-main">
                   <span class="row-title">{{ item.title }}</span>
-                  <span class="row-meta">{{ item.turns }} · {{ item.updatedAt }}</span>
+                  <span class="row-meta">
+                    {{ item.turns }} · {{ item.updatedAt }}
+                    @if (item.plugin) {
+                      · {{ item.plugin }}
+                    }
+                  </span>
                 </span>
               </button>
               <button
@@ -71,15 +77,6 @@ import { I18nService } from '../../i18n.service'
         flex: 1;
         overflow-y: auto;
         padding: 12px;
-      }
-      .label {
-        font-family: var(--font-display);
-        font-weight: 500;
-        font-size: 9.5px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--text-faint);
-        margin: 0 0 10px;
       }
       .empty {
         display: flex;
@@ -193,14 +190,17 @@ export class HistoryPane implements OnInit {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
 
+  readonly back = output<void>()
+  readonly opened = output<void>()
   readonly confirmingId = signal<string | null>(null)
 
   ngOnInit(): void {
     void this.desktop.listConversations()
   }
 
-  open(id: string): void {
-    void this.desktop.openConversation(id)
+  async open(id: string): Promise<void> {
+    await this.desktop.openConversation(id)
+    this.opened.emit()
   }
 
   askDelete(id: string): void {

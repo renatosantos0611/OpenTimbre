@@ -71,6 +71,7 @@ main/preload, `node:sqlite` for settings, Vitest (renderer), `node --test` (main
 4. First launch follows the OS language (pt-BR → pt, otherwise en); the en/pt selector stays — ratified: discovery interview 2026-08-09 — rejected: hard default to pt, or dropping the en catalog — why: preserves the i18n catalog the project already ships while giving the legacy's Portuguese on the user's machine.
 5. The main process stays ESM; `electron` is consumed via a default import and destructured — ratified: plan interview 2026-08-09 — rejected: emitting the main bundle as CommonJS — why: minimal change that preserves `import.meta.url` in `window.ts`, which the CJS route would force us to replace.
 6. `dim_on_unfocus` defaults to `true` — ratified: spec §2 as a mechanical consequence of decision 1 — rejected: leaving the opt-in default — why: the legacy default is `escurecerSemFoco: true`, and the mechanism is already implemented.
+7. The `tier: 'low' | 'mid' | 'high'` field is derived from the model id by version/family, NOT ported from a legacy `nivelCusto` function — the legacy's cost-bucket grouping was removed (see `legacy/desktop/renderer/app.ts:949`), so there is no rule to port and inventing one was prohibited by the plan — ratified: execution interview 2026-08-09 — rejected: dropping the tier field (the Task 8 picker groups by it) or a static per-provider tier.
 ```
 
 ---

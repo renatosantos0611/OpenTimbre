@@ -13,7 +13,7 @@ import type {
   ProviderId,
   ProviderPreference,
   ResolvedTheme,
-  Turn,
+  SentTurn,
   UpdaterStatus,
 } from '@opentimbre/contracts'
 import type { Locale } from '@opentimbre/i18n'
@@ -29,7 +29,7 @@ export function makeAppState(overrides: Partial<AppState> = {}): AppState {
   return {
     locale: 'en',
     midi: { port: 'Virtual Port', error: null },
-    ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-4o', available: [] },
+    ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-4o', modelLabel: 'GPT-4o', available: [] },
     aiError: null,
     guitar: DEFAULT_GUITAR,
     alwaysOnTop: true,
@@ -91,7 +91,7 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
 
     sendChat: async (text: string) => {
       fake.calls.sendChat.push(text)
-      const turn: Turn = { text, rig: null, cards: null }
+      const turn: SentTurn = { text, rig: null, cards: null, conversationId: 'c1', autoApplied: null }
       return turn
     },
 
@@ -108,6 +108,7 @@ export function createFakeDesktopApi(state: AppState = makeAppState()): FakeDesk
       fake.calls.setModel.push([provider, id])
       return state
     },
+    listModels: async () => [],
 
     getPluginState: async (id: string) => {
       fake.calls.getPluginState.push(id)

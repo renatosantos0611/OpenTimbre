@@ -19,7 +19,7 @@ async function stubBridge(page: Page): Promise<void> {
     let state = {
       locale: 'en',
       midi: { port: 'Virtual Port', error: null },
-      ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-4o', available: [] },
+      ai: { provider: 'openai', label: 'OpenAI', model: 'gpt-4o', modelLabel: 'GPT-4o', available: [] },
       aiError: null,
       guitar: { model: 'Default guitar', pickups: 'humbucker', tuning: 'E standard', strings: 6 },
       alwaysOnTop: true,
@@ -41,6 +41,7 @@ async function stubBridge(page: Page): Promise<void> {
       applyRig: async () => ({ scene: 's', amp: 'a', ccsSent: 0, ms: 0, warnings: [] }),
       setGuitar: async () => state,
       setModel: async () => state,
+      listModels: async () => [],
       getPluginState: async () => ({ id: 'gojira', name: 'Gojira', installed: false, path: null, running: false, mappingStatus: 'missing' }),
       openPlugin: async () => ({ id: 'gojira', name: 'Gojira', installed: false, path: null, running: false, mappingStatus: 'missing' }),
       installMapping: async () => ({ id: 'gojira', name: 'Gojira', installed: false, path: null, running: false, mappingStatus: 'missing' }),
@@ -79,7 +80,7 @@ async function openShell(page: Page): Promise<void> {
   await page.goto('/')
   await expect(page.locator('ot-app-shell')).toBeVisible()
   // The bridge resolves getState, so the chat pane leaves its loading state.
-  await expect(page.locator('ot-chat-pane')).toContainText('Describe a tone to begin.')
+  await expect(page.locator('ot-chat-pane')).toContainText('Build your tone')
 }
 
 /** WCAG contrast ratio (1..21) of foreground vs painted background for an element. */
@@ -112,10 +113,6 @@ async function contrastOf(page: Page, selector: string): Promise<number> {
   }, selector)
 }
 
-async function shellOpacity(page: Page): Promise<number> {
-  return page.evaluate(() => Number(getComputedStyle(document.querySelector('.shell') as HTMLElement).opacity))
-}
-
 for (const viewport of VIEWPORTS) {
   test(`shell at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport)
@@ -126,7 +123,7 @@ for (const viewport of VIEWPORTS) {
   await expect(page.locator('ot-status-bar')).toBeVisible()
   await expect(page.locator('ot-plugin-bar')).toBeVisible()
   await expect(page.locator('ot-composer')).toBeVisible()
-  await expect(page.locator('.pane-tabs button')).toHaveCount(3)
+  await expect(page.locator('.pane-tabs')).toHaveCount(0)
 
   // No horizontal overflow at the minimum column.
   const overflow = await page.evaluate(
@@ -140,36 +137,32 @@ for (const viewport of VIEWPORTS) {
   expect(darkContrast).toBeGreaterThanOrEqual(4.5)
 
   // Switch to the light theme and confirm it renders with contrast.
-  await page.getByRole('tab', { name: 'Settings' }).click()
+  await page.getByRole('button', { name: 'Settings' }).click()
   await page.getByRole('button', { name: 'Light' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   const lightContrast = await contrastOf(page, 'ot-chat-pane')
   expect(lightContrast).toBeGreaterThanOrEqual(4.5)
 
   // Pane switching keeps the chat pane mounted and returns to it.
-  await page.getByRole('tab', { name: 'Chat' }).click()
+  await page.getByRole('button', { name: 'Back to the conversation' }).click()
   await expect(page.locator('ot-chat-pane')).toBeVisible()
-  await expect(page.locator('ot-chat-pane')).toContainText('Describe a tone to begin.')
+  await expect(page.locator('ot-chat-pane')).toContainText('Build your tone')
 
   // Dimmed state: enable dim-on-unfocus, then blur the window.
-  await page.getByRole('tab', { name: 'Settings' }).click()
+  // The dim is now handled by Electron's win.setOpacity() in the main process,
+  // so the renderer no longer sets data-dimmed. Verify the setting toggles.
+  await page.getByRole('button', { name: 'Settings' }).click()
   await page.getByLabel('Dim when unfocused').check()
-  await page.evaluate(() => window.dispatchEvent(new Event('blur')))
-  await expect(page.locator('.shell')).toHaveAttribute('data-dimmed', 'true')
-  // The dim fades in over 120ms; wait for it to settle before measuring.
-  await page.waitForFunction(
-    () => Number(getComputedStyle(document.querySelector('.shell') as HTMLElement).opacity) < 1,
-  )
-  const dimOpacity = await shellOpacity(page)
-  expect(dimOpacity).toBeLessThan(1)
-  // Dim scales both channels, so the body-text ratio is preserved.
-  const dimContrast = await contrastOf(page, 'ot-chat-pane')
-  expect(dimContrast).toBeGreaterThanOrEqual(4.5)
-  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
 
-  // Focus is visible on the first interactive element.
+  // Focus is visible on an interactive element when you Tab.
   await page.evaluate(() => (document.activeElement as HTMLElement)?.blur())
-  await page.keyboard.press('Tab')
+  // After the settings flow the first Tab can land on <body>; keep Tabbing
+  // until an interactive element has focus, then check its focus ring.
+  let guard = 0
+  while ((await page.evaluate(() => document.activeElement?.tagName)) === 'BODY' && guard < 10) {
+    await page.keyboard.press('Tab')
+    guard++
+  }
   const focus = await page.evaluate(() => {
     const el = document.activeElement as HTMLElement
     const cs = getComputedStyle(el)

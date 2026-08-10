@@ -5,7 +5,8 @@
  * mounted across pane switches so its scroll position survives
  * (see `opentimbre-angular-ui`).
  */
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { LucideSlidersVertical } from '@lucide/angular'
 import { DesktopService } from '../../desktop.service'
 import { I18nService } from '../../i18n.service'
 import { RigCard } from './rig-card'
@@ -14,7 +15,7 @@ import { RigCard } from './rig-card'
   selector: 'ot-chat-pane',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RigCard],
+  imports: [RigCard, LucideSlidersVertical],
   template: `
     <div class="scroll">
       @if (!desktop.ready()) {
@@ -22,7 +23,16 @@ import { RigCard } from './rig-card'
       } @else if (desktop.loadError()) {
         <p class="empty error">{{ i18n.t('shell.error.loadState') }}</p>
       } @else if (desktop.transcript().length === 0) {
-        <p class="empty">{{ i18n.t('shell.empty.chat') }}</p>
+        <div class="invite">
+          <span class="invite-icon"><svg lucideSlidersVertical [size]="26"></svg></span>
+          <h1 class="invite-title">{{ i18n.t('chat.invite.heading') }}</h1>
+          <p class="invite-text">{{ i18n.t('chat.invite.text') }}</p>
+          <div class="chips">
+            @for (chip of chips(); track chip) {
+              <button class="chip" type="button" (click)="fillDraft(chip)">{{ chip }}</button>
+            }
+          </div>
+        </div>
       } @else {
         @if (memoryLost()) {
           <div class="memory-loss">{{ i18n.t('chat.memoryLost') }}</div>
@@ -54,6 +64,14 @@ import { RigCard } from './rig-card'
             }
           }
         }
+        @if (desktop.busy()) {
+          <div class="row ai" aria-live="polite">
+            <span class="who">{{ i18n.t('shell.chat.assistant') }}</span>
+            <div class="prose status">
+              <span class="status-dot"></span>{{ statusLabel() }}
+            </div>
+          </div>
+        }
       }
     </div>
   `,
@@ -79,6 +97,60 @@ import { RigCard } from './rig-card'
       }
       .empty.error {
         color: var(--danger);
+      }
+      .invite {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 8px;
+        margin: auto;
+        padding: 24px 12px;
+      }
+      .invite-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        border-radius: var(--r-md);
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+      }
+      .invite-title {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--text);
+      }
+      .invite-text {
+        margin: 0;
+        max-width: 260px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--text-dim);
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: center;
+        margin-top: 6px;
+      }
+      .chip {
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface-raised);
+        color: var(--text-dim);
+        font-family: var(--font-ui);
+        font-size: 12.5px;
+        cursor: pointer;
+      }
+      .chip:hover {
+        border-color: var(--accent-line);
+        color: var(--accent-strong);
       }
       .memory-loss {
         padding: 8px 10px;
@@ -119,6 +191,29 @@ import { RigCard } from './rig-card'
       .error .bubble {
         color: var(--danger);
       }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-dim);
+        font-style: italic;
+      }
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--accent);
+        animation: status-pulse 1.1s ease-in-out infinite;
+      }
+      @keyframes status-pulse {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
     `,
   ],
 })
@@ -126,7 +221,26 @@ export class ChatPane {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
 
+  readonly chips = computed(() => [
+    this.i18n.t('chat.invite.chip.metallica'),
+    this.i18n.t('chat.invite.chip.jazz'),
+    this.i18n.t('chat.invite.chip.fuzz'),
+    this.i18n.t('chat.invite.chip.blues'),
+  ])
+
   readonly memoryLost = () => this.desktop.currentConversation()?.memoryLost === true
+
+  /** `chatStatus` starts null for the brief gap before the first phase push
+   *  arrives, and `querying` is always that first phase — same fallback. */
+  readonly statusLabel = computed(() => {
+    const status = this.desktop.chatStatus() ?? 'querying'
+    return this.i18n.t(`chat.status.${status}`)
+  })
+
+  /** A chip only fills the composer draft — the guitarist decides to send. */
+  fillDraft(text: string): void {
+    this.desktop.draft.set(text)
+  }
 
   /** Orders stable; role is enough inside one conversation, indexed by position. */
   msgKey(index: number, role: string): string {

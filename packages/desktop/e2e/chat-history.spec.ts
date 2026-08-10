@@ -75,6 +75,7 @@ async function stubBridge(page: Page, opts: { busy?: boolean } = {}): Promise<vo
         applyRig: async () => ({ scene: 'base', amp: 'Rust', ccsSent: 3, ms: 12, warnings: [] }),
         setGuitar: async () => state,
         setModel: async () => state,
+      listModels: async () => [],
         getPluginState: async () => ({ id: 'gojira', name: 'Gojira', installed: false, path: null, running: false, mappingStatus: 'missing' }),
         openPlugin: async () => ({ id: 'gojira', name: 'Gojira', installed: false, path: null, running: false, mappingStatus: 'missing' }),
         installMapping: async () => ({ id: 'gojira', name: 'Gojira', installed: false, path: null, running: false, mappingStatus: 'missing' }),
@@ -112,7 +113,10 @@ async function stubBridge(page: Page, opts: { busy?: boolean } = {}): Promise<vo
         deleteConversation: async () => [{ id: 'c2', title: 'Metal', updatedAt: 'earlier', turns: 1 }],
         onChatStatus: () => () => undefined,
         onThemeChanged: () => () => undefined,
-        onPluginChanged: () => () => undefined,
+        onPluginChanged: (cb: (s: unknown) => void) => {
+          cb({ id: 'gojira', name: 'Gojira', installed: true, path: '/x', running: false, mappingStatus: 'ok' })
+          return () => undefined
+        },
         downloadUpdate: async () => undefined,
         installUpdate: async () => undefined,
         onUpdaterStatus: () => () => undefined,
@@ -134,7 +138,7 @@ for (const viewport of VIEWPORTS) {
     await openShell(page)
 
     // Empty state first.
-    await expect(page.locator('ot-chat-pane')).toContainText('Describe a tone to begin.')
+    await expect(page.locator('ot-chat-pane')).toContainText('Build your tone')
 
     // Send a turn: user bubble + AI prose + rig card.
     await page.locator('ot-composer textarea').fill('make it heavy')
@@ -170,17 +174,18 @@ for (const viewport of VIEWPORTS) {
     await expect(page.locator('ot-chat-pane')).toContainText("The AI couldn't answer.")
 
     // History: open a conversation with memory loss.
-    await page.getByRole('tab', { name: 'History' }).click()
+    await page.getByRole('button', { name: 'Previous conversations' }).click()
     await expect(page.locator('ot-history-pane')).toContainText('Tone hunt')
+    // Clicking a history row opens the conversation and navigates to chat.
     await page.locator('ot-history-pane .row').nth(1).click()
     await expect(page.locator('ot-chat-pane')).toContainText('Try this.')
     await expect(page.locator('ot-chat-pane')).toContainText('history couldn')
-    // The chat pane is still mounted under the history tab, so switch back.
-    await page.getByRole('tab', { name: 'Chat' }).click()
-    await expect(page.locator('ot-chat-pane')).toContainText('Try this.')
+    // The plugin bar shows only the conversation's suggested plugin.
+    await expect(page.locator('ot-plugin-bar .plugin')).toHaveCount(1)
+    await expect(page.locator('ot-plugin-bar')).toContainText('Gojira')
 
     // Delete uses an accessible confirmation.
-    await page.getByRole('tab', { name: 'History' }).click()
+    await page.getByRole('button', { name: 'Previous conversations' }).click()
     await page.locator('ot-history-pane .del').first().click()
     await expect(page.locator('ot-history-pane')).toContainText('Delete this conversation?')
     await page.locator('ot-history-pane .danger').click()

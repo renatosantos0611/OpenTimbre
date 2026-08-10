@@ -25,11 +25,21 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
 
   it('renders a user + ai turn in the transcript', async () => {
     const { el, fixture } = render()
-    fake.sendChat = async () => ({ text: 'a heavy chug', rig: null, cards: null })
+    fake.sendChat = async () => ({ text: 'a heavy chug', rig: null, cards: null, conversationId: 'c1', autoApplied: null })
     await flush()
     await TestBed.inject(DesktopService).sendChat('a heavy chug')
     fixture.detectChanges()
     expect(el.querySelector('ot-chat-pane')?.textContent).toContain('a heavy chug')
+  })
+
+  it('refreshes the history list after a send, so a brand-new conversation shows up right away', async () => {
+    fake.sendChat = async () => ({ text: 'here', rig: null, cards: null, conversationId: 'new-1', autoApplied: null })
+    render()
+    await flush()
+    fake.listConversations = async () => [{ id: 'new-1', title: 'Tone hunt', updatedAt: 'now', turns: 2, plugin: null }]
+    const desktop = TestBed.inject(DesktopService)
+    await desktop.sendChat('give me a tone')
+    expect(desktop.conversations()).toEqual([{ id: 'new-1', title: 'Tone hunt', updatedAt: 'now', turns: 2, plugin: null }])
   })
 
   it('renders a rig card with an apply button and expands its body', async () => {
@@ -59,6 +69,8 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
           pedals: [{ name: 'Boost', detail: '' }],
         },
       },
+      conversationId: 'c1',
+      autoApplied: null,
     })
     await flush()
     await TestBed.inject(DesktopService).sendChat('make it heavy')
@@ -72,6 +84,17 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
     expand.dispatchEvent(new Event('click'))
     fixture.detectChanges()
     expect(pane.textContent).toContain('why it works')
+  })
+
+  it('shows the applied amp in the status-bar pill', async () => {
+    const { el, fixture } = render()
+    await flush()
+    expect(el.querySelector('.amp-pill')).toBeNull()
+    await TestBed.inject(DesktopService).applyRig('base')
+    fixture.detectChanges()
+    const pill = el.querySelector<HTMLElement>('.amp-pill')
+    expect(pill).toBeTruthy()
+    expect(pill?.textContent).toContain('Rust')
   })
 
   it('shows an error row when the provider call fails', async () => {
@@ -100,14 +123,14 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
 
   it('deletes a conversation through the confirmation dialog', async () => {
     fake.listConversations = async () => [
-      { id: 'c1', title: 'Tone hunt', updatedAt: 'now', turns: 3 },
+      { id: 'c1', title: 'Tone hunt', updatedAt: 'now', turns: 3, plugin: 'gojira' },
     ]
     const { el, fixture } = render()
     await flush()
     fixture.detectChanges()
-    // Navigate to the history pane.
-    const tabs = el.querySelectorAll<HTMLButtonElement>('.pane-tabs button')
-    tabs[1].dispatchEvent(new Event('click'))
+    // Navigate to the history pane via the status-bar action.
+    const actions = el.querySelectorAll<HTMLButtonElement>('ot-status-bar .actions .icon')
+    actions[0].dispatchEvent(new Event('click'))
     fixture.detectChanges()
     const del = el.querySelector<HTMLButtonElement>('ot-history-pane .del')!
     del.dispatchEvent(new Event('click'))
@@ -122,17 +145,17 @@ describe('Task 9 components (chat, cards, history, composer)', () => {
     expect(fake.calls.deleteConversation).toEqual(['c1'])
   })
 
-  it('starts a new chat from the composer', async () => {
+  it('starts a new chat from the status bar', async () => {
     const { el, fixture } = render()
     await flush()
     await TestBed.inject(DesktopService).sendChat('hello')
     fixture.detectChanges()
     expect(el.querySelector('ot-chat-pane')?.textContent).toContain('hello')
-    const newBtn = el.querySelector<HTMLButtonElement>('ot-composer .new')!
+    const newBtn = el.querySelectorAll<HTMLButtonElement>('ot-status-bar .actions .icon')
     expect(newBtn).toBeTruthy()
-    newBtn.dispatchEvent(new Event('click'))
+    newBtn[1].dispatchEvent(new Event('click'))
     await flush()
     fixture.detectChanges()
-    expect(el.querySelector('ot-chat-pane')?.textContent).toContain('Describe a tone to begin.')
+    expect(el.querySelector('ot-chat-pane')?.textContent).toContain('Build your tone')
   })
 })

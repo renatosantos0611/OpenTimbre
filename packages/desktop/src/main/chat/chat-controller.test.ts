@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { DatabaseSync } from 'node:sqlite'
-import type { Guitar, Result, Rig, Turn } from '@opentimbre/contracts'
+import type { Guitar, Result, Rig, SentTurn } from '@opentimbre/contracts'
 import type { Locale } from '@opentimbre/i18n'
 import { CATALOG } from '@opentimbre/core/src/plugins/catalog.ts'
 import type { Call, Response, Session } from '@opentimbre/core/src/providers/tool-use.ts'
@@ -30,7 +30,7 @@ function provider(label: string, responses: Response[]): RigChatProvider & { ses
     label,
     model: () => 'fake-model',
     sessions: () => sessions,
-    listModels: async () => [{ provider: 'anthropic', providerLabel: label, id: 'fake-model' }],
+    listModels: async () => [{ provider: 'anthropic', providerLabel: label, id: 'fake-model', releasedAt: 0 }],
     createSession: () => {
       sessions++
       let index = 0
@@ -105,7 +105,7 @@ function memRepo(): ConversationRepository {
 
 function fakeApplier() {
   const rigs: Array<Rig | null> = []
-  const applier: SceneApplier = { setRig: (r) => rigs.push(r), apply: async (s) => ({ scene: s, amp: 'CLN', ccsSent: 0, ms: 0, warnings: [] }) }
+  const applier: SceneApplier = { setRig: (r) => rigs.push(r), apply: async (s) => ({ scene: s, amp: 'CLN', ccsSent: 0, ms: 0, warnings: [] }), midiState: () => ({ port: null, error: null }), connect: async () => {} }
   return { applier, rigs }
 }
 
@@ -133,7 +133,7 @@ test('first send lazily creates a provider session and persists the conversation
     getProviders: () => [provider('Fake', [rigResponse('gojira')])],
   })
 
-  const turn = (await controller.send('Make a Gojira tone')) as Turn
+  const turn = (await controller.send('Make a Gojira tone')) as SentTurn
   assert.equal(turn.rig?.plugin, 'gojira')
   assert.equal(turn.text, 'Here is the rig.')
 
@@ -142,13 +142,75 @@ test('first send lazily creates a provider session and persists the conversation
   assert.deepEqual(statuses, ['querying', 'validating', null], 'status pill cycles then clears')
 })
 
+test('auto-apply sends the single scene at once and reports it on the turn', async () => {
+  const { controller } = harness({
+    getProviders: () => [provider('Fake', [rigResponse('gojira')])],
+    autoApply: () => true,
+  })
+
+  const turn = (await controller.send('Make a Gojira tone')) as SentTurn
+  assert.deepEqual(turn.autoApplied, { scene: 'base', amp: 'CLN', ccsSent: 0, ms: 0, warnings: [] })
+})
+
+test('a response that resolves after the guitarist switched conversations does not clobber the newly opened rig', async () => {
+  const repo = memRepo()
+  repo.save({
+    id: 'other',
+    title: 'Other',
+    plugin: 'petrucci',
+    provider: 'anthropic',
+    model: 'fake-model',
+    history: [],
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    messages: [
+      { role: 'user', text: 'Make a Petrucci tone' },
+      { role: 'ai', text: 'Here.', rig: rig('petrucci') },
+    ],
+  })
+
+  let finishRespond!: (r: Response) => void
+  const slow: RigChatProvider = {
+    id: 'anthropic',
+    label: 'Slow',
+    model: () => 'fake-model',
+    listModels: async () => [],
+    createSession: () => ({
+      label: 'Slow',
+      model: () => 'fake-model',
+      ask: () => undefined,
+      respond: () => new Promise((resolve) => (finishRespond = resolve)),
+      correct: () => undefined,
+      confirm: () => undefined,
+      mark: () => 0,
+      rollback: () => undefined,
+      history: () => [],
+    }),
+  }
+  const { controller, rigs } = harness({ repo, getProviders: () => [slow] })
+
+  const pending = controller.send('Make a Gojira tone')
+  await new Promise((resolve) => setTimeout(resolve, 0)) // let sendTurn reach the pending respond()
+
+  await controller.open('other')
+  assert.equal(rigs[rigs.length - 1]?.plugin, 'petrucci', 'opening the other conversation loads its rig')
+
+  finishRespond(rigResponse('gojira'))
+  await pending
+
+  assert.equal(
+    rigs[rigs.length - 1]?.plugin,
+    'petrucci',
+    'the finished background send must not override the conversation now open',
+  )
+})
+
 test('a second send in the same conversation persists an adjustment turn', async () => {
   const { controller } = harness({
     getProviders: () => [provider('Fake', [rigResponse('gojira'), rigResponse('gojira', 'Adjusted.')])],
   })
 
   await controller.send('Make a Gojira tone')
-  const second = (await controller.send('More gain')) as Turn
+  const second = (await controller.send('More gain')) as SentTurn
   assert.equal(second.text, 'Adjusted.')
 
   const list = (await controller.list()) as { length: number }
@@ -257,10 +319,10 @@ test('a storage failure leaves the in-memory conversation usable', async () => {
     getProviders: () => [fake],
   })
 
-  const first = (await controller.send('Make a Gojira tone')) as Turn
+  const first = (await controller.send('Make a Gojira tone')) as SentTurn
   assert.equal(first.rig?.plugin, 'gojira', 'the first turn succeeds despite the storage failure')
 
-  const second = (await controller.send('Adjust')) as Turn
+  const second = (await controller.send('Adjust')) as SentTurn
   assert.equal(second.text, 'Second.', 'the conversation stays usable for the next turn')
   assert.equal(fake.sessions(), 1, 'the same session (not a new conversation) serves the second turn')
 })

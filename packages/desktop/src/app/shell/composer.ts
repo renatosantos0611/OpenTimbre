@@ -1,80 +1,112 @@
 /**
- * The always-mounted input row outside the central pane, so its draft survives
- * pane switches. Sends intent through `DesktopService`; the chat transcript
- * that responds is Task 9-10.
+ * The always-mounted input outside the central pane, so its draft survives
+ * pane switches. Layout follows the legacy: textarea and actions row (model
+ * slot, Manual/Auto mode, send) share one bordered box that grows with the
+ * text, hint line below it. Sends intent through `DesktopService` (see
+ * `opentimbre-angular-ui`).
  */
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   computed,
   inject,
-  signal,
+  viewChild,
 } from '@angular/core'
-import { LucidePlus, LucideSend } from '@lucide/angular'
+import { LucideSend } from '@lucide/angular'
 import { DesktopService } from '../desktop.service'
 import { I18nService } from '../i18n.service'
+import { ModeMenu } from './mode-menu'
+import { ModelMenu } from './model-menu'
 
 @Component({
   selector: 'ot-composer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucidePlus, LucideSend],
+  imports: [LucideSend, ModeMenu, ModelMenu],
   template: `
-    <textarea
-      class="entry"
-      rows="1"
-      [placeholder]="i18n.t('shell.composer.placeholder')"
-      [value]="draft()"
-      (input)="onInput($event)"
-      (keydown.enter)="onEnter($event)"
-      [attr.aria-label]="i18n.t('shell.composer.placeholder')"
-    ></textarea>
-    <button
-      class="new"
-      type="button"
-      [attr.aria-label]="i18n.t('shell.composer.new')"
-      [attr.title]="i18n.t('shell.composer.new')"
-      (click)="newChat()"
-    >
-      <svg lucidePlus [size]="16"></svg>
-    </button>
-    <button
-      class="send"
-      type="button"
-      [disabled]="!canSend()"
-      [attr.aria-label]="i18n.t('shell.composer.send')"
-      [attr.title]="i18n.t('shell.composer.send')"
-      (click)="send()"
-    >
-      <svg lucideSend [size]="16"></svg>
-    </button>
+    <div class="composer">
+      <div class="composer-inner">
+        <textarea
+          #entry
+          class="entry"
+          rows="1"
+          [placeholder]="i18n.t('shell.composer.placeholder')"
+          [value]="draft()"
+          (input)="onInput($event)"
+          (keydown.enter)="onEnter($event)"
+          [attr.aria-label]="i18n.t('shell.composer.placeholder')"
+        ></textarea>
+
+        <div class="actions">
+          <ot-model-menu />
+          <ot-mode-menu />
+          <button
+            class="send"
+            type="button"
+            [disabled]="!canSend()"
+            [attr.aria-label]="i18n.t('shell.composer.send')"
+            [attr.title]="i18n.t('shell.composer.send')"
+            (click)="send()"
+          >
+            <svg lucideSend [size]="16"></svg>
+          </button>
+        </div>
+      </div>
+
+      <p class="hint">{{ i18n.t('chat.hint') }}</p>
+    </div>
   `,
   styles: [
     `
       :host {
-        display: flex;
-        align-items: flex-end;
-        gap: 8px;
-        padding: 10px;
+        display: block;
         background: var(--surface-chrome);
         border-top: 1px solid var(--border);
       }
-      .entry {
-        flex: 1;
-        min-width: 0;
-        resize: none;
-        max-height: 96px;
-        padding: 8px 10px;
+      .composer {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 10px;
+      }
+      .composer-inner {
+        display: flex;
+        flex-direction: column;
         border: 1px solid var(--border);
         border-radius: var(--r-md);
         background: var(--surface-raised);
+        padding: 10px 10px 8px;
+        transition: border-color 0.12s ease;
+      }
+      .composer-inner:focus-within {
+        border-color: var(--border-strong);
+      }
+      .entry {
+        width: 100%;
+        resize: none;
+        /* Two lines from the start, so the box doesn't open cramped for a first sentence. */
+        min-height: calc(2 * 14px * 1.4);
+        max-height: 150px;
+        padding: 0;
+        border: 0;
+        outline: none;
+        background: transparent;
         color: var(--text);
         font-family: var(--font-ui);
         font-size: 14px;
         line-height: 1.4;
+        box-sizing: border-box;
       }
       .entry::placeholder {
         color: var(--text-faint);
+      }
+      .actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        padding-top: 8px;
       }
       .send {
         display: inline-flex;
@@ -96,22 +128,11 @@ import { I18nService } from '../i18n.service'
         opacity: 0.45;
         cursor: default;
       }
-      .new {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        flex: none;
-        border: 1px solid var(--border);
-        border-radius: var(--r-md);
-        background: var(--surface-raised);
-        color: var(--text-dim);
-        cursor: pointer;
-      }
-      .new:hover {
-        border-color: var(--border-strong);
-        color: var(--text);
+      .hint {
+        margin: 0;
+        font-size: 11px;
+        color: var(--text-faint);
+        text-align: center;
       }
     `,
   ],
@@ -120,12 +141,16 @@ export class Composer {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
 
-  readonly draft = signal('')
+  private readonly entry = viewChild.required<ElementRef<HTMLTextAreaElement>>('entry')
+
+  readonly draft = this.desktop.draft
   /** Disabled while empty or while a provider call is in flight. */
   readonly canSend = computed(() => this.draft().trim().length > 0 && !this.desktop.busy())
 
   onInput(event: Event): void {
-    this.draft.set((event.target as HTMLTextAreaElement).value)
+    const el = event.target as HTMLTextAreaElement
+    this.draft.set(el.value)
+    this.resize(el)
   }
 
   send(): void {
@@ -133,14 +158,20 @@ export class Composer {
     if (!text || this.desktop.busy()) return
     this.draft.set('')
     void this.desktop.sendChat(text)
+    const el = this.entry().nativeElement
+    el.value = ''
+    this.resize(el)
   }
 
-  newChat(): void {
-    this.draft.set('')
-    void this.desktop.newChat()
+  /** Grows/shrinks the textarea with its content, capped by `.entry`'s `max-height`. */
+  private resize(el: HTMLTextAreaElement): void {
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
   }
 
   onEnter(event: Event): void {
+    // Shift+Enter is a line break (the textarea's default); only plain Enter sends.
+    if ((event as KeyboardEvent).shiftKey) return
     event.preventDefault()
     this.send()
   }

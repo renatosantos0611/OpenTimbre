@@ -27,14 +27,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint, typecheck, test
-        run: npm run lint && npm run typecheck && npm run test
+      - name: Lint
+        run: npm run lint
 
-      # The renderer e2e serves the built bundle from dist/renderer/browser
-      # (scripts/serve-renderer.mjs), so the desktop build must exist before
-      # Chromium runs against it.
+      - name: Typecheck
+        run: npm run typecheck
+
+      # The desktop unit suite (`test:main`) asserts that the bundled prompts
+      # sit where main.js resolves them, so the desktop build (which copies the
+      # prompts into dist/) must exist before `npm run test` runs.
       - name: Build desktop
         run: npm run build -w @opentimbre/desktop
+
+      - name: Test
+        run: npm run test
 
       - name: Renderer e2e
         run: npx playwright install chromium && npm run test:e2e -w @opentimbre/desktop

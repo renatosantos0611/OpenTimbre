@@ -151,7 +151,7 @@ export function createConversationRepository(db: DatabaseSync): ConversationRepo
     list() {
       const rows = db
         .prepare(
-          `SELECT c.id, c.title, c.updated_at AS updatedAt, COUNT(m.seq) AS turns
+          `SELECT c.id, c.title, c.plugin, c.updated_at AS updatedAt, COUNT(m.seq) AS turns
            FROM conversations c
            LEFT JOIN messages m ON m.conversation_id = c.id
            GROUP BY c.id

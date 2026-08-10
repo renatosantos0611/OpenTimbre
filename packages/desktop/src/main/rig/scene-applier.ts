@@ -5,9 +5,11 @@
  * already made by `planScene`/`resolveAmp`/`getAmpStrategy` in core; this
  * module is the plumbing that runs that plan against a `MidiTransport`, per
  * `opentimbre-testing`'s decision/I-O split. It holds the current `Rig` (set
- * by the chat controller when the model produces one) and opens the MIDI port
- * lazily on the first apply, caching the `send` so a fully connected session
- * never re-scans the port.
+ * by the chat controller when the model produces one), caching the `send` so
+ * a fully connected session never re-scans the port. `apply()` connects
+ * lazily on first use; `connect()` lets a caller (main, at startup) attempt
+ * the same connection eagerly, so the status bar reflects the real MIDI
+ * state without waiting for the first scene apply.
  *
  * Every failure is a contained `Result` (`{ error: string }`), never a throw,
  * and a missing MIDI port leaves the app open — the guitarist keeps seeing
@@ -33,6 +35,10 @@ export type SceneApplierOptions = {
 export type SceneApplier = {
   setRig(rig: Rig | null): void
   apply(scene: string): Promise<Result<AppliedScene>>
+  /** Current MIDI connection state — `{ port, error }` or both null before first connect. */
+  midiState(): { port: string | null; error: string | null }
+  /** Attempts the MIDI connection eagerly, so the status bar reflects reality without waiting for the first apply. */
+  connect(): Promise<void>
 }
 
 export function createSceneApplier(options: SceneApplierOptions): SceneApplier {
@@ -41,10 +47,31 @@ export function createSceneApplier(options: SceneApplierOptions): SceneApplier {
 
   let rig: Rig | null = null
   let send: Send | null = null
+  let midiPort: string | null = null
+  let midiError: string | null = null
+
+  async function connect(): Promise<Send | null> {
+    if (send) return send
+    const connection = await transport.connect()
+    if ('error' in connection) {
+      midiError = connection.error
+      return null
+    }
+    send = connection.send
+    midiError = null
+    midiPort = 'VoiceRig'
+    return send
+  }
 
   return {
     setRig(r) {
       rig = r
+    },
+    midiState() {
+      return { port: midiPort, error: midiError }
+    },
+    async connect() {
+      await connect()
     },
     async apply(sceneName) {
       if (!rig) return { error: 'No rig loaded — nothing to apply yet.' }
@@ -56,23 +83,20 @@ export function createSceneApplier(options: SceneApplierOptions): SceneApplier {
       const scene = currentRig.scenes[sceneName]
       if (!scene) return { error: `Scene '${sceneName}' is not in the loaded rig.` }
 
-      if (!send) {
-        const connection = await transport.connect()
-        if ('error' in connection) return connection // port missing — contained failure, app stays open
-        send = connection.send
-      }
+      const activeSend = await connect()
+      if (!activeSend) return { error: midiError! } // port missing — contained failure, app stays open
 
       const warnings: string[] = []
       const { amp: resolvedAmp, warning } = resolveAmp(spec, currentRig.amp)
       if (warning) warnings.push(warning)
 
       const strategy = getAmpStrategy(spec)
-      const instruction = strategy.apply(resolvedAmp, send)
+      const instruction = strategy.apply(resolvedAmp, activeSend)
       if (instruction) warnings.push(instruction)
 
       const plan = planScene(spec, scene.params, resolvedAmp)
       const started = clock()
-      for (const { cc, value } of plan) send(cc, value)
+      for (const { cc, value } of plan) activeSend(cc, value)
       const ms = clock() - started
 
       return { scene: sceneName, amp: resolvedAmp, ccsSent: plan.length, ms, warnings }

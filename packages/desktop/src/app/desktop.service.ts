@@ -19,6 +19,7 @@ import type {
   Guitar,
   KeyInfo,
   MessageWithCards,
+  ModelInfo,
   OpenConversation,
   PluginState,
   ProviderId,
@@ -36,6 +37,7 @@ type AiState = {
   provider: string
   label: string
   model: string
+  modelLabel: string
   available: { provider: string; providerLabel: string; id: string }[]
 }
 
@@ -73,6 +75,10 @@ export class DesktopService {
   readonly providerPreference = signal<ProviderPreference>('auto')
   readonly forcedProvider = signal<string | null>(null)
   readonly pluginIds = signal<string[]>([])
+  /** Models available from every provider with a key, for the composer picker. */
+  readonly models = signal<ModelInfo[]>([])
+  /** Set when `ai:listModels` failed, so the picker can show a degraded state. */
+  readonly modelsError = signal<string | null>(null)
 
   readonly chatStatus = signal<ChatStatus>(null)
   readonly conversations = signal<Summary[]>([])
@@ -88,6 +94,17 @@ export class DesktopService {
   readonly transcript = signal<MessageWithCards[]>([])
   /** True while a provider call is in flight, so the composer stops duplicate sends. */
   readonly busy = signal(false)
+  /** The composer draft, shared so the chat empty-state chips can fill it. */
+  readonly draft = signal('')
+  /**
+   * Bumped by every explicit context switch (new chat, open, delete-of-current).
+   * `sendChat` snapshots it before awaiting so a response for a conversation
+   * the guitarist has since navigated away from is dropped instead of
+   * corrupting whatever is on screen now.
+   */
+  private readonly generation = signal(0)
+  /** The amp of the last applied scene, shown in the status-bar pill (empty until one is applied). */
+  readonly appliedAmp = signal('')
 
   /** Loads AppState and subscribes to push channels. Call once at startup. */
   load(): void {
@@ -135,23 +152,40 @@ export class DesktopService {
   async sendChat(text: string): Promise<void> {
     if (this.busy()) return
     this.busy.set(true)
+    const gen = this.generation()
     this.transcript.update((msgs) => [...msgs, { role: 'user', text }])
     try {
       const result = await this.api.sendChat(text)
+      // The guitarist may have switched to another conversation while this
+      // was in flight — only the still-current view gets the response.
+      const stillCurrent = this.generation() === gen
       if ('error' in result) {
-        this.transcript.update((msgs) => [...msgs, { role: 'error', text: result.error }])
+        if (stillCurrent) this.transcript.update((msgs) => [...msgs, { role: 'error', text: result.error }])
         return
       }
-      this.transcript.update((msgs) => [
-        ...msgs,
-        result.rig ? { role: 'ai', text: result.text, rig: result.rig, cards: result.cards ?? undefined } : { role: 'ai', text: result.text },
-      ])
+      if (stillCurrent) {
+        this.transcript.update((msgs) => [
+          ...msgs,
+          result.rig ? { role: 'ai', text: result.text, rig: result.rig, cards: result.cards ?? undefined } : { role: 'ai', text: result.text },
+        ])
+        const prev = this.currentConversation()
+        this.currentConversation.set({
+          id: result.conversationId,
+          title: prev?.title ?? text.slice(0, 60),
+          messages: this.transcript(),
+          plugin: result.rig?.plugin ?? prev?.plugin ?? null,
+          memoryLost: prev?.memoryLost ?? false,
+        })
+        if (result.autoApplied) this.appliedAmp.set(result.autoApplied.amp)
+      }
+      void this.listConversations()
     } finally {
       this.busy.set(false)
     }
   }
 
   async newChat(): Promise<void> {
+    this.generation.update((g) => g + 1)
     await this.api.newChat()
     this.transcript.set([])
     this.currentConversation.set(null)
@@ -159,7 +193,9 @@ export class DesktopService {
 
   async applyRig(scene: string): Promise<AppliedScene | undefined> {
     const result = await this.api.applyRig(scene)
-    return 'error' in result ? undefined : result
+    if ('error' in result) return undefined
+    this.appliedAmp.set(result.amp)
+    return result
   }
 
   async setTheme(theme: Theme): Promise<void> {
@@ -191,6 +227,7 @@ export class DesktopService {
   }
 
   async openConversation(id: string): Promise<void> {
+    this.generation.update((g) => g + 1)
     const result = await this.api.openConversation(id)
     if ('error' in result) return
     this.currentConversation.set(result)
@@ -202,6 +239,7 @@ export class DesktopService {
     if ('error' in result) return
     this.conversations.set(result)
     if (this.currentConversation()?.id === id) {
+      this.generation.update((g) => g + 1)
       this.currentConversation.set(null)
       this.transcript.set([])
     }
@@ -245,6 +283,18 @@ export class DesktopService {
     this.applyResult(await this.api.setModel(provider as ProviderId, id))
   }
 
+  /** Loads every provider's models into the `models` signal; a failure degrades gracefully. */
+  async listModels(): Promise<void> {
+    const result = await this.api.listModels()
+    if ('error' in result) {
+      this.modelsError.set(result.error)
+      this.models.set([])
+      return
+    }
+    this.modelsError.set(null)
+    this.models.set(result)
+  }
+
   async saveKey(provider: string, key: string): Promise<void> {
     const result = await this.api.saveKey(provider as ProviderId, key)
     if ('error' in result) {
@@ -253,6 +303,11 @@ export class DesktopService {
     }
     this.keysError.set(null)
     this.applyState(result)
+    // A newly valid key can unlock that provider's whole model catalog —
+    // refresh so the composer's picker offers it without waiting for the
+    // component to remount (see `opentimbre-secrets`: the key itself never
+    // enters this response, only the fact that saving it succeeded).
+    void this.listModels()
   }
 
   async removeKey(provider: string): Promise<void> {
@@ -263,6 +318,7 @@ export class DesktopService {
     }
     this.keysError.set(null)
     this.applyState(result)
+    void this.listModels()
   }
 
   async setProviderPreference(preference: ProviderPreference): Promise<void> {

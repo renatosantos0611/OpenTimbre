@@ -1,11 +1,12 @@
 /**
  * Operational status row: MIDI port, active AI model, the transient chat
- * status pill, and the update banner (confirm -> progress -> restart), which
- * is one extra right-aligned row driven by the `updater:status` push. Reads
- * `DesktopService` signals only (see `opentimbre-angular-ui`).
+ * status pill, the update banner (confirm -> progress -> restart), which is
+ * one extra right-aligned row driven by the `updater:status` push, and the
+ * three chrome actions (history, new conversation, settings). Reads
+ * `DesktopService` signals and emits intent (see `opentimbre-angular-ui`).
  */
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
-import { LucideLoaderCircle } from '@lucide/angular'
+import { ChangeDetectionStrategy, Component, computed, inject, output } from '@angular/core'
+import { LucideHistory, LucideLoaderCircle, LucidePlus, LucideSettings } from '@lucide/angular'
 import { ChatStatus, UpdaterStatus } from '@opentimbre/contracts'
 import { DesktopService } from '../desktop.service'
 import { I18nService } from '../i18n.service'
@@ -14,18 +15,13 @@ import { I18nService } from '../i18n.service'
   selector: 'ot-status-bar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucideLoaderCircle],
+  imports: [LucideLoaderCircle, LucideHistory, LucidePlus, LucideSettings],
   template: `
     <div class="row">
       <span class="label">{{ i18n.t('shell.status.midi') }}</span>
-      <span class="value" [class.muted]="!port()">
-        @if (midiError()) {
-          <span class="dot danger"></span>{{ i18n.t('shell.status.midiError') }}
-        } @else if (port()) {
-          {{ i18n.t('shell.status.midiOpen', { port: port() ?? '' }) }}
-        } @else {
-          <span class="dot muted"></span>{{ i18n.t('shell.status.midiClosed') }}
-        }
+      <span class="value">
+        <span class="dot" [class.ok]="midiConnected()" [class.danger]="!midiConnected()"></span>
+        {{ midiConnected() ? i18n.t('shell.status.midiConnected') : i18n.t('shell.status.midiNotFound') }}
       </span>
     </div>
     <div class="row">
@@ -38,6 +34,9 @@ import { I18nService } from '../i18n.service'
         }
       </span>
     </div>
+    @if (desktop.appliedAmp()) {
+      <span class="amp-pill">{{ desktop.appliedAmp() }}</span>
+    }
     @if (chatStatusLabel()) {
       <div class="row pill-row">
         <svg lucideLoaderCircle [size]="14"></svg>
@@ -79,6 +78,35 @@ import { I18nService } from '../i18n.service'
         }
       </div>
     }
+    <div class="row actions">
+      <button
+        class="icon"
+        type="button"
+        [attr.aria-label]="i18n.t('shell.status.history')"
+        [attr.title]="i18n.t('shell.status.history')"
+        (click)="openHistory.emit()"
+      >
+        <svg lucideHistory [size]="15"></svg>
+      </button>
+      <button
+        class="icon"
+        type="button"
+        [attr.aria-label]="i18n.t('shell.status.newChat')"
+        [attr.title]="i18n.t('shell.status.newChat')"
+        (click)="newChat.emit()"
+      >
+        <svg lucidePlus [size]="15"></svg>
+      </button>
+      <button
+        class="icon"
+        type="button"
+        [attr.aria-label]="i18n.t('shell.status.settings')"
+        [attr.title]="i18n.t('shell.status.settings')"
+        (click)="openSettings.emit()"
+      >
+        <svg lucideSettings [size]="15"></svg>
+      </button>
+    </div>
   `,
   styles: [
     `
@@ -131,8 +159,10 @@ import { I18nService } from '../i18n.service'
       .dot.danger {
         background: var(--danger);
       }
+      .dot.ok {
+        background: var(--success);
+      }
       .pill-row {
-        margin-left: auto;
         color: var(--accent);
       }
       .pill {
@@ -140,7 +170,6 @@ import { I18nService } from '../i18n.service'
         white-space: nowrap;
       }
       .update {
-        margin-left: auto;
         min-width: 0;
         overflow: hidden;
       }
@@ -177,6 +206,41 @@ import { I18nService } from '../i18n.service'
       .update .action.dismiss:hover {
         color: var(--text-dim);
       }
+      .actions {
+        margin-left: auto;
+        gap: 2px;
+      }
+      .amp-pill {
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
+      }
+      .icon {
+        -webkit-app-region: no-drag;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        padding: 0;
+        border: 0;
+        border-radius: var(--r-sm);
+        background: transparent;
+        color: var(--text-dim);
+        cursor: pointer;
+      }
+      .icon:hover {
+        background: var(--surface-raise);
+        color: var(--text);
+      }
     `,
   ],
 })
@@ -184,9 +248,12 @@ export class StatusBar {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
 
-  readonly port = computed(() => this.desktop.midi().port)
-  readonly midiError = computed(() => this.desktop.midi().error)
-  readonly aiModel = computed(() => this.desktop.ai()?.model ?? '')
+  readonly openHistory = output<void>()
+  readonly newChat = output<void>()
+  readonly openSettings = output<void>()
+
+  readonly midiConnected = computed(() => Boolean(this.desktop.midi().port))
+  readonly aiModel = computed(() => this.desktop.ai()?.modelLabel ?? '')
 
   readonly chatStatusLabel = computed(() => {
     const status: ChatStatus = this.desktop.chatStatus()

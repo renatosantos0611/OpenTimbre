@@ -80,6 +80,14 @@ export type Cards = Record<string, SceneCard>
 
 export type Turn = { text: string; rig: Rig | null; cards: Cards | null }
 
+/**
+ * What `chat:send` actually returns: a `Turn` plus the persistence-layer facts
+ * the renderer needs but core's `RigChat` doesn't know about — which
+ * conversation this landed in, and the scene Auto mode already applied (if
+ * any), so the UI can confirm it without a manual click.
+ */
+export type SentTurn = Turn & { conversationId: string; autoApplied: AppliedScene | null }
+
 export type Role = 'user' | 'ai' | 'error'
 export type Message = { role: Role; text: string; rig?: Rig }
 export type MessageWithCards = Message & { cards?: Cards }
@@ -99,6 +107,8 @@ export type Summary = {
   title: string
   updatedAt: string
   turns: number
+  /** Plugin of the conversation's last rig, or `null` if it never produced one. */
+  plugin: string | null
 }
 
 export type AppliedScene = {
@@ -135,13 +145,23 @@ export type KeyInfo = {
   readable: boolean
 }
 
-/** A model available from *any* provider with a valid key, not just the active one. */
-export type AvailableModel = { provider: ProviderId; providerLabel: string; id: string }
+/**
+ * A model available from *any* provider with a valid key, not just the active
+ * one. `releasedAt` is a Unix-ms timestamp — 0 when the provider's API didn't
+ * report one — used to sort the newest models first.
+ */
+export type AvailableModel = { provider: ProviderId; providerLabel: string; id: string; releasedAt: number }
+
+/** Coarse cost bucket derived from the model id — neither provider returns pricing. */
+export type ModelTier = 'low' | 'mid' | 'high'
+
+/** One entry in the model picker, with a display label and a cost tier. */
+export type ModelInfo = { provider: ProviderId; id: string; label: string; tier: ModelTier }
 
 export type AppState = {
   locale: Locale
   midi: { port: string | null; error: string | null }
-  ai: { provider: ProviderId; label: string; model: string; available: AvailableModel[] } | null
+  ai: { provider: ProviderId; label: string; model: string; modelLabel: string; available: AvailableModel[] } | null
   aiError: string | null
   guitar: Guitar
   alwaysOnTop: boolean
@@ -193,11 +213,12 @@ export type UpdaterStatus =
  */
 export type IpcChannels = {
   'app:state': { payload: void; result: Result<AppState> }
-  'chat:send': { payload: string; result: Result<Turn> }
+  'chat:send': { payload: string; result: Result<SentTurn> }
   'chat:new': { payload: void; result: Result<void> }
   'rig:apply': { payload: string; result: Result<AppliedScene> }
   'config:guitar': { payload: Guitar; result: Result<AppState> }
   'ai:model': { payload: [provider: ProviderId, id: string]; result: Result<AppState> }
+  'ai:listModels': { payload: void; result: Result<ModelInfo[]> }
   'plugin:state': { payload: string; result: Result<PluginState> }
   'plugin:open': { payload: string; result: Result<PluginState> }
   'plugin:installMapping': { payload: string; result: Result<PluginState> }
@@ -234,11 +255,12 @@ export type IpcEvents = {
 
 export type DesktopApi = {
   getState(): Promise<Result<AppState>>
-  sendChat(text: string): Promise<Result<Turn>>
+  sendChat(text: string): Promise<Result<SentTurn>>
   newChat(): Promise<Result<void>>
   applyRig(scene: string): Promise<Result<AppliedScene>>
   setGuitar(guitar: Guitar): Promise<Result<AppState>>
   setModel(provider: ProviderId, id: string): Promise<Result<AppState>>
+  listModels(): Promise<Result<ModelInfo[]>>
   getPluginState(id: string): Promise<Result<PluginState>>
   openPlugin(id: string): Promise<Result<PluginState>>
   installMapping(id: string): Promise<Result<PluginState>>

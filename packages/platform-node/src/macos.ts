@@ -48,6 +48,7 @@ const execFileAsync = promisify(execFile)
 /** Control Change on channel 1 — matches legacy's `CC_STATUS` (see `windows.ts`). */
 const CC_STATUS = 0xb0
 
+/** MIDI port name — may change in a future release. */
 const DEFAULT_PORT = process.env['VOICERIG_PORT'] ?? 'VoiceRig'
 
 // -------------------------------------------------------------- MIDI transport

@@ -1,14 +1,17 @@
 /**
- * Settings pane: theme, locale, window-behavior toggles, guitar, AI, and keys.
- * Each control forwards intent to `DesktopService`; the active value is read
- * from its signals, so a change from the main process (push) re-renders here
- * too. The heavier sections live in `GuitarForm` and `AiSettings`.
+ * Settings pane, regrouped to the legacy's four sections: Sua guitarra,
+ * Inteligência artificial, Aparência, and Janela — each with a heading and an
+ * explanatory line. Each control forwards intent to `DesktopService`; the
+ * active value is read from its signals, so a change from the main process
+ * (push) re-renders here too. The heavier sections live in `GuitarForm` and
+ * `AiSettings`.
  */
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
   inject,
+  output,
 } from '@angular/core'
 import type { Locale } from '@opentimbre/i18n'
 import type { Theme } from '@opentimbre/contracts'
@@ -16,81 +19,90 @@ import { DesktopService } from '../../desktop.service'
 import { I18nService } from '../../i18n.service'
 import { GuitarForm } from './guitar-form'
 import { AiSettings } from './ai-settings'
+import { PaneHeader } from '../pane-header'
 
 @Component({
   selector: 'ot-settings-pane',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [GuitarForm, AiSettings],
+  imports: [GuitarForm, AiSettings, PaneHeader],
   template: `
+    <ot-pane-header [title]="i18n.t('settings.title')" (back)="back.emit()" />
     <div class="scroll">
-      <p class="label">{{ i18n.t('settings.title') }}</p>
+      <section class="group">
+        <h2 class="group-title">{{ i18n.t('settings.guitarTitle') }}</h2>
+        <p class="group-sub">{{ i18n.t('settings.guitarSub') }}</p>
+        <ot-guitar-form />
+      </section>
 
-      <ot-guitar-form />
+      <section class="group">
+        <h2 class="group-title">{{ i18n.t('settings.aiTitle') }}</h2>
+        <p class="group-sub">{{ i18n.t('settings.aiSub') }}</p>
+        <ot-ai-settings />
+      </section>
 
-      <ot-ai-settings />
+      <section class="group">
+        <h2 class="group-title">{{ i18n.t('settings.appearanceTitle') }}</h2>
+        <p class="group-sub">{{ i18n.t('settings.appearanceSub') }}</p>
+        <fieldset>
+          <label class="field-label">{{ i18n.t('settings.theme') }}</label>
+          <div class="seg" role="group" [attr.aria-label]="i18n.t('settings.theme')">
+            @for (theme of themes; track theme) {
+              <button
+                type="button"
+                class="seg-btn"
+                [attr.aria-pressed]="theme === activeTheme()"
+                (click)="setTheme(theme)"
+              >
+                {{ themeMap()[theme] }}
+              </button>
+            }
+          </div>
+        </fieldset>
+        <fieldset>
+          <label class="field-label">{{ i18n.t('settings.locale') }}</label>
+          <div class="seg" role="group" [attr.aria-label]="i18n.t('settings.locale')">
+            @for (loc of locales; track loc) {
+              <button
+                type="button"
+                class="seg-btn"
+                [attr.aria-pressed]="loc === desktop.locale()"
+                (click)="setLocale(loc)"
+              >
+                {{ locLabel()[loc] }}
+              </button>
+            }
+          </div>
+        </fieldset>
+      </section>
 
-      <fieldset class="group">
-        <legend>{{ i18n.t('settings.theme') }}</legend>
-        <div class="seg" role="group" [attr.aria-label]="i18n.t('settings.theme')">
-          @for (theme of themes; track theme) {
-            <button
-              type="button"
-              class="seg-btn"
-              [attr.aria-pressed]="theme === activeTheme()"
-              (click)="setTheme(theme)"
-            >
-              {{ themeMap()[theme] }}
-            </button>
-          }
-        </div>
-      </fieldset>
-
-      <fieldset class="group">
-        <legend>{{ i18n.t('settings.locale') }}</legend>
-        <div class="seg" role="group" [attr.aria-label]="i18n.t('settings.locale')">
-          @for (loc of locales; track loc) {
-            <button
-              type="button"
-              class="seg-btn"
-              [attr.aria-pressed]="loc === desktop.locale()"
-              (click)="setLocale(loc)"
-            >
-              {{ locLabel()[loc] }}
-            </button>
-          }
-        </div>
-      </fieldset>
-
-      <label class="toggle">
-        <input
-          type="checkbox"
-          [attr.aria-label]="i18n.t('settings.dimOnUnfocus')"
-          [checked]="desktop.dimOnUnfocus()"
-          (change)="desktop.setDimOnUnfocus($any($event.target).checked)"
-        />
-        <span>{{ i18n.t('settings.dimOnUnfocus') }}</span>
-      </label>
-
-      <label class="toggle">
-        <input
-          type="checkbox"
-          [attr.aria-label]="i18n.t('settings.alwaysOnTop')"
-          [checked]="desktop.alwaysOnTop()"
-          (change)="desktop.toggleAlwaysOnTop()"
-        />
-        <span>{{ i18n.t('settings.alwaysOnTop') }}</span>
-      </label>
-
-      <label class="toggle">
-        <input
-          type="checkbox"
-          [attr.aria-label]="i18n.t('settings.autoApply')"
-          [checked]="desktop.autoApply()"
-          (change)="desktop.setAutoApply($any($event.target).checked)"
-        />
-        <span>{{ i18n.t('settings.autoApply') }}</span>
-      </label>
+      <section class="group">
+        <h2 class="group-title">{{ i18n.t('settings.windowTitle') }}</h2>
+        <label class="option">
+          <input
+            type="checkbox"
+            [attr.aria-label]="i18n.t('settings.window.onTop')"
+            [checked]="desktop.alwaysOnTop()"
+            (change)="desktop.toggleAlwaysOnTop()"
+          />
+          <span>
+            <b>{{ i18n.t('settings.window.onTop') }}</b>
+            <em>{{ i18n.t('settings.window.onTopDesc') }}</em>
+          </span>
+        </label>
+        <label class="option">
+          <input
+            type="checkbox"
+            [attr.aria-label]="i18n.t('settings.window.dim')"
+            [checked]="desktop.dimOnUnfocus()"
+            (change)="desktop.setDimOnUnfocus($any($event.target).checked)"
+          />
+          <span>
+            <b>{{ i18n.t('settings.window.dim') }}</b>
+            <em>{{ i18n.t('settings.window.dimDesc') }}</em>
+          </span>
+        </label>
+      </section>
     </div>
   `,
   styles: [
@@ -106,26 +118,32 @@ import { AiSettings } from './ai-settings'
         overflow-y: auto;
         padding: 12px;
       }
-      .label {
-        font-family: var(--font-display);
-        font-weight: 500;
-        font-size: 9.5px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--text-faint);
-        margin: 0 0 10px;
-      }
       .group {
+        margin: 0 0 22px;
+      }
+      .group-title {
+        margin: 0 0 2px;
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text);
+      }
+      .group-sub {
+        margin: 0 0 10px;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--text-dim);
+      }
+      fieldset {
         border: 0;
         padding: 0;
-        margin: 0 0 16px;
+        margin: 0 0 12px;
       }
-      legend {
-        font-family: var(--font-display);
-        font-weight: 500;
+      .field-label {
+        display: block;
         font-size: 12px;
         color: var(--text-dim);
-        margin-bottom: 6px;
+        margin-bottom: 4px;
       }
       .seg {
         display: flex;
@@ -147,18 +165,35 @@ import { AiSettings } from './ai-settings'
         background: var(--accent-soft);
         color: var(--accent-strong);
       }
-      .toggle {
+      .option {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 8px;
         padding: 8px 0;
-        color: var(--text);
         cursor: pointer;
       }
-      .toggle input {
+      .option input {
         accent-color: var(--accent);
         width: 16px;
         height: 16px;
+        margin-top: 2px;
+        flex: none;
+      }
+      .option span {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .option b {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text);
+      }
+      .option em {
+        font-style: normal;
+        font-size: 12px;
+        color: var(--text-dim);
+        line-height: 1.4;
       }
     `,
   ],
@@ -166,6 +201,7 @@ import { AiSettings } from './ai-settings'
 export class SettingsPane {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
+  readonly back = output<void>()
 
   readonly themes: Theme[] = ['system', 'light', 'dark']
   readonly locales: Locale[] = ['en', 'pt']

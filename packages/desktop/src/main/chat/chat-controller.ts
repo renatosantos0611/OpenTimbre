@@ -20,7 +20,7 @@
  * `send`, which never sees a raw `event`/sender.
  */
 import { createRigChat, type RigChat, type RigChatProvider, type RigChatSnapshot } from '@opentimbre/core/src/chat/rig-chat.ts'
-import type { ChatStatus, Guitar, MessageWithCards, OpenConversation, ProviderId, Result, Rig, Summary, Turn } from '@opentimbre/contracts'
+import type { AppliedScene, ChatStatus, Guitar, MessageWithCards, OpenConversation, ProviderId, Result, Rig, SentTurn, Summary } from '@opentimbre/contracts'
 import { createI18n, type Locale, type LocaleKey } from '@opentimbre/i18n'
 import type { SceneApplier } from '../rig/scene-applier.ts'
 import type { ConversationRepository } from './conversation-repository.ts'
@@ -43,7 +43,7 @@ export type ChatControllerOptions = {
 }
 
 export type ChatController = {
-  send(text: string): Promise<Result<Turn>>
+  send(text: string): Promise<Result<SentTurn>>
   newChat(): Promise<Result<void>>
   list(): Promise<Result<Summary[]>>
   open(id: string): Promise<Result<OpenConversation>>
@@ -108,7 +108,7 @@ export function createChatController(options: ChatControllerOptions): ChatContro
     }
   }
 
-  async function sendTurn(text: string): Promise<Result<Turn>> {
+  async function sendTurn(text: string): Promise<Result<SentTurn>> {
     const providers = getProviders()
     if (providers.length === 0) return { error: tr('chat.error.noProvider') }
 
@@ -132,14 +132,24 @@ export function createChatController(options: ChatControllerOptions): ChatContro
           : { role: 'ai', text: turn.text },
       )
       persist(a, a.chat.export())
-      applier.setRig(turn.rig)
-      // Auto-apply: when enabled and the model returned exactly one scene, the
-      // guitarist asked for that tone alone, so load it without a button click.
-      if (turn.rig && options.autoApply?.() && Object.keys(turn.rig.scenes).length === 1) {
-        void applier.apply(Object.keys(turn.rig.scenes)[0]!)
+
+      // `active` may have moved on to a different conversation while this
+      // await was in flight (the guitarist switched conversations without
+      // waiting) — the shared applier and its "loaded rig" must stay with
+      // whichever conversation is actually open now, not this finished one.
+      let autoApplied: AppliedScene | null = null
+      if (active === a) {
+        applier.setRig(turn.rig)
+        // Auto-apply: when enabled and the model returned exactly one scene, the
+        // guitarist asked for that tone alone, so load it without a button click.
+        if (turn.rig && options.autoApply?.() && Object.keys(turn.rig.scenes).length === 1) {
+          const result = await applier.apply(Object.keys(turn.rig.scenes)[0]!)
+          if (!('error' in result)) autoApplied = result
+        }
       }
-      return turn
-    } catch {
+      return { ...turn, conversationId: a.id, autoApplied }
+    } catch (err) {
+      console.error('[DEBUG-chatsend]', err) // temporary, removed before the definitive fix
       emit(null)
       const message = tr('chat.error.send')
       a.messages.push({ role: 'error', text: message })
@@ -152,7 +162,8 @@ export function createChatController(options: ChatControllerOptions): ChatContro
     async send(text) {
       try {
         return await sendTurn(text)
-      } catch {
+      } catch (err) {
+        console.error('[DEBUG-chatsend-outer]', err) // temporary, removed before the definitive fix
         return { error: tr('error.generic') }
       }
     },

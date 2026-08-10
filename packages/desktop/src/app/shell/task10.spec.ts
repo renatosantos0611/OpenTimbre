@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { DESKTOP_API } from '../desktop.service'
+import { DESKTOP_API, DesktopService } from '../desktop.service'
 import { createFakeDesktopApi, makeAppState } from '../testing/fake-desktop-api'
 import { AppShell } from './app-shell'
 
@@ -24,8 +24,8 @@ describe('Task 10 settings and plugin bar', () => {
   }
 
   function openSettings(el: HTMLElement, fixture: import('@angular/core/testing').ComponentFixture<AppShell>): void {
-    const tabs = el.querySelectorAll<HTMLButtonElement>('.pane-tabs button')
-    tabs[2].dispatchEvent(new Event('click'))
+    const actions = el.querySelectorAll<HTMLButtonElement>('ot-status-bar .actions .icon')
+    actions[2].dispatchEvent(new Event('click'))
     fixture.detectChanges()
   }
 
@@ -119,11 +119,9 @@ describe('Task 10 settings and plugin bar', () => {
     const ai = el.querySelector('ot-ai-settings') as HTMLElement
     const seg = ai.querySelector<HTMLButtonElement>('.seg-btn')!
     expect(seg.disabled).toBe(true)
-    const modelInput = ai.querySelector<HTMLInputElement>('input:not([type="password"])')!
-    expect(modelInput.disabled).toBe(true)
   })
 
-  it('renders each catalog plugin in the plugin bar', async () => {
+  it('shows no plugin until the conversation has a suggestion', async () => {
     const { el, fixture } = render()
     await flush()
     for (const id of ['gojira', 'soldano', 'tim-henson', 'petrucci']) {
@@ -131,7 +129,67 @@ describe('Task 10 settings and plugin bar', () => {
     }
     fixture.detectChanges()
     const bar = el.querySelector('ot-plugin-bar') as HTMLElement
-    expect(bar.querySelectorAll('.plugin').length).toBe(4)
+    expect(bar.querySelectorAll('.plugin').length).toBe(0)
+  })
+
+  it('shows only the plugin the AI suggested for the open conversation', async () => {
+    fake.openConversation = async () => ({
+      id: 'c1',
+      title: 'Tone hunt',
+      messages: [],
+      plugin: 'gojira',
+      memoryLost: false,
+    })
+    const { el, fixture } = render()
+    await flush()
+    for (const id of ['gojira', 'soldano', 'tim-henson', 'petrucci']) {
+      fake.pushPluginChanged({ id, name: id, installed: true, path: '/x', running: false, mappingStatus: 'ok' })
+    }
+    await TestBed.inject(DesktopService).openConversation('c1')
+    fixture.detectChanges()
+    const bar = el.querySelector('ot-plugin-bar') as HTMLElement
+    expect(bar.querySelectorAll('.plugin').length).toBe(1)
     expect(bar.textContent).toContain('gojira')
+  })
+
+  it('shows the suggested plugin live, right after the AI answers in a brand-new chat', async () => {
+    fake.sendChat = async () => ({
+      text: 'here',
+      rig: { plugin: 'soldano', song: 's', artist: 'a', amp: 'CLN', note: '', scenes: {} },
+      cards: null,
+      conversationId: 'new-1',
+      autoApplied: null,
+    })
+    const { el, fixture } = render()
+    await flush()
+    fake.pushPluginChanged({ id: 'soldano', name: 'soldano', installed: true, path: '/x', running: false, mappingStatus: 'ok' })
+    await TestBed.inject(DesktopService).sendChat('give me a Soldano tone')
+    fixture.detectChanges()
+    const bar = el.querySelector('ot-plugin-bar') as HTMLElement
+    expect(bar.querySelectorAll('.plugin').length).toBe(1)
+    expect(bar.textContent).toContain('soldano')
+  })
+
+  it('shows a suggested plugin even when its boot-poll push never arrived (a startup race)', async () => {
+    fake.sendChat = async () => ({
+      text: 'here',
+      rig: { plugin: 'petrucci', song: 's', artist: 'a', amp: 'CLN', note: '', scenes: {} },
+      cards: null,
+      conversationId: 'new-2',
+      autoApplied: null,
+    })
+    const { el, fixture } = render()
+    await flush()
+    // No pushPluginChanged for 'petrucci' — the renderer never learned its state from the poll.
+    await TestBed.inject(DesktopService).sendChat('give me a Petrucci tone')
+    fixture.detectChanges()
+    TestBed.flushEffects()
+    await flush()
+    fixture.detectChanges()
+    const bar = el.querySelector('ot-plugin-bar') as HTMLElement
+    // The fake's getPluginState always answers for whatever id it's asked about — the point here
+    // is that the fallback fetch actually asked for 'petrucci' and the chip rendered from it.
+    expect(fake.calls.getPluginState).toContain('petrucci')
+    expect(bar.querySelectorAll('.plugin').length).toBe(1)
   })
 })

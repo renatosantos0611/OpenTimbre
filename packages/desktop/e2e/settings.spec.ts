@@ -43,6 +43,7 @@ async function stubBridge(page: Page): Promise<void> {
         state = { ...state, ai: { ...(state.ai as object), model: id } }
         return state
       },
+      listModels: async () => [],
       getPluginState: async (id: string) => ({ id, name: id, installed: true, path: '/x', running: false, mappingStatus: 'ok' }),
       openPlugin: async (id: string) => ({ id, name: id, installed: true, path: '/x', running: true, mappingStatus: 'ok' }),
       installMapping: async (id: string) => ({ id, name: id, installed: true, path: '/x', running: false, mappingStatus: 'ok' }),
@@ -101,7 +102,7 @@ async function openSettings(page: Page): Promise<void> {
   await stubBridge(page)
   await page.goto('/')
   await expect(page.locator('ot-app-shell')).toBeVisible()
-  await page.getByRole('tab', { name: 'Settings' }).click()
+  await page.getByRole('button', { name: 'Settings' }).click()
   await expect(page.locator('ot-settings-pane')).toBeVisible()
 }
 
@@ -146,16 +147,22 @@ test('settings: forced provider disables AI controls', async ({ page }) => {
   })
   await page.goto('/')
   await expect(page.locator('ot-app-shell')).toBeVisible()
-  await page.getByRole('tab', { name: 'Settings' }).click()
+  await page.getByRole('button', { name: 'Settings' }).click()
   await expect(page.locator('ot-ai-settings .seg-btn').first()).toBeDisabled()
   await expect(page.locator('ot-ai-settings')).toContainText('AI_PROVIDER')
 })
 
-test('plugin bar renders all catalog plugins with actions', async ({ page }) => {
+test('plugin bar is empty until a conversation suggests a plugin', async ({ page }) => {
   await page.setViewportSize({ width: 420, height: 700 })
   await stubBridge(page)
   await page.goto('/')
   await expect(page.locator('ot-app-shell')).toBeVisible()
-  await expect(page.locator('ot-plugin-bar .plugin')).toHaveCount(4)
-  await expect(page.locator('ot-plugin-bar')).toContainText('gojira')
+  // Fresh shell, no conversation: the plugin bar shows no plugins.
+  await expect(page.locator('ot-plugin-bar .plugin')).toHaveCount(0)
+
+  // The Manual/Auto mode in the composer reflects the single autoApply state.
+  await expect(page.locator('ot-mode-menu .mode-btn')).toContainText('Manual')
+  await page.locator('ot-mode-menu .mode-btn').click()
+  await page.locator('ot-mode-menu .option').nth(1).click()
+  await expect(page.locator('ot-mode-menu .mode-btn')).toContainText('Auto')
 })

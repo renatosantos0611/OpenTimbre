@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { initStore, DEFAULTS } from './desktop-store.ts'
+import { initStore, DEFAULTS, resolveLocale } from './desktop-store.ts'
 
 const defaultPath = ':memory:'
 
@@ -53,4 +53,24 @@ test('toJson includes persisted and default values', () => {
   assert.equal(json.guitar, 'custom')
   assert.equal(json.always_on_top, true)
   assert.equal(json.auto_apply, false)
+})
+
+test('a fresh profile defaults dimming on and locale to en', () => {
+  const store = newStore()
+  assert.equal(store.getBool('dim_on_unfocus'), true)
+  assert.equal(store.get('locale'), 'en')
+})
+
+test('hasStored distinguishes an explicit value from a default', () => {
+  const store = newStore()
+  assert.equal(store.hasStored('locale'), false)
+  store.set('locale', 'pt')
+  assert.equal(store.hasStored('locale'), true)
+})
+
+test('resolveLocale maps a pt OS locale to pt and everything else to en', () => {
+  assert.equal(resolveLocale('pt-BR'), 'pt')
+  assert.equal(resolveLocale('pt_PT'), 'pt')
+  assert.equal(resolveLocale('en-US'), 'en')
+  assert.equal(resolveLocale('fr-FR'), 'en')
 })
