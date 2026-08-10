@@ -50,7 +50,11 @@ import { I18nService } from '../i18n.service'
         display: block;
         height: 40px;
         background: var(--surface-chrome);
-        border-bottom: 1px solid var(--border);
+        /* No border-bottom: at this exact height the native titleBarOverlay
+           (minimize/maximize/close) paints over the caption-button area, which
+           clips any CSS border there instead of letting it reach the right
+           edge. The legacy reference never draws a line here either — see
+           legacy/desktop/renderer/styles.css's .titlebar. */
         -webkit-app-region: drag;
         z-index: 20;
       }
