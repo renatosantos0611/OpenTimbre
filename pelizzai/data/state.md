@@ -280,6 +280,20 @@
   confirming the new oracle holds and the old one really was stale. Flagged to the user: this fix
   is unverified against the real packaged Electron runtime and should be confirmed by the next CI
   run of `test:packaged`.
+- bug fix (post-delivery): user shared a screenshot of the native window controls area — the
+  divider line under the titlebar visibly stops before reaching the right edge instead of running
+  the full width. Root cause: `titleBarStyle: 'hidden'` + `titleBarOverlay` (`window.ts`) composites
+  the native minimize/maximize/close buttons as an opaque OS-drawn region on top of the page, sized
+  to `ot-titlebar`'s own 40px height — a CSS `border-bottom` at that boundary falls inside the
+  overlay's rectangle wherever the caption buttons sit, so the OS paints over it; there is no API to
+  give the native overlay a matching border, so the line can only ever render left of the buttons.
+  Checked the legacy reference (`legacy/desktop/renderer/styles.css`): grepped for `border-bottom`
+  repo-wide in that file — zero matches, neither `.titlebar` nor `.statusbar` ever drew this line, so
+  it wasn't something legacy parity required; it was added during the Angular rebuild and only
+  became visibly broken once the frameless/overlay window landed (`8bc1b61`). Removed the
+  border-bottom from `ot-titlebar` — done at 2ec9ae0; typecheck clean, 78/78 renderer tests green;
+  verified with a throwaway Playwright check (not committed) against the real built bundle that
+  `ot-titlebar` now computes `borderBottomWidth: 0px`.
 
 ## History
 
