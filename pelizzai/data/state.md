@@ -14,11 +14,11 @@
 - branch: spec/ui-legacy-parity
 - base-ref: refs/remotes/origin/main
 - base-sha: c687657c129f99c8b449ba205469b027470b2faa
-- validated-head: a4d03b99fb3e4cf708e4dce21bc88cb90dd3e31c
+- validated-head: 349929e1016c04b52b174bfa73fd15728880caeb
 - delivery-head: <none>
 - delivery-status: <will be recorded after the destination>
 - confirm: base-ref contains validated-head (PR/branch integrated)
-- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch; quick-fix (composer select chevrons pinned to a fixed end position) resumed and ratified 2026-08-09 on current branch; quick-fix (composer AI icon, fixed-size model panel, search autofocus) resumed and ratified 2026-08-09 on current branch — interview-me on which icon represents AI: user chose Brain circuit (LucideBrainCircuit) over Sparkles/Bot/Wand; quick-fix (move AI icon onto the model select, ChatGPT-logo request declined) resumed and ratified 2026-08-09 on current branch — interview-me: OpenAI's logo is absent from simple-icons (looks trademark-pulled) while Anthropic's is present, so a static ChatGPT icon would misrepresent the multi-provider picker; user chose a generic icon for both providers over a per-provider brand icon or a supplied logo file; quick-fix (select label left-align + Claude label formatting) resumed and ratified 2026-08-09 on current branch — interview-me: user confirmed formatting Claude model names to match GPT's polish (e.g. "Claude Opus 5") rather than leaving them as raw ids; bug fix (active-model label raced a cache lookup, showed raw id after selecting) resumed and ratified 2026-08-09 on current branch
+- kickoff: ratified 2026-08-09; quick-fix (native title bar/menu) resumed and ratified 2026-08-09; quick-fix (history nav + plugin-bar scoping) resumed and ratified 2026-08-09 on current branch; quick-fix (live plugin bar/history refresh/safe conversation switching/auto-apply feedback/model-select width) resumed and ratified 2026-08-09 on current branch — interview-me on scope of "switch conversations while one awaits a response": user chose free navigation without concurrent sending (not full concurrency); quick-fix (live MIDI status wiring + MODEL label parity) resumed and ratified 2026-08-09 on current branch; quick-fix (default window size 678x864) resumed and ratified 2026-08-09 on current branch; bug fix (MIDI eager connect at startup) resumed and ratified 2026-08-09 on current branch; quick-fix (MIDI status display pattern: dot + Connected/Not found) resumed and ratified 2026-08-09 on current branch; quick-fix (composer bottom-bar parity against a legacy reference screenshot) resumed and ratified 2026-08-09 on current branch; quick-fix (composer textarea auto-grow + single bordered box with actions) resumed and ratified 2026-08-09 on current branch; quick-fix (composer button-height alignment + 2-line default textarea) resumed and ratified 2026-08-09 on current branch; quick-fix (composer select chevrons pinned to a fixed end position) resumed and ratified 2026-08-09 on current branch; quick-fix (composer AI icon, fixed-size model panel, search autofocus) resumed and ratified 2026-08-09 on current branch — interview-me on which icon represents AI: user chose Brain circuit (LucideBrainCircuit) over Sparkles/Bot/Wand; quick-fix (move AI icon onto the model select, ChatGPT-logo request declined) resumed and ratified 2026-08-09 on current branch — interview-me: OpenAI's logo is absent from simple-icons (looks trademark-pulled) while Anthropic's is present, so a static ChatGPT icon would misrepresent the multi-provider picker; user chose a generic icon for both providers over a per-provider brand icon or a supplied logo file; quick-fix (select label left-align + Claude label formatting) resumed and ratified 2026-08-09 on current branch — interview-me: user confirmed formatting Claude model names to match GPT's polish (e.g. "Claude Opus 5") rather than leaving them as raw ids; bug fix (active-model label raced a cache lookup, showed raw id after selecting) resumed and ratified 2026-08-09 on current branch; quick-fix (model-select width) + bug fix (plugin bar missing after boot-poll race) resumed and ratified 2026-08-10 on current branch
 - isolation: branch
 - worktree-path: <none>
 - execution-mode: inline
@@ -236,6 +236,30 @@
   `modelLabel()`: with an empty `modelCache` (the exact race), the old logic reproduced the bug
   (`'gpt-5.5'`) and the new logic returned `'GPT-5.5'` for the same input, plus `'Claude Sonnet
   4.5'` for the Anthropic case — both independent of cache state.
+- quick-fix (post-delivery): user asked to widen the composer's model select so "Claude Sonnet 5"
+  reads in full. `.model-btn`'s `max-width: 160px` left thin margin for longer labels at the
+  composer's narrow-viewport breakpoint (360px); raised the cap to `200px` (still shrinks below
+  that via the existing flex-shrink at 360px) — done at ed70bd9; typecheck clean, 78/78 renderer
+  tests green. Verified with a throwaway Playwright spec (not committed) against the real built
+  bundle, checking `label.scrollWidth <= label.clientWidth` for "Claude Sonnet 5"/"Claude Sonnet
+  4.5" at 678px and 360px — note the same check also passed at the old 160px value, so this widens
+  headroom for what the user reported rather than fixing a provably reproducible overflow.
+- bug fix (post-delivery): user reported the top plugin bar not appearing after an AI response or
+  when opening a conversation from history. Root cause: `PluginBar` only renders a plugin once
+  `pluginStates()` has an entry for it, and that map is filled solely by the main process's
+  boot-time poll (`plugins.start()` in `main.ts`) pushing `plugin:changed` — a `setInterval`-backed
+  poll that fires its first pass immediately when the window is created, racing the renderer's own
+  boot (Angular bootstrapping, `DesktopService.load()` subscribing to the push channel). A plugin
+  whose push arrives before that subscription is up is never re-sent (the poll only re-emits on a
+  state change), so it stays unknown — and therefore invisible in the bar — for the rest of the
+  session, regardless of which conversation later suggests it. Confirmed by reading every existing
+  plugin-bar test: each one pre-seeds `pluginStates` via `pushPluginChanged` for all catalog ids
+  before opening/sending, which masks exactly this race. Fixed by adding a constructor `effect` in
+  `PluginBar` (mirroring the existing autofocus/theme effect pattern used elsewhere in the shell)
+  that pulls a suggested plugin's state directly through the already-existing `getPluginState()`
+  the moment it's missing from `pluginStates` — done at 349929e; typecheck clean, 83/83
+  main-process tests, 78/78 renderer tests green (added a regression test that suggests a plugin
+  with no prior push at all, asserting the fallback fetch fires and the chip renders).
 
 ## History
 
