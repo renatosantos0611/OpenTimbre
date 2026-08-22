@@ -32,6 +32,7 @@ const FIXTURE: PluginSpec = {
   amps: ['A', 'B', 'C'],
   ampDescriptions: { A: 'amp a', B: 'amp b', C: 'amp c' },
   ampSelect: { cc: 20, values: { A: 0, B: 64, C: 127 } },
+  ampStrategy: 'manual',
   ampCore: ['gain', 'tone'],
   ampParams: {
     gain: { type: 'knob', required: true, desc: 'gain' },

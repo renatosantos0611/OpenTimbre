@@ -43,6 +43,7 @@ const FAKE: PluginSpec = {
   amps: ['A', 'B', 'C'],
   ampDescriptions: { A: 'amp a', B: 'amp b', C: 'amp c' },
   ampSelect: { cc: 20, values: { A: 0, B: 64, C: 127 } },
+  ampStrategy: 'manual',
   ampCore: ['gain'],
   ampParams: {
     gain: { type: 'knob', required: true, desc: 'gain' },
@@ -204,11 +205,19 @@ describe("amp strategy 'manual'", () => {
 })
 
 describe('getAmpStrategy', () => {
-  test('defaults to manual when no strategy name is given', () => {
+  test('with no name given, resolves the strategy the spec itself declares', () => {
     assert.equal(getAmpStrategy(FAKE).name, 'manual')
+    assert.equal(getAmpStrategy({ ...FAKE, ampStrategy: 'continuous' }).name, 'continuous')
+  })
+
+  test('an explicit name wins over the spec declaration', () => {
+    assert.equal(getAmpStrategy({ ...FAKE, ampStrategy: 'continuous' }, 'manual').name, 'manual')
   })
 
   test('an unknown strategy name fails immediately, listing the accepted values', () => {
-    assert.throws(() => getAmpStrategy(FAKE, 'teleport'), /manual \| continuous \| increment/)
+    assert.throws(
+      () => getAmpStrategy(FAKE, 'teleport' as Parameters<typeof getAmpStrategy>[1]),
+      /manual \| continuous \| increment/,
+    )
   })
 })

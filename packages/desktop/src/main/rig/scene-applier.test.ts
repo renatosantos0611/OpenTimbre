@@ -46,7 +46,7 @@ function rig(amp = 'CLN', plugin = 'gojira'): Rig {
   }
 }
 
-test('applies a scene: sends exactly the planned CCs and reports counts and time', async () => {
+test('applies a scene: switches the amp, sends the planned CCs, and reports counts and time', async () => {
   const { clock, advance } = fakeClock()
   const sends: Array<[number, number]> = []
   // Each send advances the fake clock, so the applier's elapsed `ms` is measurable.
@@ -59,16 +59,18 @@ test('applies a scene: sends exactly the planned CCs and reports counts and time
   const result = (await applier.apply('Verse')) as AppliedScene
 
   const expected = planScene(gojiraSpec, rig().scenes.Verse.params, 'CLN')
-  assert.deepEqual(sends, expected.map((c) => [c.cc, c.value]))
+  // The catalog-declared strategy sends the amp selector first (CC 20 -> CLN=0),
+  // then the planned knob CCs.
+  assert.deepEqual(sends, [[20, 0], ...expected.map((c) => [c.cc, c.value])])
   assert.equal(result.scene, 'Verse')
   assert.equal(result.amp, 'CLN')
-  assert.equal(result.ccsSent, expected.length)
-  assert.equal(result.ms, expected.length, 'elapsed ms reflects the sending time')
-  assert.ok(result.warnings.some((w) => /select the CLN amp/.test(w)), 'manual strategy surfaces its instruction')
+  assert.equal(result.ccsSent, expected.length, 'ccsSent counts the scene plan, not the selector')
+  assert.equal(result.ms, expected.length, 'elapsed ms measures the plan loop; the selector goes out before it')
+  assert.deepEqual(result.warnings, [], 'a MIDI-switched amp leaves no manual instruction')
 })
 
 test('an unmapped amp falls back to a mapped one and surfaces the warning', async () => {
-  const { transport } = fakeTransport()
+  const { transport, sends } = fakeTransport()
   const applier = createSceneApplier({ transport, clock: fakeClock().clock })
   const r = rig('UNMAPPED')
   applier.setRig(r)
@@ -77,6 +79,7 @@ test('an unmapped amp falls back to a mapped one and surfaces the warning', asyn
 
   assert.equal(result.amp, 'CLN', 'falls back to the first mapped amp')
   assert.ok(result.warnings.some((w) => /no mapped knobs/.test(w)), 'resolveAmp warning surfaces')
+  assert.deepEqual(sends[0], [20, 0], 'the selector switches to the RESOLVED amp, not the unmapped request')
 })
 
 test('a missing scene is a contained failure', async () => {

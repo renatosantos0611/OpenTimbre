@@ -113,6 +113,17 @@ export type PluginSpec = {
   readonly ampDescriptions: Readonly<Record<string, string>>
   /** The amp selector: which CC it's on, and the value that picks each amp. */
   readonly ampSelect: { readonly cc: number; readonly values: Readonly<Record<string, number>> }
+  /**
+   * How this plugin's amp selector is driven — declared as data per plugin,
+   * so applying a scene never depends on outside configuration. `manual`
+   * stays the choice for a selector nobody has verified yet; declaring it is
+   * a conscious act, which is exactly why the old ambient default (env var,
+   * silently dropped during the port) regressed every amp switch. For the
+   * archetypes whose selectors are still flagged unprobed in their mapping
+   * files, keeping `continuous` here is the shipped decision — the Phase 0
+   * probe ritual on hardware is what confirms or revises it per plugin.
+   */
+  readonly ampStrategy: AmpStrategyName
   /** The controls that define an amp as "mapped" — see `resolveAmp`. */
   readonly ampCore: readonly string[]
   /** Parameters whose CC depends on which amp is active. */
@@ -165,6 +176,8 @@ export function resolveAmp(
 // ---------------------------------------------------------- amp strategies
 
 export type Send = (cc: number, value: number) => void
+
+export type AmpStrategyName = 'manual' | 'continuous' | 'increment'
 
 export type AmpStrategy = {
   readonly name: string
@@ -222,19 +235,17 @@ const manual: AmpStrategy = {
 }
 
 /**
- * Default is `manual` — per `opentimbre-plugin-spec`, the safe answer until a
- * probe session proves `continuous` or `increment` works for a given plugin.
- *
- * Deviation from legacy: legacy defaulted `name` from the
- * `AMP_STRATEGY`/`GOJIRA_AMP_STRATEGY` env vars, to keep working for whoever
- * already had an `.env` set up. Not ported — a plugin-named env var
- * hardcoded into plugin-agnostic code is exactly what `opentimbre-plugin-spec`
- * forbids ("never branch on a plugin name outside the catalog"), and the
- * skill already states the safe default plainly. Where a strategy is read
- * from configuration is for a later task (this one only defines the type).
+ * Builds the strategy that actually switches the amp. An explicit `name`
+ * (tests, probes) wins; otherwise the plugin's OWN declared `ampStrategy` —
+ * catalog data, proven per plugin. Per `opentimbre-plugin-spec`, plugin
+ * knowledge is data in the catalog, not ambient configuration: legacy read
+ * `AMP_STRATEGY`/`GOJIRA_AMP_STRATEGY` env vars, and silently dropping that
+ * during the port made every amp switch fall back to `manual` — the plugin
+ * never changed amp, and the amp's knob CCs landed on the wrong amp page.
  */
-export function getAmpStrategy(spec: PluginSpec, name = 'manual'): AmpStrategy {
-  switch (name) {
+export function getAmpStrategy(spec: PluginSpec, name?: AmpStrategyName): AmpStrategy {
+  const chosen = name ?? spec.ampStrategy
+  switch (chosen) {
     case 'continuous':
       return continuous(spec)
     case 'increment':
@@ -242,6 +253,6 @@ export function getAmpStrategy(spec: PluginSpec, name = 'manual'): AmpStrategy {
     case 'manual':
       return manual
     default:
-      throw new Error(`Unknown amp strategy: '${name}'. Use manual | continuous | increment.`)
+      throw new Error(`Unknown amp strategy: '${chosen}'. Use manual | continuous | increment.`)
   }
 }
