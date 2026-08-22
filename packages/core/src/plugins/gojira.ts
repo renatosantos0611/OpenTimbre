@@ -409,6 +409,7 @@ export const gojiraSpec: PluginSpec = {
   amps: AMPS,
   ampDescriptions: AMP_DESCRIPTIONS,
   ampSelect: { cc: 20, values: { CLN: 0, RUST: 64, HOT: 127 } },
+  ampStrategy: 'continuous',
   ampCore: AMP_CORE,
   ampParams: AMP_PARAMS,
   ampCC: AMP_CC,

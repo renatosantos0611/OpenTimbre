@@ -114,6 +114,7 @@ export type Summary = {
 export type AppliedScene = {
   scene: string
   amp: string
+  /** CCs in the scene plan — the amp-selector CC, when the strategy sends one, is extra. */
   ccsSent: number
   ms: number
   /** Unmapped-amp warning and `manual`-strategy instructions. */

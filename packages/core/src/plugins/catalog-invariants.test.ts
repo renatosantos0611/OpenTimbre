@@ -30,7 +30,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { describe, test } from 'node:test'
 import { CATALOG } from './catalog.ts'
-import type { PluginSpec } from './types.ts'
+import { getAmpStrategy, type PluginSpec } from './types.ts'
 
 /** Every CC the spec can send, mapped to the name(s) of the field(s) using it. */
 function ccsInSpec(spec: PluginSpec): Map<number, string[]> {
@@ -169,6 +169,14 @@ for (const spec of CATALOG) {
         return spec.ampCore.every((k) => ccs[k] !== undefined)
       })
       assert.ok(mapped.length > 0, 'no amp fulfills ampCore — every scene would show "no mapped knobs"')
+    })
+
+    test('the declared amp strategy resolves and names itself', () => {
+      // Applying a scene switches the amp through whatever the catalog declares;
+      // a strategy that fails to resolve would surface only as a silent no-op,
+      // the exact regression this field exists to prevent.
+      const strategy = getAmpStrategy(spec)
+      assert.equal(strategy.name, spec.ampStrategy, 'getAmpStrategy must honor the catalog-declared strategy')
     })
 
     test('every select param has non-empty options', () => {

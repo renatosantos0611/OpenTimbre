@@ -16,6 +16,7 @@
 
 ## History
 
+- 2026-08-22 amp-switch-via-catalog — delivered — amp switch restored via catalog-declared strategy; PR pending integration → data/history/2026-08-22-amp-switch-via-catalog.md
 - 2026-08-22 chat-failure-visibility — delivered — categorized AI turn failures; truncation detected; awaiting PR integration observation → data/history/2026-08-22-chat-failure-visibility.md
 
 ## Superseded (previous active-task block, kept verbatim until history migration)

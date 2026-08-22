@@ -295,6 +295,7 @@ export const timHensonSpec: PluginSpec = {
   amps: AMPS,
   ampDescriptions: AMP_DESCRIPTIONS,
   ampSelect: { cc: 20, values: { ROSES: 0, CHERUBS: 64, PINK: 127 } },
+  ampStrategy: 'continuous',
   ampCore: AMP_CORE,
   ampParams: AMP_PARAMS,
   ampCC: AMP_CC,

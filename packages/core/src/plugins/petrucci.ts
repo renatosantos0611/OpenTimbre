@@ -374,6 +374,7 @@ export const petrucciSpec: PluginSpec = {
   ampDescriptions: AMP_DESCRIPTIONS,
   /** Four positions, not three — values are the unverified JUCE `AudioParameterChoice` hypothesis. */
   ampSelect: { cc: 20, values: { PIEZO: 0, CLEAN: 42, RHYTHM: 85, LEAD: 127 } },
+  ampStrategy: 'continuous',
   ampCore: AMP_CORE,
   ampParams: AMP_PARAMS,
   ampCC: AMP_CC,

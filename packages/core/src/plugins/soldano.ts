@@ -358,6 +358,7 @@ export const soldanoSpec: PluginSpec = {
   amps: AMPS,
   ampDescriptions: AMP_DESCRIPTIONS,
   ampSelect: { cc: 20, values: { NORMAL: 0, OVERDRIVE: 127 } },
+  ampStrategy: 'continuous',
   ampCore: AMP_CORE,
   ampParams: AMP_PARAMS,
   ampCC: AMP_CC,
