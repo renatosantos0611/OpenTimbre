@@ -8,8 +8,8 @@
 - base-ref: refs/heads/main
 - base-sha: 058fba6 (main before the fix)
 - validated-head: 6896dd412cfd609eb021545ee4e0e8fbdc4d93b4
-- delivery-head: <closure-head>
-- delivery-status: pr-open (pending)
+- delivery-head: 31c3a8eba5022b4f3e4e8a547a7b4f28f47438b2 (closure; content = validated-head 6896dd4)
+- delivery-status: pr-open — https://github.com/renatosantos0611/OpenTimbre/pull/13
 - confirm: base-ref contains validated-head (PR/branch integrated)
 - kickoff: ratified 2026-08-22 — bug track (apply never switches amp on any archetype; amp
   knobs dead, pedals work). Interview-me decision: amp strategy becomes catalog data
