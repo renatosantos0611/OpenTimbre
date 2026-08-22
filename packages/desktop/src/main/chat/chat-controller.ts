@@ -20,6 +20,7 @@
  * `send`, which never sees a raw `event`/sender.
  */
 import { createRigChat, type RigChat, type RigChatProvider, type RigChatSnapshot } from '@opentimbre/core/src/chat/rig-chat.ts'
+import { TurnError, type TurnFailureKind } from '@opentimbre/core/src/providers/tool-use.ts'
 import type { AppliedScene, ChatStatus, Guitar, MessageWithCards, OpenConversation, ProviderId, Result, Rig, SentTurn, Summary } from '@opentimbre/contracts'
 import { createI18n, type Locale, type LocaleKey } from '@opentimbre/i18n'
 import type { SceneApplier } from '../rig/scene-applier.ts'
@@ -52,6 +53,25 @@ export type ChatController = {
 
 /** The conversation title is the first request, so it fits one list row. */
 const TITLE_MAX = 60
+
+/**
+ * Maps a provider failure kind to the catalog key the guitarist sees. The
+ * `Record` is exhaustive over `TurnFailureKind`, so a new kind is a compile
+ * error until it gets a message; a non-`TurnError` failure falls back to
+ * `chat.error.send`. The raw API text never reaches the UI — only these
+ * friendly, localized lines.
+ */
+const FAILURE_KEY: Record<TurnFailureKind, LocaleKey> = {
+  auth: 'chat.error.auth',
+  'no-access': 'chat.error.noAccess',
+  'model-unavailable': 'chat.error.modelUnavailable',
+  connection: 'chat.error.connection',
+  rate: 'chat.error.rate',
+  truncated: 'chat.error.truncated',
+  blocked: 'chat.error.blocked',
+  validation: 'chat.error.validation',
+  other: 'chat.error.send',
+}
 
 type Active = {
   id: string
@@ -149,9 +169,13 @@ export function createChatController(options: ChatControllerOptions): ChatContro
       }
       return { ...turn, conversationId: a.id, autoApplied }
     } catch (err) {
-      console.error('[DEBUG-chatsend]', err) // temporary, removed before the definitive fix
+      // A `TurnError` already carries a provider-key fragment risk in its
+      // message, so log only its kind; the SDK error stayed attached as its
+      // `cause`. Anything else is unexpected and worth the full stack.
+      console.error('[chat] send failed:', err instanceof TurnError ? err.kind : err)
       emit(null)
-      const message = tr('chat.error.send')
+      const key = err instanceof TurnError ? FAILURE_KEY[err.kind] : 'chat.error.send'
+      const message = tr(key)
       a.messages.push({ role: 'error', text: message })
       persist(a, a.chat.export())
       return { error: message }
@@ -163,7 +187,7 @@ export function createChatController(options: ChatControllerOptions): ChatContro
       try {
         return await sendTurn(text)
       } catch (err) {
-        console.error('[DEBUG-chatsend-outer]', err) // temporary, removed before the definitive fix
+        console.error('[chat] unexpected send failure:', err)
         return { error: tr('error.generic') }
       }
     },
