@@ -15,6 +15,7 @@ import {
   execute,
   issuesToError,
   issuesToText,
+  TurnError,
   type Call,
   type Response,
   type Session,
@@ -229,6 +230,56 @@ describe('execute — both attempts fail', () => {
   })
 })
 
+// ---------------------------------------------------------- provider failure
+
+describe('execute — a provider turn failure (not a validation failure)', () => {
+  /** A session whose respond() rejects outright, like a provider raising `TurnError`. */
+  function throwingSession(error: Error) {
+    const rolledBackTo: number[] = []
+    let history: unknown[] = []
+    const session: Session = {
+      label: 'Fake',
+      model: () => 'fake-model',
+      ask(text) {
+        history = [...history, { role: 'user', text }]
+      },
+      respond() {
+        return Promise.reject(error)
+      },
+      correct() {},
+      confirm() {},
+      mark: () => history.length,
+      rollback(mark) {
+        rolledBackTo.push(mark)
+        history = history.slice(0, mark)
+      },
+      history: () => history,
+    }
+    return { session, rolledBackTo, historyLength: () => history.length }
+  }
+
+  test('propagates the provider error unchanged and rolls the history back', async () => {
+    const providerError = new TurnError('truncated', 'output ceiling')
+    const { session, rolledBackTo, historyLength } = throwingSession(providerError)
+
+    // Seed pre-existing history, the way a real conversation would carry one.
+    session.ask('an earlier turn, already answered')
+    const preExistingLength = historyLength()
+
+    await assert.rejects(
+      execute({ session, request: 'req', tools: [TOOL], force: TOOL.name, validate }),
+      (err: unknown) => {
+        assert.ok(err instanceof TurnError)
+        assert.equal((err as TurnError).kind, 'truncated')
+        return true
+      },
+    )
+
+    assert.deepEqual(rolledBackTo, [preExistingLength])
+    assert.equal(historyLength(), preExistingLength, 'the failed turn must not linger')
+  })
+})
+
 // ---------------------------------------------------------------- no call
 
 describe('execute — the model answers without calling the tool', () => {
@@ -276,5 +327,16 @@ describe('issuesToText', () => {
   test('a root-level issue (empty path) reads as (root), not a blank segment', () => {
     const text = issuesToText([{ path: [], message: 'must contain a "base" scene' }])
     assert.match(text, /\(root\): must contain a "base" scene/)
+  })
+})
+
+// ------------------------------------------------------------- turn errors
+
+describe('TurnError', () => {
+  test('issuesToError carries the validation kind so the host can localize it', () => {
+    const err = issuesToError([{ path: ['scenes', 'base', 'gain'], message: 'Required' }])
+    assert.ok(err instanceof TurnError)
+    assert.equal(err.kind, 'validation')
+    assert.match(err.message, /failed validation twice/)
   })
 })
