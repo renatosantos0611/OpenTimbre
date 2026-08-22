@@ -5,7 +5,20 @@
 > and history hygiene — lives in `pelizzai-execution-plans` → SKILL.md §State and resumption.
 > No active task = `slug: <none>`. `phase: blocked` = stuck, awaiting a human decision.
 
+## Previous task (observed done)
+
+- slug: ui-legacy-parity — `phase: delivered` observed as **done**: `confirm:` satisfied, origin/main
+  (PR #10, merge commit 3a6f1f3) contains validated-head 349929e. History migration pending closeout.
+
 ## Active task
+
+- slug: <none>
+
+## History
+
+- 2026-08-22 chat-failure-visibility — delivered — categorized AI turn failures; truncation detected; awaiting PR integration observation → data/history/2026-08-22-chat-failure-visibility.md
+
+## Superseded (previous active-task block, kept verbatim until history migration)
 
 - slug: ui-legacy-parity
 - track: feature

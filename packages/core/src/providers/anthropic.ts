@@ -27,11 +27,17 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { AvailableModel, ProviderId } from '@opentimbre/contracts'
 import type { Validation } from './resolve.ts'
-import type { Call, Response, Session, ToolDef } from './tool-use.ts'
+import { TurnError, type Call, type Response, type Session, type ToolDef, type TurnFailureKind } from './tool-use.ts'
 
 export const KEY_ENV = 'ANTHROPIC_API_KEY'
 const DEFAULT_MODEL = 'claude-opus-5'
-const MAX_OUTPUT = 16000
+/**
+ * Ceiling on output tokens. Reasoning tokens count against this too, and a
+ * multi-scene rig's tool call is several KB — 16k left mid-tool truncations
+ * (`stop_reason: 'max_tokens'`) that arrived as garbled args; the ceiling is
+ * a cap, not a reservation, so raising it costs nothing.
+ */
+const MAX_OUTPUT = 32000
 
 // -------------------------------------------------------------- the port
 
@@ -65,6 +71,26 @@ function textOf(content: readonly Anthropic.ContentBlock[]): string {
     .trim()
 }
 
+/**
+ * Maps an SDK exception to the coarse failure kind the host localizes.
+ * `APIConnectionTimeoutError` subclasses `APIConnectionError`, so the one
+ * check covers both. Anything unrecognized stays `other`.
+ */
+function failureKindOf(err: unknown): TurnFailureKind {
+  if (err instanceof Anthropic.AuthenticationError) return 'auth'
+  if (err instanceof Anthropic.PermissionDeniedError) return 'no-access'
+  if (err instanceof Anthropic.NotFoundError) return 'model-unavailable'
+  if (err instanceof Anthropic.RateLimitError) return 'rate'
+  if (err instanceof Anthropic.APIConnectionError) return 'connection'
+  return 'other'
+}
+
+function toTurnError(err: unknown): TurnError {
+  // The SDK error travels as `cause` so the stack survives for debugging,
+  // while the host logs only the kind — SDK messages can carry key fragments.
+  return new TurnError(failureKindOf(err), err instanceof Error ? err.message : String(err), { cause: err })
+}
+
 export function createSession(client: AnthropicClient, model: string, system: string, history?: unknown): Session {
   const messages: Anthropic.MessageParam[] = Array.isArray(history)
     ? [...history] as Anthropic.MessageParam[]
@@ -86,18 +112,30 @@ export function createSession(client: AnthropicClient, model: string, system: st
     },
 
     async respond(tools: readonly ToolDef[], force: string | null): Promise<Response> {
-      const response = await client.messages.create({
-        model,
-        max_tokens: MAX_OUTPUT,
-        system,
-        tools: tools.map((t): Anthropic.Tool => ({
-          name: t.name,
-          description: t.description,
-          input_schema: t.schema as Anthropic.Tool.InputSchema,
-        })),
-        ...(force ? { tool_choice: { type: 'tool' as const, name: force } } : {}),
-        messages,
-      })
+      let response: Anthropic.Message
+      try {
+        response = await client.messages.create({
+          model,
+          max_tokens: MAX_OUTPUT,
+          system,
+          tools: tools.map((t): Anthropic.Tool => ({
+            name: t.name,
+            description: t.description,
+            input_schema: t.schema as Anthropic.Tool.InputSchema,
+          })),
+          ...(force ? { tool_choice: { type: 'tool' as const, name: force } } : {}),
+          messages,
+        })
+      } catch (err) {
+        throw toTurnError(err)
+      }
+
+      // The output-token ceiling hit mid-turn. The tool call's args JSON is
+      // likely cut off, so name the cause instead of letting it surface as a
+      // garbled tool call.
+      if (response.stop_reason === 'max_tokens') {
+        throw new TurnError('truncated', 'The response was cut off before finishing (stop_reason=max_tokens).')
+      }
 
       messages.push({ role: 'assistant', content: response.content })
       const block = findToolUse(response.content)

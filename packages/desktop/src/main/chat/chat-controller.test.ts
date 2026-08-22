@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite'
 import type { Guitar, Result, Rig, SentTurn } from '@opentimbre/contracts'
 import type { Locale } from '@opentimbre/i18n'
 import { CATALOG } from '@opentimbre/core/src/plugins/catalog.ts'
-import type { Call, Response, Session } from '@opentimbre/core/src/providers/tool-use.ts'
+import { TurnError, type Call, type Response, type Session } from '@opentimbre/core/src/providers/tool-use.ts'
 import type { RigChatProvider } from '@opentimbre/core/src/chat/rig-chat.ts'
 import type { SceneApplier } from '../rig/scene-applier.ts'
 import { createConversationRepository, type ConversationRepository } from './conversation-repository.ts'
@@ -304,6 +304,52 @@ test('a provider failure is a localized chat error, never a thrown promise', asy
 
   const list = (await controller.list()) as { length: number }
   assert.equal(list.length, 1, 'an error turn is still persisted so the failure is visible')
+})
+
+/** A provider whose respond() always throws the given error. */
+function failing(error: Error): RigChatProvider {
+  return {
+    id: 'anthropic',
+    label: 'Failing',
+    model: () => 'fake-model',
+    listModels: async () => [],
+    createSession: () => ({
+      label: 'Failing',
+      model: () => 'fake-model',
+      ask: () => undefined,
+      respond: () => Promise.reject(error),
+      correct: () => undefined,
+      confirm: () => undefined,
+      mark: () => 0,
+      rollback: () => undefined,
+      history: () => [],
+    }),
+  }
+}
+
+test('a truncated response is reported with its own message, not the connection hint', async () => {
+  const { controller } = harness({ getProviders: () => [failing(new TurnError('truncated', 'output ceiling'))] })
+
+  const result = (await controller.send('Anything')) as { error: string }
+  assert.ok('error' in result)
+  assert.match(result.error, /cut off/i, 'names the cutoff instead of connection/key')
+  assert.doesNotMatch(result.error, /connection/i)
+})
+
+test('a rejected key is reported with its own message', async () => {
+  const { controller } = harness({ getProviders: () => [failing(new TurnError('auth', '401'))] })
+
+  const result = (await controller.send('Anything')) as { error: string }
+  assert.ok('error' in result)
+  assert.match(result.error, /key/i)
+})
+
+test('a connection failure keeps the connection guidance', async () => {
+  const { controller } = harness({ getProviders: () => [failing(new TurnError('connection', 'offline'))] })
+
+  const result = (await controller.send('Anything')) as { error: string }
+  assert.ok('error' in result)
+  assert.match(result.error, /connection/i)
 })
 
 test('a storage failure leaves the in-memory conversation usable', async () => {

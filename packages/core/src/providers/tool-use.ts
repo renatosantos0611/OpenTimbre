@@ -28,6 +28,33 @@ export type Phase = 'querying' | 'validating' | 'correcting'
 
 export type Issue = { readonly path: PropertyKey[]; readonly message: string }
 
+/**
+ * Why a turn failed, coarse enough for the host to pick a localized message
+ * without parsing SDK internals. The providers raise these; `execute` lets
+ * them propagate after rolling the history back. The `message` is for logs —
+ * the guitarist only ever sees the host's localization of `kind`.
+ */
+export type TurnFailureKind =
+  | 'auth'
+  | 'no-access'
+  | 'model-unavailable'
+  | 'connection'
+  | 'rate'
+  | 'truncated'
+  | 'blocked'
+  | 'validation'
+  | 'other'
+
+export class TurnError extends Error {
+  readonly kind: TurnFailureKind
+
+  constructor(kind: TurnFailureKind, message: string, options?: { cause?: unknown }) {
+    super(message, options)
+    this.name = 'TurnError'
+    this.kind = kind
+  }
+}
+
 /** A tool call already normalized, whether it came from Anthropic or OpenAI. */
 export type Call = {
   readonly id: string
@@ -134,9 +161,9 @@ export function issuesToText(issues: readonly Issue[]): string {
   )
 }
 
-export function issuesToError(issues: readonly Issue[]): Error {
+export function issuesToError(issues: readonly Issue[]): TurnError {
   const detail = issues.map((i) => `  ${i.path.join('.') || '(root)'}: ${i.message}`).join('\n')
-  return new Error(`The model's response failed validation twice:\n${detail}`)
+  return new TurnError('validation', `The model's response failed validation twice:\n${detail}`)
 }
 
 /**

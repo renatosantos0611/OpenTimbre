@@ -37,7 +37,7 @@
 import OpenAI from 'openai'
 import type { AvailableModel, ProviderId } from '@opentimbre/contracts'
 import type { Validation } from './resolve.ts'
-import type { Call, Response, Session, ToolDef } from './tool-use.ts'
+import { TurnError, type Call, type Response, type Session, type ToolDef, type TurnFailureKind } from './tool-use.ts'
 
 export const KEY_ENV = 'OPENAI_API_KEY'
 const DEFAULT_MODEL = 'gpt-5'
@@ -80,13 +80,33 @@ function parseArgs(call: FunctionCall): unknown {
   try {
     return JSON.parse(call.arguments)
   } catch {
-    throw new Error(`The function's arguments aren't valid JSON:\n${call.arguments.slice(0, 500)}`)
+    throw new TurnError('validation', `The function's arguments aren't valid JSON:\n${call.arguments.slice(0, 500)}`)
   }
 }
 
 /** A tool call's result. Needs the same `call_id`. */
 function output(call: Call, text: string): InputItem {
   return { type: 'function_call_output', call_id: call.id, output: text }
+}
+
+/**
+ * Maps an SDK exception to the coarse failure kind the host localizes.
+ * `APIConnectionTimeoutError` subclasses `APIConnectionError`, so the one
+ * check covers both. Anything unrecognized stays `other`.
+ */
+function failureKindOf(err: unknown): TurnFailureKind {
+  if (err instanceof OpenAI.AuthenticationError) return 'auth'
+  if (err instanceof OpenAI.PermissionDeniedError) return 'no-access'
+  if (err instanceof OpenAI.NotFoundError) return 'model-unavailable'
+  if (err instanceof OpenAI.RateLimitError) return 'rate'
+  if (err instanceof OpenAI.APIConnectionError) return 'connection'
+  return 'other'
+}
+
+function toTurnError(err: unknown): TurnError {
+  // The SDK error travels as `cause` so the stack survives for debugging,
+  // while the host logs only the kind — SDK messages can carry key fragments.
+  return new TurnError(failureKindOf(err), err instanceof Error ? err.message : String(err), { cause: err })
 }
 
 /**
@@ -119,21 +139,39 @@ export function createSession(client: OpenAIClient, model: string, system: strin
     },
 
     async respond(tools: readonly ToolDef[], force: string | null): Promise<Response> {
-      const r = await client.responses.create({
-        model,
-        instructions: system,
-        input,
-        tools: tools.map((t): OpenAI.Responses.FunctionTool => ({
-          type: 'function',
-          name: t.name,
-          description: t.description,
-          parameters: t.schema,
-          // The zod-derived schema has optional fields; OpenAI's strict mode requires every field required.
-          strict: false,
-        })),
-        tool_choice: force ? { type: 'function', name: force } : 'auto',
-        max_output_tokens: MAX_OUTPUT,
-      })
+      let r: OpenAI.Responses.Response
+      try {
+        r = await client.responses.create({
+          model,
+          instructions: system,
+          input,
+          tools: tools.map((t): OpenAI.Responses.FunctionTool => ({
+            type: 'function',
+            name: t.name,
+            description: t.description,
+            parameters: t.schema,
+            // The zod-derived schema has optional fields; OpenAI's strict mode requires every field required.
+            strict: false,
+          })),
+          tool_choice: force ? { type: 'function', name: force } : 'auto',
+          max_output_tokens: MAX_OUTPUT,
+        })
+      } catch (err) {
+        throw toTurnError(err)
+      }
+
+      // The response stopped short of `completed`. Two reasons, two different
+      // stories for the guitarist: the output-token ceiling cut a tool call
+      // mid-args (ask for a simpler rig), versus the safety filter refusing
+      // the content (nothing about tokens would be true). Both fail the turn
+      // instead of letting a half-built call surface as "arguments aren't
+      // valid JSON".
+      if (r.status === 'incomplete') {
+        if (r.incomplete_details?.reason === 'content_filter') {
+          throw new TurnError('blocked', 'The provider stopped the response for content-policy reasons (incomplete, content_filter).')
+        }
+        throw new TurnError('truncated', 'The response was cut off before finishing (status=incomplete).')
+      }
 
       input.push(...asInput(r.output))
       const call = findCall(r.output)

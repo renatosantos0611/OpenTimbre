@@ -1,8 +1,25 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import OpenAI from 'openai'
 import { openaiProvider, createSession, type OpenAIClient } from './openai.ts'
+import { TurnError, type TurnFailureKind } from './tool-use.ts'
 
 const client = {} as OpenAIClient
+
+function respondingSession(result: unknown): { session: ReturnType<typeof createSession> } {
+  const fake = {
+    responses: {
+      create: async () => {
+        if (result instanceof Error) throw result
+        return result
+      },
+    },
+    models: { list: async () => ({ data: [] }) },
+  } as unknown as OpenAIClient
+  const session = createSession(fake, 'gpt-test', 'system')
+  session.ask('build a rig')
+  return { session }
+}
 
 test('OpenAI session resumes native response history', () => {
   const history = [{ type: 'message', role: 'user', content: 'previous turn' }]
@@ -67,5 +84,79 @@ test('an empty override falls back to OPENAI_MODEL, never sends an empty model s
   } finally {
     if (previous === undefined) delete process.env['OPENAI_MODEL']
     else process.env['OPENAI_MODEL'] = previous
+  }
+})
+
+// --------------------------------------------------------------- respond failures
+
+function assertTurnError(kind: TurnFailureKind) {
+  return (err: unknown) => {
+    assert.ok(err instanceof TurnError, `expected a TurnError, got ${String(err)}`)
+    assert.equal((err as TurnError).kind, kind)
+    return true
+  }
+}
+
+test('an incomplete response (output-token ceiling) fails as truncated and leaves history untouched', async () => {
+  const { session } = respondingSession({
+    status: 'incomplete',
+    output: [],
+    output_text: '',
+    usage: { input_tokens: 1, output_tokens: 1 },
+  })
+  const before = (session.history() as unknown[]).length
+
+  await assert.rejects(session.respond([], null), assertTurnError('truncated'))
+  assert.equal((session.history() as unknown[]).length, before, 'a truncated turn must not pollute the history')
+})
+
+test('an incomplete response with an explicit max_output_tokens reason is truncated', async () => {
+  const { session } = respondingSession({
+    status: 'incomplete',
+    incomplete_details: { reason: 'max_output_tokens' },
+    output: [],
+    output_text: '',
+    usage: { input_tokens: 1, output_tokens: 1 },
+  })
+
+  await assert.rejects(session.respond([], null), assertTurnError('truncated'))
+})
+
+test('a content-filter cutoff fails as blocked, not truncated', async () => {
+  const { session } = respondingSession({
+    status: 'incomplete',
+    incomplete_details: { reason: 'content_filter' },
+    output: [],
+    output_text: '',
+    usage: { input_tokens: 1, output_tokens: 1 },
+  })
+
+  await assert.rejects(session.respond([], null), assertTurnError('blocked'))
+})
+
+test('a tool call whose arguments are not valid JSON fails as validation', async () => {
+  const { session } = respondingSession({
+    status: 'completed',
+    output: [{ type: 'function_call', call_id: 'c1', name: 'apply_rig_gojira', arguments: '{ broken' }],
+    output_text: '',
+    usage: { input_tokens: 1, output_tokens: 1 },
+  })
+
+  await assert.rejects(session.respond([], null), assertTurnError('validation'))
+})
+
+test('SDK errors surface as categorized turn errors', async () => {
+  const headers = new Headers()
+  const cases: Array<[Error, TurnFailureKind]> = [
+    [new OpenAI.AuthenticationError(401, undefined, 'bad key', headers), 'auth'],
+    [new OpenAI.PermissionDeniedError(403, undefined, 'denied', headers), 'no-access'],
+    [new OpenAI.NotFoundError(404, undefined, 'model not found', headers), 'model-unavailable'],
+    [new OpenAI.RateLimitError(429, undefined, 'slow down', headers), 'rate'],
+    [new OpenAI.APIConnectionError({ cause: new Error('offline') }), 'connection'],
+    [new OpenAI.BadRequestError(400, undefined, 'bad request', headers), 'other'],
+  ]
+  for (const [error, kind] of cases) {
+    const { session } = respondingSession(error)
+    await assert.rejects(session.respond([], null), assertTurnError(kind))
   }
 })
