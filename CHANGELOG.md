@@ -4,6 +4,34 @@ All notable changes to this project are documented in this file.
 The format is based on Keep a Changelog, and this project adheres to
 Semantic Versioning.
 
+## [0.1.2] - 2026-08-22
+
+Fixes the two chat defects reported after 0.1.1: turns failing with a
+misleading connection/key message, and responses truncated mid-tool killing
+the turn without building the message.
+
+### Changed
+
+- `@opentimbre/desktop` version set to `0.1.2`.
+
+### Fixed
+
+- A failed chat turn now names its real cause — rejected key, no access on
+  the account, model unavailable for the key, request rate limit, no
+  connection, response cut off, or invalid rig — instead of always showing
+  the generic "check your connection and API key" line.
+- Responses cut off at the model's output cap (OpenAI `status: incomplete`,
+  Anthropic `stop_reason: max_tokens`) no longer die as a garbled tool call
+  or an empty message; they surface a dedicated message. OpenAI's
+  content-filter cutoff gets its own message, and Anthropic's output ceiling
+  rises from 16k to 32k tokens.
+
+### Security
+
+- Resolved the high-severity `nanoid` advisory via `npm audit fix`; the
+  affected copy is dev tooling only (transitive through `@angular/build`),
+  never bundled into the shipped product.
+
 ## [0.1.1] - 2026-08-09
 
 Fixes the app so it boots on Windows, and restores the legacy app's chrome
