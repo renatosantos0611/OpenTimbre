@@ -8,8 +8,8 @@
 - base-ref: refs/heads/main
 - base-sha: 3a6f1f3a731ed705506dd3296dc83232573dfca6
 - validated-head: 9f50653f9a17f41c299ae225071f5acfb88baabf
-- delivery-head: <closure-head recorded below>
-- delivery-status: pr-open (pending, recorded after the PR)
+- delivery-head: f85ee88a769b84a6257fca390db1b6cd7dc6ee2d (closure; content = validated-head 9f50653)
+- delivery-status: pr-open — https://github.com/renatosantos0611/OpenTimbre/pull/11
 - confirm: base-ref contains validated-head (PR/branch integrated)
 - kickoff: ratified 2026-08-22 — bug track (chat: GPT turns fail with a misleading "check your
   connection/key" message even with a correct OpenAI key; AI returns missing parameters and the
