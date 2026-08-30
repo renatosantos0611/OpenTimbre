@@ -4,6 +4,30 @@ All notable changes to this project are documented in this file.
 The format is based on Keep a Changelog, and this project adheres to
 Semantic Versioning.
 
+## [0.1.3] - 2026-08-30
+
+Fixes amp switching, which regressed in 0.1.2: applying a scene sent the
+intended knob CCs but left the plugin on the wrong amp — the amp-change CC
+was skipped because the strategy fell back to `manual` (no MIDI), so every
+apply silently kept whatever amp was showing.
+
+### Changed
+
+- `@opentimbre/desktop` version set to `0.1.3`.
+
+### Fixed
+
+- Amp switching is driven by a strategy declared per plugin in the catalog
+  (`ampStrategy: manual | continuous | increment`), so applying a scene
+  sends the amp-selector CC before the planned knob CCs; the four shipping
+  archetypes (Gojira, Soldano, Tim Henson, Petrucci) declare `continuous`.
+- The legacy `AMP_STRATEGY`/`GOJIRA_AMP_STRATEGY` environment overrides
+  still take precedence, so existing setups keep working as before.
+- Unmapped amps fall back to the first mapped amp and send the selector CC
+  for the resolved amp, with a visible warning.
+- Chat feedback polish: the pane auto-scrolls to the newest message and
+  animates the assistant's in-progress state.
+
 ## [0.1.2] - 2026-08-22
 
 Fixes the two chat defects reported after 0.1.1: turns failing with a
