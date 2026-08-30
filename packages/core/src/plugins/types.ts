@@ -244,7 +244,7 @@ const manual: AmpStrategy = {
  * never changed amp, and the amp's knob CCs landed on the wrong amp page.
  */
 export function getAmpStrategy(spec: PluginSpec, name?: AmpStrategyName): AmpStrategy {
-  const chosen = name ?? spec.ampStrategy
+  const chosen = name ?? process.env['AMP_STRATEGY'] ?? process.env['GOJIRA_AMP_STRATEGY'] ?? spec.ampStrategy
   switch (chosen) {
     case 'continuous':
       return continuous(spec)

@@ -39,7 +39,7 @@ import { I18nService } from '../i18n.service'
     }
     @if (chatStatusLabel()) {
       <div class="row pill-row">
-        <svg lucideLoaderCircle [size]="14"></svg>
+        <svg class="thinking-icon" lucideLoaderCircle [size]="14"></svg>
         <span class="pill">{{ chatStatusLabel() }}</span>
       </div>
     }
@@ -164,6 +164,12 @@ import { I18nService } from '../i18n.service'
       }
       .pill-row {
         color: var(--accent);
+      }
+      .thinking-icon {
+        animation: thinking-spin 1s linear infinite;
+      }
+      @keyframes thinking-spin {
+        to { transform: rotate(360deg); }
       }
       .pill {
         color: var(--text-dim);
