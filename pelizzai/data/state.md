@@ -12,7 +12,8 @@
 
 ## Active task
 
-- slug: <none>
+- slug: fix-chat-autoscroll-jsdom
+- kickoff: ratified 2026-08-30 — bug track (release v0.1.3 CI failed at Test: uncaught TypeError `element.scrollTo is not a function` in chat-pane.ts:271); isolation: branch · mode: inline · commit-strategy: granular; base-ref: refs/heads/main (075f8d5)
 
 ## History
 

@@ -268,6 +268,9 @@ export class ChatPane {
 
   private scrollToRecent(): void {
     const element = this.scroll()?.nativeElement
-    if (element) element.scrollTo({ top: element.scrollHeight, behavior: 'smooth' })
+    // The unit-test DOM (Angular's vitest runner) implements neither
+    // scrollTo nor scrollBy — admitting the absent API here would throw
+    // an uncaught TypeError on every effect run and fail the whole suite.
+    if (element?.scrollTo) element.scrollTo({ top: element.scrollHeight, behavior: 'smooth' })
   }
 }
