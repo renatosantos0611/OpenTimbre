@@ -5,7 +5,7 @@
  * mounted across pane switches so its scroll position survives
  * (see `opentimbre-angular-ui`).
  */
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, viewChild } from '@angular/core'
 import { LucideSlidersVertical } from '@lucide/angular'
 import { DesktopService } from '../../desktop.service'
 import { I18nService } from '../../i18n.service'
@@ -17,7 +17,7 @@ import { RigCard } from './rig-card'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RigCard, LucideSlidersVertical],
   template: `
-    <div class="scroll">
+    <div #scroll class="scroll">
       @if (!desktop.ready()) {
         <p class="empty">{{ i18n.t('shell.empty.loading') }}</p>
       } @else if (desktop.loadError()) {
@@ -68,7 +68,7 @@ import { RigCard } from './rig-card'
           <div class="row ai" aria-live="polite">
             <span class="who">{{ i18n.t('shell.chat.assistant') }}</span>
             <div class="prose status">
-              <span class="status-dot"></span>{{ statusLabel() }}
+              <span class="status-dot thinking-dot"></span>{{ statusLabel() }}
             </div>
           </div>
         }
@@ -165,6 +165,9 @@ import { RigCard } from './rig-card'
         flex-direction: column;
         gap: 3px;
       }
+      .row.ai {
+        animation: message-in 180ms ease-out both;
+      }
       .who {
         font-family: var(--font-display);
         font-weight: 500;
@@ -203,7 +206,13 @@ import { RigCard } from './rig-card'
         height: 6px;
         border-radius: 999px;
         background: var(--accent);
+      }
+      .thinking-dot {
         animation: status-pulse 1.1s ease-in-out infinite;
+      }
+      @keyframes message-in {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
       }
       @keyframes status-pulse {
         0%,
@@ -220,6 +229,16 @@ import { RigCard } from './rig-card'
 export class ChatPane {
   readonly desktop = inject(DesktopService)
   readonly i18n = inject(I18nService)
+  private readonly scroll = viewChild<ElementRef<HTMLElement>>('scroll')
+
+  constructor() {
+    effect(() => {
+      this.desktop.transcript()
+      this.desktop.busy()
+      this.desktop.chatStatus()
+      queueMicrotask(() => this.scrollToRecent())
+    })
+  }
 
   readonly chips = computed(() => [
     this.i18n.t('chat.invite.chip.metallica'),
@@ -245,5 +264,10 @@ export class ChatPane {
   /** Orders stable; role is enough inside one conversation, indexed by position. */
   msgKey(index: number, role: string): string {
     return `${index}-${role}`
+  }
+
+  private scrollToRecent(): void {
+    const element = this.scroll()?.nativeElement
+    if (element) element.scrollTo({ top: element.scrollHeight, behavior: 'smooth' })
   }
 }

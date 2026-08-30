@@ -214,6 +214,17 @@ describe('getAmpStrategy', () => {
     assert.equal(getAmpStrategy({ ...FAKE, ampStrategy: 'continuous' }, 'manual').name, 'manual')
   })
 
+  test('preserves the legacy environment strategy when no explicit name is given', () => {
+    const previous = process.env['AMP_STRATEGY']
+    process.env['AMP_STRATEGY'] = 'increment'
+    try {
+      assert.equal(getAmpStrategy({ ...FAKE, ampStrategy: 'continuous' }).name, 'increment')
+    } finally {
+      if (previous === undefined) delete process.env['AMP_STRATEGY']
+      else process.env['AMP_STRATEGY'] = previous
+    }
+  })
+
   test('an unknown strategy name fails immediately, listing the accepted values', () => {
     assert.throws(
       () => getAmpStrategy(FAKE, 'teleport' as Parameters<typeof getAmpStrategy>[1]),
